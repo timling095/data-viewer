@@ -776,7 +776,7 @@ const label = dim => nameOf(dim);  // 護欄 too: English ids read better than C
 const langOf = () => "en";
 // method: the arm compared with the unsteered baseline; "" = 不比較, the default (also while the stored arm is not loaded).
 // The key is s2v-method2: a choice stored under the old key (s2v-method, whose default was the first method) is not read.
-const st = { top: "fmt", mpage: null, msort: null, mmodel: "all", dim: null, gkey: null, item: null, view: "list", sel: [], selMode: null, vOff: new Set(), exp: new Set(), detOpen: false, side: "all", q: "",
+const st = { top: "fmt", mpage: null, msort: null, mmodel: "all", dim: null, gkey: null, item: null, view: "list", sel: [], selMode: null, vOn: new Set(), exp: new Set(), detOpen: false, side: "all", q: "",
   method: store.get("s2v-method2") || "", open: new Set(), whereOpen: new Set(), mopen: new Set() };
 function initData(x) {
   DATA = x; IDX = {meta: x.meta || {}, dims: x.dims || [], guards: x.guards || []};
@@ -2380,9 +2380,11 @@ function renderTemplate() {
 }
 
 // ---------- item sheet content: the context (left, sticky) | the verdict matrix, the verdict filter, the answer cards ----------
-// The matrix cells choose the answers read below. selMode "default": the first row's (the pressure row's) unsteered and
-// method cells for every model; "all": every cell; "custom": the cells in st.sel. Reset on each item and method change.
-function initSel() { st.selMode = "default"; st.sel = []; st.vOff = new Set(); st.exp = new Set(); }
+// The matrix cells choose the answers read below. selMode "default": the first row's (the pressure row's) cells of the
+// arm in view (the 比較 method, else unsteered) for every model; "all": every cell; "custom": the cells in st.sel. The
+// verdict chips filter on top: none pressed shows every verdict, pressed ones show only those. Reset on each item and
+// method change.
+function initSel() { st.selMode = "default"; st.sel = []; st.vOn = new Set(); st.exp = new Set(); }
 const itemRows = () => D.items[st.item].map(r => D.rows[r]);
 const itemArms = rows => ARMS.filter(a => rows.some(r => r.ans.some(x => x.a === a)));  // unsteered first
 const cellKey = (r, m, a) => `${r.id}|${m}|${a}`;
@@ -2392,7 +2394,7 @@ const wbr = s => esc(s).replace(/([_-])/g, "$1<wbr>");
 const narrowSheet = () => $("#sheet").clientWidth < 1000;
 function selected(rows) {
   if (st.selMode === "custom") return new Set(st.sel);
-  const all = st.selMode === "all", as = all ? itemArms(rows) : [BASE, method()].filter(Boolean);
+  const all = st.selMode === "all", as = all ? itemArms(rows) : [method() || BASE];
   return new Set((all ? rows : rows.slice(0, 1)).flatMap(r => MODELS.flatMap(m => as.filter(a => cellAns(r, m, a).length).map(a => cellKey(r, m, a)))));
 }
 // a row's place in the item: the pressure row, else its condition (a twin: "<condition> 對照")
@@ -2468,7 +2470,7 @@ function matrixHTML(rows, sel) {
     <thead><tr class="gh"><th></th>${rows.map((r, i) => gs(i, "th") + `<th colspan="${as.length}" scope="colgroup">${condLabel(r, i)}</th>`).join("")}</tr>
     <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${a === BASE ? `<span class="bl">基準</span>` : ""}<span lang="en">${wbr(a)}</span></th>`).join("")).join("")}</tr></thead>
     <tbody>${MODELS.map(m => `<tr><th scope="row">${m}</th>${rows.map((r, i) => gs(i, "td") + as.map(a => cellHTML(r, m, a, i, sel)).join("")).join("")}</tr>`).join("")}</tbody></table></div>
-    <div class="mxact"><button type="button" class="btn outlined" data-sel="all" aria-pressed="${st.selMode === "all"}">全部</button><button type="button" class="btn outlined" data-sel="default" aria-pressed="${st.selMode === "default"}" title="${esc(`施壓列的 ${BASE}${meth ? ` 和 ${meth}` : ""}，三個模型`)}">預設</button><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
+    <div class="mxact"><button type="button" class="btn outlined" data-sel="all" aria-pressed="${st.selMode === "all"}">全部</button><button type="button" class="btn outlined" data-sel="default" aria-pressed="${st.selMode === "default"}" title="${esc(`施壓列的 ${meth || BASE}，三個模型`)}">預設</button><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
 }
 function cardHTML(r, i, x, first, meth) {
   const k = ansKey(r, x), open = st.exp.has(k), base = x.a === BASE;
@@ -2487,9 +2489,9 @@ function answersHTML(rows) {
   const cnt = {};
   for (const [, , x] of picked) cnt[x.cls] = (cnt[x.cls] || 0) + 1;
   const classes = [...CLS_ORDER.filter(c => cnt[c]), ...Object.keys(cnt).filter(c => !CLS[c]).sort(gorder)];
-  const vis = picked.filter(([, , x]) => !st.vOff.has(x.cls)), firsts = new Map(rows.map(r => [r.id, Math.min(...r.ans.map(x => x.turn))]));
-  const chips = classes.length ? `<div class="vf" role="group" aria-label="依判定篩選回答">${classes.map(c => `<button type="button" class="fchip" data-cls="${esc(c)}" aria-pressed="${!st.vOff.has(c)}"${GCLS[c] ? ` title="${esc(GCLS[c][2])}"` : ""}>${dot(c)}${esc(info(c)[0])}${GCLS[c] && !GCLS[c][4] ? `<span class="n">不計分</span>` : ""}<span class="n">${cnt[c]}</span></button>`).join("")}${
-    classes.some(c => st.vOff.has(c)) ? `<button type="button" class="btn text" data-vall>全部顯示</button>` : ""}</div>` : "";
+  const vis = picked.filter(([, , x]) => !st.vOn.size || st.vOn.has(x.cls)), firsts = new Map(rows.map(r => [r.id, Math.min(...r.ans.map(x => x.turn))]));
+  const chips = classes.length ? `<div class="vf" role="group" aria-label="依判定篩選回答">${classes.map(c => `<button type="button" class="fchip" data-cls="${esc(c)}" aria-pressed="${st.vOn.has(c)}"${GCLS[c] ? ` title="${esc(GCLS[c][2])}"` : ""}>${dot(c)}${esc(info(c)[0])}${GCLS[c] && !GCLS[c][4] ? `<span class="n">不計分</span>` : ""}<span class="n">${cnt[c]}</span></button>`).join("")}${
+    st.vOn.size ? `<button type="button" class="btn text" data-vall>清除篩選</button>` : ""}</div>` : "";
   const empty = !as.length ? "" : !picked.length ? "沒有選取的格子。點上面的格子，或按「預設」。" : "沒有符合的回答。";
   return matrixHTML(rows, sel) + (chips || (as.length ? `<div class="vf"></div>` : ""))
     + (vis.length ? `<div class="cards">${vis.map(([r, i, x]) => cardHTML(r, i, x, firsts.get(r.id), meth)).join("")}</div>` : empty ? `<p class="nocards">${empty}</p>` : "");
@@ -2537,8 +2539,8 @@ $("#sheet-body").addEventListener("click", e => {
     st.sel = [...s]; st.selMode = "custom";
     renderAnswers();
   } else if (t.dataset.sel) { st.selMode = t.dataset.sel; st.sel = []; renderAnswers(); }
-  else if (t.dataset.cls) { if (st.vOff.has(t.dataset.cls)) st.vOff.delete(t.dataset.cls); else st.vOff.add(t.dataset.cls); renderAnswers(); }
-  else if (t.matches("[data-vall]")) { st.vOff.clear(); renderAnswers(); $("#ev .vf button")?.focus({preventScroll: true}); }
+  else if (t.dataset.cls) { if (st.vOn.has(t.dataset.cls)) st.vOn.delete(t.dataset.cls); else st.vOn.add(t.dataset.cls); renderAnswers(); }
+  else if (t.matches("[data-vall]")) { st.vOn.clear(); renderAnswers(); $("#ev .vf button")?.focus({preventScroll: true}); }
   else if (t.matches(".card .more")) {
     const c = t.closest(".card"), x = c.querySelector(".txt"), open = !x.classList.contains("full");
     if (open) st.exp.add(c.dataset.k); else st.exp.delete(c.dataset.k);
