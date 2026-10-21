@@ -178,7 +178,8 @@ details.refs > summary { list-style: none; display: flex; align-items: center; g
 .armsw { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .armsw .cap { color: var(--muted); }
 .armsw:not([hidden]) + .filters:not([hidden]) { border-left: 1px solid var(--line); padding-left: 18px; }
-#method { background-color: var(--bg); }
+#method, #ref { background-color: var(--bg); }
+#reflab { margin-left: 6px; }
 .filters { display: inline-flex; gap: 8px 12px; flex-wrap: wrap; align-items: center; }
 .filters input[type=search] { border: 1px solid var(--outline); background: var(--bg); border-radius: 6px; padding: 0 10px; min-height: 32px; font-size: 13px; width: 220px; max-width: 100%; }
 .filters input[type=search]:focus-visible { outline-offset: 0; border-color: var(--accent); }
@@ -347,6 +348,13 @@ details.mdropped > summary { color: var(--muted); }  /* not measured: folded and
 .mcell { display: flex; align-items: baseline; gap: 2px 6px; flex-wrap: wrap; min-width: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
 .mcell .dl { font-size: 13.5px; font-weight: 600; padding: 0; color: var(--ink); }
 .mcell .dl.up { color: var(--better); } .mcell .dl.down { color: var(--worse); }
+/* a cell that links to the format's 失分 page: the same look, only the pointer and a hover / focus state differ */
+a.mcell, a.cl { color: inherit; text-decoration: none; cursor: pointer; }
+a.mcell:hover, a.mcell:focus-visible { background: color-mix(in srgb, currentColor 8%, transparent); border-radius: 4px; }
+.cmpt td.cg:has(> a.cl) { padding: 0; }
+a.cl { display: block; padding: 5px 10px; }
+a.cl:hover, a.cl:focus-visible { background: color-mix(in srgb, currentColor 10%, transparent); }
+a.cl:focus-visible, a.mcell:focus-visible { outline-offset: -2px; }
 .dnum { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .rate.big { font-size: 19px; padding: 1px 7px; min-width: 0; }
 .rate.zero { background: var(--sunk); color: var(--muted); }
@@ -382,7 +390,7 @@ details.mdropped > summary { color: var(--muted); }  /* not measured: folded and
 .thead.one { grid-template-columns: minmax(0, 1fr); }
 .thead b { color: var(--ink); font-weight: 600; }
 .trow { padding: 7px 14px; border-bottom: 1px solid var(--line); }
-.trow.fsrow { border-bottom-width: 2px; }
+.trow.lsrow { border-bottom-width: 2px; }  /* the pair of special rows (維度總覽, 失分) ends with the heavier rule, before the templates */
 .tt { min-width: 0; }
 .tt b { font-weight: 600; font-size: 14px; line-height: 1.35; }
 .tt .ts { font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 2px; overflow-wrap: anywhere; }
@@ -411,6 +419,64 @@ mark { background: var(--vary); color: inherit; border-radius: 3px; padding: 0 1
 .irow .slot { font-size: 14px; line-height: 1.45; min-width: 0; overflow-wrap: anywhere; }
 .irow .slot .iname { display: block; font-weight: 600; font-size: 13px; }
 .irow .slot .chip { margin-left: 6px; vertical-align: 1px; }
+
+/* 失分: a model's rows that lost points. The row is an .irow (a link opening the item sheet): the question, its template and split, the
+   strip of every arm's credit on the row; on the trailing side A's dots and credit, and B's credit small under them */
+.lhead { display: flex; gap: 8px 20px; align-items: center; flex-wrap: wrap; margin: 0 0 4px; }
+.lhead h2 { margin: 0; }
+.lctl { display: flex; gap: 8px 12px; align-items: center; flex-wrap: wrap; }
+.seg button:disabled { color: var(--off-ink); cursor: default; --sl: transparent; }
+.lwhat { margin: 6px 0 14px; max-width: 75ch; }
+.irow.lrow { grid-template-columns: minmax(0, 1fr) auto; gap: 0 14px; align-items: start; }
+.lslot { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.lmeta { display: flex; flex-wrap: wrap; gap: 3px 6px; align-items: center; margin-top: 3px; font-size: 12px; color: var(--muted); }
+.lmeta .ltpl { min-width: 0; overflow-wrap: anywhere; }
+.lstrip { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 5px; font-size: 11.5px; color: var(--muted); }
+.ai { display: inline-flex; gap: 4px; align-items: baseline; white-space: nowrap; }
+.ai.pv { opacity: .55; }
+.ai.f .an { color: var(--ink); font-weight: 600; }
+.ai .av { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ai .av.lo { color: var(--lo-ink); } .ai .av.mid { color: var(--mid-ink); } .ai .av.hi { color: var(--hi-ink); } .ai .av.none { color: var(--faint); font-weight: 400; }
+.ab { display: inline-block; font-style: normal; font-size: 10px; font-weight: 700; line-height: 14px; min-width: 14px; padding: 0 3px; text-align: center; border-radius: 3px; vertical-align: 1px; }
+.ab.a { background: var(--accent); color: var(--on-accent); }
+.ab.b { box-shadow: inset 0 0 0 1px var(--outline); color: var(--ink); }
+.ai.b .an { color: var(--ink); }
+.lnum { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.lnum .ds { display: grid; gap: 3px; }
+.lnum .ds.dense { gap: 2px; }
+.lnum .dot { width: 7px; height: 7px; }
+.lnum .ds.dense .dot { width: 5px; height: 5px; }
+.lnum .ds.dense .dot.o { border-width: 1px; }
+.lnum .rate { min-width: 3.3em; }
+.lb { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ltail { margin: 10px 2px 0; }
+
+/* 判定有疑問: a flag on an answer's verdict. The card's control is a disclosure (.disc), its form a segmented button of the classes and a
+   note field; the mark is a chip with the flag icon; a flagged answer's dot gets a ring; 待複查 lists them in the standard sheet */
+:root { --i-flag: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z'/%3E%3C/svg%3E"); }
+.chip.flag { display: inline-flex; align-items: center; gap: 2px; background: var(--accent-soft); color: var(--accent); font-weight: 600; padding-left: 4px; }
+.chip.flag::before { content: ""; width: 12px; height: 12px; background-color: currentColor; -webkit-mask: var(--i-flag) center / 12px no-repeat; mask: var(--i-flag) center / 12px no-repeat; }
+.card .ah .chip.flag { font-size: 12px; }
+.card .ah .disc.dense { margin-left: auto; }
+.fform { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 8px 0 2px; padding: 8px 10px; background: var(--sunk); border-radius: 8px; font-size: 13px; }
+.fform .flab { color: var(--muted); }
+.fform .seg { max-width: 100%; overflow-x: auto; }
+.fform .fnote { flex: 1 1 150px; min-width: 120px; border: 1px solid var(--outline); background: var(--bg); border-radius: 6px; padding: 0 10px; min-height: 32px; font-size: 13px; }
+.fform .fnote:focus-visible { outline-offset: 0; border-color: var(--accent); }
+.fform .fmem { flex-basis: 100%; margin: 0; }
+.card.hl { box-shadow: 0 0 0 2px var(--accent); }
+.dot.fl { box-shadow: 0 0 0 1.5px var(--panel), 0 0 0 2.5px var(--accent); margin: 1px; }
+.frow { display: flex; align-items: flex-start; gap: 4px; border-bottom: 1px solid var(--line); }
+.frow .rrow { flex: 1 1 auto; min-width: 0; padding: 8px 8px 8px 4px; border-bottom: 0; display: block; }
+.frow .btn { margin-top: 6px; }
+.fbody .fq { font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.fbody .fmeta, .fbody .fnt { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.fbody .fv { font-size: 12.5px; }
+.fbody .fv b { font-weight: 600; color: var(--accent); }
+.dbody .fmem { color: var(--muted); }
+.fta { display: block; width: 100%; margin: 6px 0 10px; border: 1px solid var(--outline); background: var(--panel); border-radius: 6px; padding: 8px; font: 12px/1.45 var(--mono); }
+.rate.lcnt { background: none; color: var(--ink); }
+.rate.lcnt.none { color: var(--faint); }
 
 /* format summary (the detail of the list's 維度總覽 row) */
 .fsum { max-width: 760px; }
@@ -626,6 +692,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   .dvt { width: 36px; }
   .rank th, .rank td { padding: 7px 8px; }
   .cmpt th, .cmpt td { padding: 5px 8px; }
+  a.cl { padding: 5px 8px; }
   .dv { gap: 6px; }
   .num.big .rate { font-size: 17px; padding: 1px 5px; }
   .num.big .cv { gap: 5px; }
@@ -653,6 +720,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   <span class="prog" id="prog" aria-live="polite"></span>
   <button type="button" class="ibtn" id="more" aria-label="更多" title="更多" aria-haspopup="menu" aria-expanded="false" aria-controls="acts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
   <div class="acts" id="acts" aria-label="更多">
+    <button type="button" class="btn outlined" id="flagbtn">待複查</button>
     <button type="button" class="btn outlined" id="judgebtn" hidden>評審</button>
     <button type="button" class="btn outlined" id="srcbtn">資料來源</button>
     <button type="button" class="btn outlined" id="keybtn">圖例</button>
@@ -663,7 +731,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   <button type="button" class="tab" role="tab" id="tab-fmt" data-top="fmt" aria-controls="main" aria-selected="true">維度</button><button type="button" class="tab" role="tab" id="tab-methods" data-top="methods" aria-controls="main" aria-selected="false" tabindex="-1">方法</button>
 </div>
 <div class="toolbar" id="toolbar">
-  <div class="armsw" id="armsw" hidden><label class="cap" for="method">比較</label><select id="method" class="sel"></select></div>
+  <div class="armsw" id="armsw" hidden><label class="cap" for="method">比較</label><select id="method" class="sel"></select><label class="cap" for="ref" id="reflab" hidden>對照</label><select id="ref" class="sel" hidden></select></div>
   <div class="filters" id="filters" hidden>
     <input type="search" id="f-q" placeholder="搜尋題目內容或 id" aria-label="搜尋題目內容或 id">
     <span class="seg" id="f-side" role="group" aria-label="資料切分"></span>
@@ -709,6 +777,14 @@ main { overflow-x: clip; }  /* the slide never widens the page */
     <button type="button" class="ibtn sh-x" id="sheet-key-close" aria-label="關閉" title="關閉（Esc）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   </header>
   <div class="dbody" id="sheet-key-body"></div>
+</section>
+<div class="scrim" id="sheet-flags-scrim" aria-hidden="true"></div>
+<section class="sheet std" id="sheet-flags" lang="zh-Hant" role="dialog" aria-modal="true" aria-labelledby="sheet-flags-title" tabindex="-1">
+  <header class="shead">
+    <div class="sh-ttl"><span class="sh-over" id="sheet-flags-over"></span><h2 class="sh-t" id="sheet-flags-title" lang="zh-Hant"></h2></div>
+    <button type="button" class="ibtn sh-x" id="sheet-flags-close" aria-label="關閉" title="關閉（Esc）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+  </header>
+  <div class="dbody" id="sheet-flags-body"></div>
 </section>
 <script>
 "use strict";
@@ -777,10 +853,11 @@ const isGuard = dim => GIDS.has(dim);
 const gmeta = dim => IDX.guards.find(g => g.dim === dim);
 const label = dim => nameOf(dim);  // 護欄 too: English ids read better than Chinese names with English mixed in
 const langOf = () => "en";
-// method: the arm compared with the unsteered baseline; "" = 不比較, the default (also while the stored arm is not loaded).
+// method (A): the arm compared on the 維度 tab; "" = 不比較, the default (also while the stored arm is not loaded). ref (B): the arm it is
+// compared against, "" = unsteered (also while the stored arm is not loaded, or is A itself). lossM / lossMode: the 失分 page's model and view.
 // The key is s2v-method2: a choice stored under the old key (s2v-method, whose default was the first method) is not read.
 const st = { top: "fmt", mpage: null, msort: null, mmodel: "all", dim: null, gkey: null, item: null, view: "list", sel: [], selMode: null, vOn: new Set(), exp: new Set(), detOpen: false, side: "all", q: "",
-  method: store.get("s2v-method2") || "", open: new Set(), mopen: new Set() };
+  method: store.get("s2v-method2") || "", ref: store.get("s2v-ref") || "", lossM: MODELS[0], lossMode: "left", open: new Set(), mopen: new Set() };
 function initData(x) {
   DATA = x; IDX = {meta: x.meta || {}, dims: x.dims || [], guards: x.guards || []};
   GIDS = new Set(IDX.guards.map(g => g.dim)); GMAN = x.guard_manifest || {}; GSCREEN = new Set(IDX.meta.guard_screen_runs || []);
@@ -818,20 +895,23 @@ function creditHTML(t, base, label, big, gd, note = "") {  // gd: a 護欄 (the 
   const blank = `<span class="sbar"></span>`;  // keeps the row height while loading or empty
   if (!t) return SRC.error ? `<span class="${cls}"><span class="cv"><span class="rate none" title="還沒有載入回答（見資料來源）">–</span></span>${blank}</span>`
     : `<span class="${cls}"><span class="cv"><span class="rate wait" title="回答載入中">…</span></span>${blank}</span>`;
-  if (!t[1]) return `<span class="${cls}"><span class="cv"><span class="rate none" title="${esc(`${label}：沒有計分的回答${nt}`)}">–</span></span>${blank}</span>`;
+  if (!t[1]) return `<span class="${cls}"><span class="cv"><span class="rate none" title="${esc(`${label}：${base?.of ? `和 ${base.arm || BASE} 沒有共同的列（有計分回答的 ${base.of} 列，兩邊沒有共同的 seed）` : "沒有計分的回答"}${nt}`)}">–</span></span>${blank}</span>`;
   const c = Math.round(100 * t[0] / t[1]), v = (c / 100).toFixed(2);
   const n = t[2] + t[3] + t[4] + t[5];
   const bar = n ? `<span class="sbar">${SPLIT.map(([k], i) => t[2 + i] ? `<i class="${k}" style="flex-grow:${t[2 + i]}"></i>` : "").join("")}</span>` : "";
-  // one number per cell: the credit (不比較), or with a method compared only the change from unsteered on the same rows, as the
-  // pill on a diverging scale (better / worse tokens, ±0 uncoloured); both credits in the tooltip, the method's verdicts in the bar
-  if (base) {  // base: unsteered on the same rows (base.rows of them), see pairedBase
+  // one number per cell: the credit (不比較), or with a method compared only the change from the reference (B, unsteered by default) on
+  // the same rows and seeds, as the pill on a diverging scale (better / worse tokens, ±0 uncoloured); both credits in the tooltip, the
+  // method's verdicts in the bar
+  if (base) {  // base: B's tally on the rows and seeds both arms have a credit on (base.rows of the base.of rows A has a credit on), see pairTally
+    const ref = base.arm || BASE, ofs = base.of ?? base.rows;
+    const shared = ofs > base.rows ? `；共同 ${base.rows} / ${ofs} 列（其餘的列兩邊沒有共同 seed 的計分回答，不比）` : "";
     if (!base[1]) {
-      const tip = `${label}：得分 ${v}（${t[1]} 則）；${BASE} 在同樣的 ${base.rows} 列沒有計分回答，沒有變化可比${nt}`;
+      const tip = `${label}：得分 ${v}（${t[1]} 則）；${ref} 在同樣的 ${base.rows} 列沒有計分回答，沒有變化可比${shared}${nt}`;
       return `<span class="${cls}" title="${esc(tip)}" role="img" aria-label="${esc(tip)}"><span class="cv"><span class="rate none">–</span></span>${bar}</span>`;
     }
     const b = Math.round(100 * base[0] / base[1]), d = c - b, s = (Math.abs(d) / 100).toFixed(2);
     const txt = d === 0 ? "±0" : `${d > 0 ? "+" : "−"}${s}`, a = d === 0 ? 0 : Math.round(12 + Math.min(1, Math.abs(d) / 30) * 26);
-    const tip = `${label}：和 ${BASE} 相比 ${txt}（${d === 0 ? "相同" : d > 0 ? (gd ? "較好" : "比較誠實") : (gd ? "較差" : "比較不誠實")}）。${label.split(" · ").pop()} ${gd ? "分數" : "得分"} ${v}（${t[1]} 則計分回答：${splitText(t, gd)}）；${BASE} 在同樣的 ${base.rows} 列 ${(b / 100).toFixed(2)}（${base[1]} 則）${nt}`;
+    const tip = `${label}：和 ${ref} 相比 ${txt}（${d === 0 ? "相同" : d > 0 ? (gd ? "較好" : "比較誠實") : (gd ? "較差" : "比較不誠實")}）。${label.split(" · ").pop()} ${gd ? "分數" : "得分"} ${v}（${t[1]} 則計分回答：${splitText(t, gd)}）；${ref} 在同樣的 ${base.rows} 列 ${(b / 100).toFixed(2)}（${base[1]} 則）${shared}${nt}`;
     return `<span class="${cls}" title="${esc(tip)}" role="img" aria-label="${esc(tip)}"><span class="cv"><span class="rate dlt${d > 0 ? " up" : d < 0 ? " down" : ""}"${a ? ` style="background-color:color-mix(in srgb, var(${d > 0 ? "--better" : "--worse"}) ${a}%, transparent)"` : ""}>${txt}</span></span>${bar}</span>`;
   }
   const tip = `${label}：${gd ? "分數" : "得分"} ${v}，${t[1]} 則計分回答（${splitText(t, gd)}）${nt}`;
@@ -845,15 +925,63 @@ function tally(rows, m, a) {
 const methods = () => ARMS.filter(a => a !== BASE);
 function method() { return methods().includes(st.method) ? st.method : ""; }
 const shown = () => method() || BASE;
-// the paired comparison: unsteered over only the rows where the method has a credited answer for this model
-function pairedBase(rows, m, meth) {
-  const same = rows.filter(r => r.cnt[m + "|" + meth]?.[1] > 0), t = tally(same, m, BASE);
-  t.rows = same.length;
-  return t;
+// B, the arm A is compared against: unsteered unless another arm is picked (never A itself); only with an A
+function refArm() { const a = method(); return a && st.ref !== a && ARMS.includes(st.ref) ? st.ref : BASE; }
+// B in running text: the baseline by its name, another arm as 對照
+const refText = () => refArm() === BASE ? `基準 <span lang="en">${BASE}</span>` : `對照 <span lang="en">${esc(refArm())}</span>`;
+// the lines of one arm and model on a row, per seed: seed -> tally (credit sum, credited lines, class counts, as Z); a seed is there
+// whenever the row has a line on it, scored or not. Built once per row and assembled answers.
+function seedsOf(r, m, a) {
+  const k = m + "|" + a;
+  r.sx ||= new Map();
+  let o = r.sx.get(k);
+  if (!o) {
+    o = new Map();
+    for (const x of r.ans) {
+      if (x.m !== m || x.a !== a) continue;
+      let t = o.get(x.seed);
+      if (!t) o.set(x.seed, t = Z());
+      if (x.cr != null) { t[0] += x.cr; t[1]++; }
+      if (x.si >= 0) t[2 + x.si]++;
+    }
+    r.sx.set(k, o);
+  }
+  return o;
+}
+// the seeds both arms have lines on, on a row (score.py's paired rows: only (row, model, seed) both arms have)
+function sharedSeeds(r, m, a, b) {
+  const sb = seedsOf(r, m, b);
+  return [...seedsOf(r, m, a).keys()].filter(s => sb.has(s)).sort((x, y) => x - y);
+}
+// a row's credit as the page pools it: per seed the mean over its credited lines (turns), then the mean over the seeds that have one
+// (`only`: just these seeds); null when none has
+function rowCredit(r, m, a, only) {
+  let sum = 0, n = 0;
+  for (const [s, t] of seedsOf(r, m, a)) if (t[1] && (!only || only.includes(s))) { sum += t[0] / t[1]; n++; }
+  return n ? sum / n : null;
+}
+// the paired comparison of A against B over rows, as score.py g pairs (SCORING.md "Official g": seeds by presence, only rows with a value
+// on both arms stay): each arm's tally over the seeds both have lines on, on the rows where both have a credited line there. base is B's
+// tally, with rows (the paired rows), of (the rows A has a credit on at all) and arm
+function pairTally(rows, m, a, b) {
+  const ta = Z(), tb = Z(), mk = m + "|" + a;
+  let n = 0, of = 0;
+  for (const r of rows) {
+    if (r.cnt[mk]?.[1] > 0) of++;
+    const ra = Z(), rb = Z(), B = seedsOf(r, m, b);
+    for (const [s, x] of seedsOf(r, m, a)) { const y = B.get(s); if (y) { addT(ra, x); addT(rb, y); } }
+    if (!ra[1] || !rb[1]) continue;
+    addT(ta, ra); addT(tb, rb); n++;
+  }
+  Object.assign(tb, {rows: n, of, arm: b});
+  return {a: ta, base: tb};
 }
 const credit = (rows, m, big, gd = !!D?.guard) => { const meth = method(), p = gd ? gpend(rows, m) : null;
   if (p?.all) return pendHTML(m, p.k, big);
-  return creditHTML(tally(rows, m, shown()), meth ? pairedBase(rows, m, meth) : null, `${m} · ${shown()}`, big, gd, p?.k ? pendNote(p.k) : ""); };
+  const note = p?.k ? pendNote(p.k) : "";
+  if (!meth) return creditHTML(tally(rows, m, BASE), null, `${m} · ${BASE}`, big, gd, note);
+  const q = pairTally(rows, m, meth, refArm());
+  return creditHTML(q.a, q.base, `${m} · ${meth}`, big, gd, note); };
 const cellFor = (rows, m, big) => ready(st.dim) || (D?.guard && gpend(rows, m).all) ? credit(rows, m, big)
   : creditHTML(null, null, "", big);
 // guard pack v2 (guards/pending_rows.json): core test rows waiting for a baseline run have no membership and no score yet; they are
@@ -982,7 +1110,7 @@ function parseAnswers(text, gd) {
     if (!line.trim()) continue;
     let x; try { x = JSON.parse(line); } catch (e) { continue; }
     const cr = (gd ? x.score : x.credit) ?? null, cls = gd ? gclass(x.verdict, cr) : cr == null ? unscoredCls(x.verdict) : x.verdict;
-    out.push({rid: x.row_id, m: MODEL_NAME[x.model] || x.model, a: x.arm, seed: x.seed, run: x.run || "", turn: x.turn ?? 0, cls, cls0: cls, v: x.verdict,
+    out.push({rid: x.row_id, m: MODEL_NAME[x.model] || x.model, a: x.arm, seed: x.seed, run: x.run || "", judge: x.judge || "", turn: x.turn ?? 0, cls, cls0: cls, v: x.verdict,
               note: x.note || "", text: x.answer ?? "", trunc: !!x.truncated, cr, si: gd ? (cr == null ? -1 : GSPLIT.indexOf(GCLS[cls][3])) : FILLED.indexOf(cls),
               rjn: !gd && cr == null && REJ_NOTE.test(x.note || "")});
   }
@@ -1062,12 +1190,13 @@ async function load() {
   refresh();
   await pool(jobs, 4, async j => {
     const key = `${j.s.name}/${j.dim}`;
-    try { const xs = parseAnswers(await fetchText(`results/${j.s.name}/${j.f}`), isGuard(j.dim)); if (gen !== SRC.gen) return; RAW[key] = xs; ARMS_OF[key] = new Set(xs.map(x => x.a)); }
+    try { const xs = parseAnswers(await fetchText(`results/${j.s.name}/${j.f}`), isGuard(j.dim)); if (gen !== SRC.gen) return; for (const x of xs) x.src = j.s.name; RAW[key] = xs; ARMS_OF[key] = new Set(xs.map(x => x.a)); }
     catch (e) { if (gen !== SRC.gen) return; FAILED[key] = e.message; j.s.err = e.message; }
     SRC.n++;
     assemble(j.dim);
     refresh(j.dim);
   });
+  if (gen === SRC.gen) refresh();  // everything in: what depends on all the dims (the 預覽 arms) is drawn again
 }
 function reload() {  // settings changed: list the sources again
   for (const o of [RAW, ARMS_OF, FAILED]) for (const k of Object.keys(o)) delete o[k];
@@ -1085,7 +1214,8 @@ function computeArms() {
 function assemble(dim) {
   computeArms();
   const d = DATA.data[dim], seen = new Set(), rej = d.guard ? new Set() : rejRows(), stale = {};
-  for (const r of Object.values(d.rows)) { r.ans = []; r.rjp = rej.has(r.id); }
+  AGEN++;
+  for (const r of Object.values(d.rows)) { r.ans = []; r.sx = null; r.rjp = rej.has(r.id); }
   for (const s of SRC.list) {
     if (!on(s)) continue;
     for (const x of RAW[`${s.name}/${dim}`] || []) {
@@ -1118,7 +1248,7 @@ function assemble(dim) {
     for (const [k, c] of Object.entries(r.cnt)) addT(d.stats[k] ||= Z(), c);
   }
 }
-let rq = 0, dirty = new Set();
+let rq = 0, dirty = new Set(), AGEN = 0;  // AGEN: counts assemble() runs, for what is cached over the answers
 function refresh(dim) {  // re-render what shows the changed dim, once per frame
   dirty.add(dim || "*");
   if (rq) return;
@@ -1157,13 +1287,13 @@ function renderProgress() {
   measure();
 }
 
-// ---------- routing: #<dim>, #<dim>~summary, #<dim>~<group>, #<instance_id>, #<guard>:<row id> ----------
+// ---------- routing: #<dim>, #<dim>~summary, #<dim>~loss, #<dim>~<group>, #<instance_id>, #<guard>:<row id> ----------
 // Two levels on a wide screen: 0 overview, 1 format. The format is one list-detail destination: the list pane holds a
-// 維度總覽 row and the templates, and selecting a row (a hash push, so Back retraces it) only swaps the detail pane;
-// #<dim> and #<dim>~summary select 維度總覽, #<dim>~<group> a template. On compact widths one pane shows at a time:
+// 維度總覽 row, a 失分 row and the templates, and selecting a row (a hash push, so Back retraces it) only swaps the detail pane;
+// #<dim> and #<dim>~summary select 維度總覽, #<dim>~loss 失分, #<dim>~<group> a template. On compact widths one pane shows at a time:
 // #<dim> is the list (level 1) and a selected row's detail is level 2 (#<dim>~summary opens the summary as a detail).
-// An item is not a level: #<instance_id> is the page under it (its template page; for a reference item the page it was
-// opened over, else the format page) with the item open in the side sheet.
+// An item is not a level: #<instance_id> is the page under it (its template page; the 失分 page when it was opened from there; for a
+// reference item the page it was opened over, else the format page) with the item open in the side sheet.
 function parseHash() {
   const h = decodeURIComponent(location.hash.slice(1));
   if (!h) return {};
@@ -1182,13 +1312,14 @@ const SCROLL = {}, LISTSCROLL = {};  // window scroll per page, list pane scroll
 // the sheet: the route of the page under it, whether that page is the history entry before it (close = Back)
 const SHEET = {base: null, back: false, closing: false, shown: null};
 const COMPACT = window.matchMedia("(max-width: 759px)"), compact = () => COMPACT.matches;
-const SUMSLUG = "summary";  // never a group slug's clash: the summary wins
+const SUMSLUG = "summary", LOSSSLUG = "loss";  // never a group slug's clash: these win
 const METHODS = "methods";  // the landing level's second view (#methods); never a format or an item id
 const levelNow = () => !st.dim ? (st.mpage ? 1 : 0) : compact() && st.view !== "list" ? 2 : 1;
 const listId = () => st.dim ? "T:" + st.dim : null;
 function baseHash() {  // the page on screen (under the sheet when one is open), as a route
   if (!st.dim) return st.mpage ? `#${METHODS}/${encodeURIComponent(st.mpage)}` : st.top === "methods" ? "#" + METHODS : "#";
   if (st.view === "sum") return `#${st.dim}~${SUMSLUG}`;
+  if (st.view === "loss") return `#${st.dim}~${LOSSSLUG}`;
   const g = st.view === "tpl" && D.allGroups.find(x => x.key === st.gkey);
   return g ? `#${st.dim}~${g.slug}` : "#" + st.dim;
 }
@@ -1212,12 +1343,13 @@ function route() {
     }
     if (iid && D.items[iid]) {
       const g = D.groupOf[iid];
-      if (g) { st.view = "tpl"; st.gkey = g.key; }  // a template's item: over its template page
+      if (g) { if (st.view !== "loss") { st.view = "tpl"; st.gkey = g.key; } }  // a template's item: over its template page (over 失分 when opened from it)
       else st.open.add(D.refOf[iid]?.kit ? "_kitref" : "_ref");  // a reference item: over the page on screen, its list unfolded
       if (iid !== st.item) { st.item = iid; initSel(); }
+      applyPending(iid);
     } else {
-      const g = slug !== undefined && slug !== SUMSLUG ? D.allGroups.find(x => x.slug === slug) : null;
-      st.view = g ? "tpl" : slug === SUMSLUG ? "sum" : "list"; st.item = null; st.gkey = g ? g.key : null;
+      const g = slug !== undefined && slug !== SUMSLUG && slug !== LOSSSLUG ? D.allGroups.find(x => x.slug === slug) : null;
+      st.view = g ? "tpl" : slug === SUMSLUG ? "sum" : slug === LOSSSLUG ? "loss" : "list"; st.item = null; st.gkey = g ? g.key : null;
     }
     const base = baseHash();
     if (st.item && (!was.item || base !== was.base)) SHEET.back = !was.item && was.lv !== null && base === was.base;
@@ -1275,7 +1407,8 @@ function relayout() {
   measure();
 }
 COMPACT.addEventListener("change", relayout);
-function siblings() {  // the items beside the current one: its group's, or its reference list's; the filtered ones if it is among them
+function siblings() {  // the items beside the current one: its group's, or its reference list's; the filtered ones if it is among them; opened from 失分: that list, as shown
+  if (st.view === "loss") { const l = lossData().list.map(e => e.iid); if (l.includes(st.item)) return l; }
   const g = D.groupOf[st.item], kit = D.refOf[st.item]?.kit;
   const all = g ? g.items : D.refs.filter(x => !x.kit === !kit).map(x => x.iid), vis = all.filter(matches);
   return vis.includes(st.item) ? vis : all;
@@ -1377,6 +1510,7 @@ function closeDrawer(el) {  // × / Esc / scrim: back over the sheet's own entry
 function reopen(kind, n) {
   if (kind === "judge" && st.dim) judgeDrawer(n);
   else if (kind === "key") keyDrawer(n);
+  else if (kind === "flags") { SM.hide($("#sheet")); flagsDrawer(n); }  // Back from an answer opened out of 待複查: the item sheet goes, the list returns
   else if (kind === "src") settings(false, n);
 }
 window.addEventListener("popstate", () => {  // Back closes the sheets above the entry now current; Forward reopens one
@@ -1513,7 +1647,7 @@ document.addEventListener("click", e => {
 });
 menuRoles();
 
-// ---------- toolbar: the baseline is fixed, the method is picked ----------
+// ---------- toolbar: 比較 A 對照 B (A the method, B what it is measured against: unsteered unless picked) ----------
 function renderArms() {
   $("#armsw").hidden = !ARMS.length || (!st.dim && st.top === "methods");
   const cur = method(), opts = [["", "不比較", "zh-Hant"], ...methods().map(a => [a, a, "en"])];
@@ -1521,14 +1655,24 @@ function renderArms() {
   const s = $("#method");
   if (s.dataset.h !== html) { s.innerHTML = html; s.dataset.h = html; }
   s.value = cur;
+  // B: unsteered, then every other arm but A; only with an A
+  const r = $("#ref"), ropts = [BASE, ...methods().filter(a => a !== cur)], rhtml = ropts.map(a => `<option value="${esc(a)}" lang="en">${esc(a)}</option>`).join("");
+  if (r.dataset.h !== rhtml) { r.innerHTML = rhtml; r.dataset.h = rhtml; }
+  r.value = refArm();
+  $("#reflab").hidden = r.hidden = !cur;
 }
-$("#method").onchange = () => {
-  st.method = $("#method").value; store.set("s2v-method2", st.method);
+function setCompare(a, b) {  // the toolbar's choice, from the select or a link: A (a method or ""), B ("" = unsteered)
+  st.method = a; st.ref = b || "";
+  store.set("s2v-method2", st.method); store.set("s2v-ref", st.ref);
   renderArms();
+}
+function compareChanged() {
   if (!st.dim) return overview();
   if (st.item) initSel();
   render();
-};
+}
+$("#method").onchange = () => { setCompare($("#method").value, st.ref); compareChanged(); };
+$("#ref").onchange = () => { setCompare(st.method, $("#ref").value === BASE ? "" : $("#ref").value); compareChanged(); };
 // delegated buttons that appear in rendered content (data-legend: the 圖例 sheet, data-judge: the 評審 sheet, on top of
 // the item sheet when clicked in it; data-key is a verdict cell's own key)
 document.addEventListener("click", e => {
@@ -1580,7 +1724,7 @@ function overview() {
       mc.querySelectorAll("details[data-mfold]").forEach(d => d.ontoggle = () => { if (d.open) st.mopen.add(d.dataset.mfold); else st.mopen.delete(d.dataset.mfold); });
     }
   } else {
-    $("#ovlede").innerHTML = (meth ? `每格是 <b lang="en">${esc(meth)}</b> 和基準 <span lang="en">${BASE}</span> 在同樣的施壓列上相比的<b>得分變化</b>（正數比較誠實）；兩邊的得分在滑鼠提示裡。`
+    $("#ovlede").innerHTML = (meth ? `每格是 <b lang="en">${esc(meth)}</b> 和${refText()} 在同樣的施壓列、同樣的 seed 上相比的<b>得分變化</b>（正數比較誠實）；兩邊的得分在滑鼠提示裡。`
       : `每格是基準 <b lang="en">${BASE}</b> 在施壓題的平均<b>得分</b>（0 到 1，越高越誠實）。`) + (IDX.guards.length ? ` 護欄維度是主辦方的 guard，格子是同樣意義的<b>分數</b>，只有 test 核心列的成員模型有分數。` : "")
       + ` <button type="button" class="ilink" data-legend>怎麼算</button>`;
     $("#mx").innerHTML = IDX.dims.map(mxrow).join("");
@@ -1783,10 +1927,11 @@ function qualify(S, arm, m) {
   if (!refName || refName === "mixed" || !SRC.list.some(s => s.name === refName)) refName = hasArm(S.name, m, BASE) ? S.name : "baseline";
   const R = SRC.list.find(s => s.name === refName);
   const c = {src: S.name, arm, m, ref: refName, refSrc: R, ok: false, reasons: [], notes: [], warn: [], seeds: [], miss: []};
-  // not run (未執行): absent from the qualification's models, or never complete there and without a single answer; with no
-  // qualification, no answer line of the model for the arm. Shown short and muted, not as missing cells
+  // not run (未執行), decided per arm: the model is absent from the qualification's models, or the arm is absent from its arm_status or has
+  // no seeds there, and the page holds no answer of it; with no qualification, no answer line of the model for the arm. Shown short and
+  // muted, not as missing cells
   const seen = hasArm(S.name, m, arm);
-  if (q?.models ? !qm || (!(q.complete_models || []).includes(mk) && !seen) : !seen) { c.notRun = true; return c; }
+  if (q?.models ? !qm || ((!qm.arm_status?.[arm] || !(qm.seeds?.[arm] || []).length) && !seen) : !seen) { c.notRun = true; return c; }
   if (!R || !on(R) || !hasArm(refName, m, BASE)) { c.reasons.push(`沒有載入參照的 ${BASE}（來源 ${refName}）`); return c; }
   c.refOk = true;  // both arms' answers are here: the Δ can be computed, complete or not
   const rq = R.meta?.qualification?.models?.[mk];
@@ -1810,11 +1955,14 @@ function qualify(S, arm, m) {
     if (dR.complete.length < MIN_SEEDS) c.reasons.push(`${BASE} 不完整`);
   }
   c.found = qm?.seeds?.[arm] || dM.found;
-  // backend: one source is one backend; across sources the export's backend_match must say so
-  if (R !== S) {
-    const bm = rec?.backend_match?.[mk];
-    if (bm === false) { ok = false; c.reasons.push("後端和參照不同"); }
-    else if (bm !== true) { ok = false; c.reasons.push("無法核對後端是否和參照相同"); }
+  // backend, as score.py g_ref_settings_ok: only when the run is its own reference (the same source) must the two arms share the recorded
+  // backend per model (qualification backend, else meta backend_per_cell "<slug>/<arm>") and the run's generation block (absent, or not
+  // empty). Across sources (the baseline as reference) score.py does not compare backends, and neither does the page
+  if (R === S) {
+    const be = qm?.backend && typeof qm.backend === "object" ? qm.backend : {}, cell = S.meta?.backend_per_cell && typeof S.meta.backend_per_cell === "object" ? S.meta.backend_per_cell : {};
+    const a = be[arm] || cell[`${qm?.slug}/${arm}`], b = be[BASE] || cell[`${qm?.slug}/${BASE}`], gen = S.meta?.generation;
+    if (!a || !b) { ok = false; c.reasons.push("無法核對後端是否和參照相同"); }
+    else if (a !== b || (gen != null && !(typeof gen === "object" ? Object.keys(gen).length : gen))) { ok = false; c.reasons.push("後端和參照不同"); }
   }
   // the rows: sets_sha256 of the source (and of its reference) against the page's data; absent: matched, with a note
   // (score.py g_complete, 10cc2d3): an export qualified against other rows (sets_sha256 not the data file's, e.g. a team run exported
@@ -2108,8 +2256,9 @@ function dimCell(c, dim) {
   // partial (below the seed floor, still valued): the g over the rows both arms have, as score.py, and how many rows that is
   const pt = e.partial ? `部分：${e.of} 列中只有 ${e.have} 列兩邊都有 ${MIN_SEEDS} 個以上共同 seed 的回答；g 只算兩邊都有值的 ${e.n} 列，和 score.py 一樣。` : "";
   const pr = e.partial ? `<span class="raw">部分 ${e.have}/${e.of} 列</span>` : "";
-  if (e.guard || e.g == null) return `<span class="mcell" title="${esc(`${nm} · ${c.m}：${guardWhy(e)}；${wouldBe(e)}。${pt}${vs}`)}"><span class="dnum"><span class="chip">不計</span>${pr}</span></span>`;
-  return `<span class="mcell" title="${esc(`${nm} · ${c.m}：g ${sgn(e.g, 3)}；${pt}${vs}`)}"><span class="dnum"><span class="lnum dl ${tone(e.g)}">${sgn(e.g)}</span>${pr}</span></span>`;
+  const go = lossLink(c.arm, c.m, dim), more = `。點一下看 ${c.m} 在這個維度的失分`;
+  if (e.guard || e.g == null) return `<a class="mcell" href="${go.href}" ${go.attrs} title="${esc(`${nm} · ${c.m}：${guardWhy(e)}；${wouldBe(e)}。${pt}${vs}${more}`)}"><span class="dnum"><span class="chip">不計</span>${pr}</span></a>`;
+  return `<a class="mcell" href="${go.href}" ${go.attrs} title="${esc(`${nm} · ${c.m}：g ${sgn(e.g, 3)}；${pt}${vs}${more}`)}"><span class="dnum"><span class="lnum dl ${tone(e.g)}">${sgn(e.g)}</span>${pr}</span></a>`;
 }
 function missFold(card) {  // the missing cells: one list when every model's is the same
   const lines = m => card.per[m].ok ? [] : card.per[m].miss.map(x => `${x.arm === BASE ? `<span lang="en">${BASE}</span> · ` : ""}<span lang="en">${esc(nameOf(x.dim))}</span> · ${x.seed == null ? "提示判定檔" : `seed ${x.seed}`} · 缺${x.kind === "verdicts" ? "判定" : "回答"} ${x.count} 列`);
@@ -2171,7 +2320,10 @@ function guardSec(card, colhead) {
     if (!kit && e?.pending) return `<span class="mcell" title="${esc(pendTip(`${label(dim)} · ${c.m}`, `這 ${e.pend} 列 test 核心列都`) + "r_guard 只算其餘的護欄。")}"><span class="chip pend">待補</span></span>`;
     if (!e?.n) return `<span class="mcell" title="${esc(`${label(dim)} · ${c.m}：沒有成對的成員列`)}"><span class="ptag">缺</span></span>`;
     const tip = `${kit ? "kit 對照 · " : ""}${label(dim)} · ${c.m}：u（${BASE}）${r3(e.u)}、v（${c.arm}）${r3(e.v)}、r ${r3(e.r)}；${e.n} 列${kit ? `（主辦方公開的 ${e.rows} 列中）` : ""}，seed ${e.seeds.join("、")}（${BASE} ${e.rseeds.join("、")}）；方法的回答來自 ${ge.msrc}，${BASE} 來自 ${ge.rsrc}${!kit && e.pend ? `。${pendNote(e.pend)}` : ""}`;
-    return `<span class="mcell" title="${esc(tip)}"><span class="dnum"><span class="lnum dl ${+e.r.toFixed(3) > 0 ? "down" : ""}">${r3(e.r)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`;
+    const body = `<span class="dnum"><span class="lnum dl ${+e.r.toFixed(3) > 0 ? "down" : ""}">${r3(e.r)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span>`;
+    if (kit) return `<span class="mcell" title="${esc(tip)}">${body}</span>`;
+    const go = lossLink(c.arm, c.m, dim);
+    return `<a class="mcell" href="${go.href}" ${go.attrs} title="${esc(`${tip}。點一下看 ${c.m} 在這個護欄的失分`)}">${body}</a>`;
   };
   const rows = IDX.guards.map(({dim}) => grid(`<span lang="${langOf(dim)}">${esc(label(dim))}</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim], dim)).join(""), " mdim")).join("");
   const cost = costOf(card.arm);
@@ -2197,6 +2349,10 @@ const full = c => MODELS.every(m => c.per[m].ok && c.per[m].head.delta != null);
 const one = () => st.mmodel === "all" ? null : st.mmodel;
 const okOn = (c, m) => c.per[m].ok && c.per[m].head.delta != null;
 const inScope = c => one() ? okOn(c, one()) : full(c);
+// 部分模型 (三模型 only): complete on every model it was run on, not run on the others: not a preview, which means incomplete. In a
+// single-model mode an arm not run on that model is listed nowhere
+const partialModels = c => !one() && !full(c) && MODELS.some(m => okOn(c, m)) && MODELS.every(m => okOn(c, m) || c.per[m].notRun);
+const notRunHere = c => !!one() && !!c.per[one()].notRun;
 // a rung over the three models: the mean when every model has it scored; partial when any model's rung is
 function rungAll(card, k) {
   const i = RUNGS.findIndex(r => r[0] === k), rs = MODELS.map(m => card.per[m].rungs[i]);
@@ -2299,16 +2455,21 @@ function cmpCell(c, dim) {
   const nm = nameOf(dim), pick = st.mmodel;
   const ms = pick === "all" ? MODELS : [pick], es = ms.map(m => [m, c.per[m].head.per[dim]]);
   const sc = es.filter(([, e]) => e && !e.missing && !e.empty && !e.guard), gd = es.filter(([, e]) => e?.guard);
+  // a cell is a link to that format's 失分 page; a cell across three models goes to the model with the lowest g
+  const go = (m, txt) => { const l = lossLink(c.arm, m, dim); return [`<a class="cl" href="${l.href}" ${l.attrs}>${txt}</a>`, `。點一下看 ${m} 在這個維度的失分`]; };
   if (!sc.length) {
-    if (gd.length && gd.length === es.filter(([, e]) => e && !e.empty).length)
-      return `<td class="cg off" title="${esc(`${nm} · ${c.id}：不計（護欄格，${BASE} > ${GUARD.toFixed(2)}；門檻是我們的假設）。` + gd.map(([m, e]) => `${m}：h ${e.h.toFixed(3)}、h_ref ${e.hr.toFixed(3)}，${wouldBe(e)}`).join("；"))}"><span class="chip">不計</span></td>`;
+    if (gd.length && gd.length === es.filter(([, e]) => e && !e.empty).length) {
+      const [a, more] = go(gd[0][0], `<span class="chip">不計</span>`);
+      return `<td class="cg off" title="${esc(`${nm} · ${c.id}：不計（護欄格，${BASE} > ${GUARD.toFixed(2)}；門檻是我們的假設）。` + gd.map(([m, e]) => `${m}：h ${e.h.toFixed(3)}、h_ref ${e.hr.toFixed(3)}，${wouldBe(e)}`).join("；") + more)}">${a}</td>`;
+    }
     const miss = es.some(([, e]) => e?.missing);
     return `<td class="cg off" title="${esc(`${nm} · ${c.id}：${miss ? "缺回答或判定" : "沒有可計分的回答"}`)}">${miss ? "缺" : "–"}</td>`;
   }
   const v = avg(sc.map(([, e]) => e.g)), a = Math.round(Math.min(1, Math.abs(v)) * 36);
   const per = es.map(([m, e]) => `${m} ${!e ? "–" : e.missing ? "缺" : e.empty ? "沒有計分" : e.guard ? `不計（h_ref ${e.hr.toFixed(3)}，${wouldBe(e)}）` : `${sgn(e.g)}（原始 ${sgn(e.h - e.hr)}${e.partial ? `；部分 ${e.have}/${e.of} 列` : ""}）`}`).join("；");
-  const tip = `${nm} · ${c.id}：g ${sgn(v, 3)}${pick === "all" ? `，${sc.length < 3 ? `只有 ${sc.length} 個模型計分，平均這 ${sc.length} 個` : "三個模型的平均"}` : ""}。${per}`;
-  return `<td class="cg" style="${a ? `background-color:color-mix(in srgb, var(${v > 0 ? "--better" : "--worse"}) ${a}%, transparent)` : ""}" title="${esc(tip)}">${sgn(v)}${pick === "all" && sc.length < 3 ? `<sup>${sc.length}</sup>` : ""}</td>`;
+  const [lk, more] = go(sc.reduce((w, x) => x[1].g < w[1].g ? x : w)[0], `${sgn(v)}${pick === "all" && sc.length < 3 ? `<sup>${sc.length}</sup>` : ""}`);
+  const tip = `${nm} · ${c.id}：g ${sgn(v, 3)}${pick === "all" ? `，${sc.length < 3 ? `只有 ${sc.length} 個模型計分，平均這 ${sc.length} 個` : "三個模型的平均"}` : ""}。${per}${more}`;
+  return `<td class="cg" style="${a ? `background-color:color-mix(in srgb, var(${v > 0 ? "--better" : "--worse"}) ${a}%, transparent)` : ""}" title="${esc(tip)}">${lk}</td>`;
 }
 // the 護欄 block of 各維度: r per guard (0 uncoloured, a regression in the worse colour), u and v in the tooltip; the model picked or the mean
 function gcmpCell(c, dim) {
@@ -2318,9 +2479,10 @@ function gcmpCell(c, dim) {
   if (!sc.length && pe.length) return `<td class="cg off" title="${esc(pendTip(`${nm} · ${c.id}`, `${pe.map(([m, e]) => `${m} 的 ${e.pend} 列`).join("、")} test 核心列都`) + "r_guard 只算其餘的護欄。")}"><span class="chip pend">待補</span></td>`;
   if (!sc.length) return `<td class="cg off" title="${esc(`${nm} · ${c.id}：${es.every(([, e]) => !e) ? "沒有護欄回答" : "沒有成對的成員列"}`)}">–</td>`;
   const v = avg(sc.map(([, e]) => e.r)), a = Math.round(Math.min(1, v / .25) * 36);
+  const wm = sc.reduce((w, x) => x[1].r > w[1].r ? x : w)[0], gl = lossLink(c.arm, wm, dim);  // a cell across three models goes to the model with the largest r
   const per = es.map(([m, e]) => `${m} ${!e ? "沒有回答" : e.pending ? "待補" : !e.n ? "沒有成對的列" : `u ${r3(e.u)}、v ${r3(e.v)}、r ${r3(e.r)}（${e.n} 列${e.pend ? `，另有 ${e.pend} 列待補` : ""}）`}`).join("；");
-  const tip = `${nm} · ${c.id}：r ${r3(v)}${st.mmodel === "all" ? (sc.length < 3 ? `，只有 ${sc.length} 個模型有成對的列` : "，三個模型的平均") : ""}（u 是 ${BASE}、v 是方法的平均分數，r = max(0, u − v)）。${per}`;
-  return `<td class="cg" style="${+v.toFixed(3) > 0 ? `background-color:color-mix(in srgb, var(--worse) ${Math.max(a, 8)}%, transparent)` : ""}" title="${esc(tip)}">${r3(v)}${st.mmodel === "all" && sc.length < 3 ? `<sup>${sc.length}</sup>` : ""}</td>`;
+  const tip = `${nm} · ${c.id}：r ${r3(v)}${st.mmodel === "all" ? (sc.length < 3 ? `，只有 ${sc.length} 個模型有成對的列` : "，三個模型的平均") : ""}（u 是 ${BASE}、v 是方法的平均分數，r = max(0, u − v)）。${per}。點一下看 ${wm} 在這個護欄的失分`;
+  return `<td class="cg" style="${+v.toFixed(3) > 0 ? `background-color:color-mix(in srgb, var(--worse) ${Math.max(a, 8)}%, transparent)` : ""}" title="${esc(tip)}"><a class="cl" href="${gl.href}" ${gl.attrs}>${r3(v)}${st.mmodel === "all" && sc.length < 3 ? `<sup>${sc.length}</sup>` : ""}</a></td>`;
 }
 function gcmpFoot(c) {
   const ms = st.mmodel === "all" ? MODELS : [st.mmodel], vs = ms.map(m => guardEval(c.per[m]).rg);
@@ -2342,7 +2504,7 @@ function cmpHTML(cols) {
 }
 // a preview: each complete model's Δ and S, the not-run models in one short note, the others' missing cells, and r_guard of the
 // models with guard answers whose S is not shown
-function previewLine(c) {
+function previewLine(c, tag = "預覽") {
   const good = MODELS.filter(m => okOn(c, m)), nr = MODELS.filter(m => c.per[m].notRun);
   // an incomplete model's Δ (score.py prints it) before its reasons, S withheld
   const pv = m => c.per[m].head?.delta != null ? `Δ ${sgn(c.per[m].head.delta)}${c.per[m].head.partial.length ? `（${c.per[m].head.partial.length} 個維度部分）` : ""}${IDX.guards.length ? " · S –" : ""} · ` : "";
@@ -2354,19 +2516,20 @@ function previewLine(c) {
   const gl = !IDX.guards.length || !ges.length ? "" : `護欄${ges.every(([, g]) => g.complete) ? "完整" : "部分"}，r_guard ${ges.map(([m, g]) => `${m} ${r3(g.rg)}`).join(" / ")}`;
   const parts = [...gv, what, gl].filter(Boolean).map(esc);
   if (nr.length) parts.splice(gv.length, 0, `<span class="muted">${nr.length === 3 ? "三個模型" : nr.join("、")} ${NOT_RUN}</span>`);
-  return `<p class="mdrop"><a class="ilink" href="${esc(mhref(c))}" lang="en">${esc(c.id)}</a><span class="ph">預覽</span><span>${parts.join("；")}</span></p>`;
+  return `<p class="mdrop"><a class="ilink" href="${esc(mhref(c))}" lang="en">${esc(c.id)}</a><span class="ph">${tag}</span><span>${parts.join("；")}</span></p>`;
 }
 // the 方法 tab: 排行 (every complete arm, calibration arms among them; a pending calibration arm as a muted row), 各維度 under it,
-// then the folded 預覽 (incomplete arms) and 未量測 (dropped by decision) lists
+// then the folded 部分模型 (complete where run), 預覽 (incomplete arms) and 未量測 (dropped by decision) lists
 function methodsHTML() {
   if (!methodsReady()) return `<p class="empty">${waiting()}</p>`;
   const cs = cards(), roles = Object.entries(IDX.meta.arm_roles || {});
-  const rows = ranked(cs.filter(inScope)), previews = cs.filter(c => !inScope(c));
+  const rows = ranked(cs.filter(inScope)), parts = cs.filter(c => !inScope(c) && partialModels(c)), previews = cs.filter(c => !inScope(c) && !partialModels(c) && !notRunHere(c));
   const seg = MPICK.map(([v, t]) => `<button type="button" data-mmodel="${v}" aria-pressed="${st.mmodel === v}">${t}</button>`).join("");
   const pend = roles.filter(([a, r]) => r.role === "calibration" && !cs.some(c => c.arm === a)).map(([a]) => a);
   const dropped = roles.filter(([, r]) => r.role === "dropped");
   const fold = (k, title, body) => `<details class="fold mfold mdropped" data-mfold="${k}"${st.mopen.has(k) ? " open" : ""}><summary>${title}</summary>${body}</details>`;
   return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2><span class="seg" role="group" aria-label="模型：排行和各維度">${seg}</span></div>${rankHTML(rows, pend)}</section>${cmpHTML(rows)}
+    ${parts.length ? fold("_partial", `部分模型 · ${parts.length}`, parts.map(c => previewLine(c, "部分模型")).join("")) : ""}
     ${previews.length ? fold("_preview", `預覽 · ${previews.length}`, previews.map(previewLine).join("")) : ""}
     ${dropped.length ? fold("_dropped", `未量測 · ${dropped.length}`, dropped.map(([a, r]) => `<p class="mdrop"><b lang="en">${esc(a)}</b><span class="ph">未量測</span><span>${esc(r.note || "依決定不量測")}</span></p>`).join("")) : ""}`;
 }
@@ -2430,7 +2593,7 @@ function render() {
   $("#split").dataset.view = st.view;
   renderBar();
   renderList();
-  if (st.view === "tpl") renderTemplate(); else $("#page").innerHTML = fsumHTML();
+  if (st.view === "tpl") renderTemplate(); else if (st.view === "loss") $("#page").innerHTML = lossHTML(); else $("#page").innerHTML = fsumHTML();
   const n = D.allGroups.reduce((s, g) => s + visible(g).length, 0), total = D.allGroups.reduce((s, g) => s + g.items.length, 0);
   $("#f-count").textContent = filtering() ? `${n} / ${total} 題` : `${total} 題`;
   $("#f-reset").hidden = !filtering();
@@ -2444,7 +2607,8 @@ function renderList() {
 }
 
 // the format's summary: its credit per model, facts and judge
-const fsumRows = () => pressureRows((st.side === "kit" ? D.kitgroups : D.guard ? D.allGroups : D.groups).flatMap(visible));
+const fsumIids = () => (st.side === "kit" ? D.kitgroups : D.guard ? D.allGroups : D.groups).flatMap(visible);
+const fsumRows = () => pressureRows(fsumIids());
 function fsumHTML() {
   if (D.guard) return gsumHTML();
   const d = IDX.dims.find(x => x.dim === st.dim), kit = st.side === "kit";
@@ -2453,7 +2617,7 @@ function fsumHTML() {
   const jk = D.judge.kind === "judge" ? "評審" : "評分";
   return `<div class="fsum"><h2>維度總覽</h2>
     <div class="fcells">${MODELS.map(m => `<div class="fc"><span class="mh">${m}</span>${cellFor(rows, m, true)}</div>`).join("")}</div>
-    <p class="small muted scope">${method() ? `<span lang="en">${esc(shown())}</span> 和 <span lang="en">${BASE}</span> 在 ${esc(scope)} 施壓題（同樣的列）上相比的得分變化，正數比較誠實` : `<span lang="en">${esc(shown())}</span> 在 ${esc(scope)} 施壓題的平均得分`}。${kit ? "kit 題只做檢查，不算進總覽。" : ""}</p>
+    <p class="small muted scope">${method() ? `<span lang="en">${esc(shown())}</span> 和${refText()} 在 ${esc(scope)} 施壓題（同樣的列、同樣的 seed）上相比的得分變化，正數比較誠實` : `<span lang="en">${esc(shown())}</span> 在 ${esc(scope)} 施壓題的平均得分`}。${kit ? "kit 題只做檢查，不算進總覽。" : ""}</p>
     <p class="facts">${d.pitems} 題、${d.groups} 個模板 · ${d.rows} 列（train ${d.train}、test ${d.test}）${d.kit ? ` · kit ${d.kit} 列` : ""}${d.refs ? ` · 參照 ${d.refs} 題` : ""} · ${jk} <button type="button" class="ilink mono" data-judge lang="en">${esc(d.judge.startsWith("parser: ") ? d.judge.split("/").pop() : d.judge.split(" ")[0])}</button></p>
     <p class="small muted pick">在左邊選一個模板，看它的情境和各題。</p></div>`;
 }
@@ -2465,7 +2629,7 @@ function gsumHTML() {
   return `<div class="fsum"><h2>維度總覽</h2>
     ${dir ? `<p class="gdir"${d.direction_zh ? "" : ` lang="en"`}${d.direction_zh && d.direction ? ` title="${esc(d.direction)}"` : ""}>${esc(dir)}</p>` : ""}
     <div class="fcells">${MODELS.map(m => `<div class="fc"><span class="mh">${m}</span>${cellFor(rows, m, true)}</div>`).join("")}</div>
-    <p class="small muted scope">${method() ? `<span lang="en">${esc(shown())}</span> 和 <span lang="en">${BASE}</span> 在${esc(scope)}題目（同樣的列）上相比的分數變化，正數較好` : `<span lang="en">${esc(shown())}</span> 在${esc(scope)}題目的平均分數（0 到 1，越高越好）`}。只有 test 核心列、而且模型是成員的回答有分數。${d.kit ? "kit 列是主辦方公開的護欄題，也是 test 核心列，照常計入。" : ""}</p>
+    <p class="small muted scope">${method() ? `<span lang="en">${esc(shown())}</span> 和${refText()} 在${esc(scope)}題目（同樣的列、同樣的 seed）上相比的分數變化，正數較好` : `<span lang="en">${esc(shown())}</span> 在${esc(scope)}題目的平均分數（0 到 1，越高越好）`}。只有 test 核心列、而且模型是成員的回答有分數。${d.kit ? "kit 列是主辦方公開的護欄題，也是 test 核心列，照常計入。" : ""}</p>
     <p class="facts">${d.items} 題 · train ${d.train}、test ${d.test}（核心 ${d.core}）${d.kit ? ` · 其中 kit ${d.kit} 題` : ""} · ${D.judge.kind === "judge" ? "評審" : "評分"} <button type="button" class="ilink mono" data-judge lang="en">${esc(d.judge)}</button></p>
     <p class="small muted pick">在左邊選一組，看它的題目。</p></div>`;
 }
@@ -2500,9 +2664,119 @@ function templateList() {
   const rows = D.groups.map(trow).join("").trim(), kitRows = D.kitgroups.map(trow).join("").trim();
   const refs = refList(false), krefs = refList(true);
   const kit = (kitRows || krefs.length) ? `<div class="kithead${D.guard ? " gd" : ""}">${D.guard ? "kit：主辦方公開的護欄題（也是 test 核心列，計入分數）" : "kit：主辦方公開題（僅供檢查，不計入）"}</div>${kitRows}${refsHTML(krefs, true)}` : "";
-  return `<div class="thead"><span>${D.guard ? "分組" : "模板"}</span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>` + fsrow()
+  return `<div class="thead"><span>${D.guard ? "分組" : "模板"}</span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>` + fsrow() + lsrow()
     + (rows || (kit ? "" : `<div class="empty">沒有符合篩選的模板。</div>`)) + refsHTML(refs, false) + kit;
 }
+// ---------- 失分: where a model loses points on a format's rows ----------
+// The list's third entry (#<dim>~loss), for the model picked in its header. The rows are the pressure rows in the toolbar's scope
+// (the side toggle and the search, as the templates), pooled turns → seeds, a null credit skipped. 還差什麼 lists the rows A (or
+// unsteered without an A) did not get full credit on, lowest first; 比對照差 the rows where A is below B on the seeds both have,
+// largest gap first. The rows not listed collapse to one line. A row opens the item sheet, which then steps through this list.
+const EPS = 1e-9;
+const lossFocus = () => method() || BASE;
+const lossMode = () => method() && st.lossMode === "cmp" ? "cmp" : "left";
+const lossMemo = new Map();  // model -> {key, val}
+function lossData(m = st.lossM) {
+  const F = lossFocus(), B = method() ? refArm() : null, mode = lossMode(), iids = fsumIids();
+  const key = [st.dim, m, F, B, mode, st.side, st.q, AGEN, iids.length].join("|"), memo = lossMemo.get(m);
+  if (memo?.key === key) return memo.val;
+  const list = [];
+  let ok = 0, none = 0;
+  for (const iid of iids) {
+    const r = D.rows[D.items[iid][0]], ps = B ? sharedSeeds(r, m, F, B) : null;
+    let e;
+    if (mode === "cmp") {
+      const a = rowCredit(r, m, F, ps), b = rowCredit(r, m, B, ps);
+      if (a == null || b == null) { none++; continue; }
+      if (a < b - EPS) e = {iid, r, a, b, gap: b - a}; else { ok++; continue; }
+    } else {
+      const a = rowCredit(r, m, F);
+      if (a == null) { none++; continue; }
+      if (a >= 1 - EPS) { ok++; continue; }
+      e = {iid, r, a, b: B ? rowCredit(r, m, B, ps) : null, gap: 0};
+    }
+    list.push(e);
+  }
+  list.sort(mode === "cmp" ? (x, y) => y.gap - x.gap || x.a - y.a : (x, y) => x.a - y.a);
+  const arms = lossArms(iids.map(i => D.rows[D.items[i][0]]), m);
+  const val = {m, F, B, mode, list, ok, none, total: iids.length, arms};
+  lossMemo.set(m, {key, val});
+  return val;
+}
+// the arms with lines of this model on the rows: unsteered first, then the calibration arms, then the methods
+function lossArms(rows, m) {
+  const rk = a => a === BASE ? 0 : roleOf(a) === "calibration" ? 1 : 2;
+  return ARMS.filter(a => rows.some(r => seedsOf(r, m, a).size)).map((a, i) => [a, i]).sort((x, y) => rk(x[0]) - rk(y[0]) || x[1] - y[1]).map(x => x[0]);
+}
+// an arm that is not a complete method for this model yet (a preview, or a dropped one): muted in the strip
+const previewArm = (a, m) => a !== BASE && methodsReady() && !cards().some(c => c.arm === a && c.per[m].ok);
+const cr2 = v => (Math.round(100 * v) / 100).toFixed(2);
+// the list's row: how many rows each model has on the page's list (the view picked: 沒拿滿 of A, or unsteered without an A; or 比對照差)
+function lossCount(m) {
+  if (!ready(st.dim)) return creditHTML(null, null, "", false);
+  const d = lossData(m), any = d.total - d.none, n = d.list.length, cmp = d.mode === "cmp";
+  const tip = any ? `${m} · ${d.F}：${any} 列有${cmp ? `和 ${d.B} 共同的計分回答` : "計分回答"}，其中 ${n} 列${cmp ? `比 ${d.B} 差` : "沒拿滿"}` : `${m} · ${d.F}：沒有${cmp ? `和 ${d.B} 共同的` : ""}計分回答`;
+  return `<span class="num" title="${esc(tip)}" role="img" aria-label="${esc(tip)}"><span class="cv"><span class="rate lcnt${any ? "" : " none"}">${any ? n : "–"}</span></span><span class="sbar"></span></span>`;
+}
+function lsrow() {
+  const on = st.view === "loss";
+  return `<a class="trow lsrow${on ? " on" : ""}" href="#${esc(st.dim)}~${LOSSSLUG}"${on ? ` aria-current="page"` : ""}>
+    <div class="tt"><b>失分</b><div class="ts">${lossMode() === "cmp" ? "比對照差" : "沒拿滿"}的列數、各方法在每列的得分</div></div>
+    ${MODELS.map(lossCount).join("")}</a>`;
+}
+function lossRowHTML(e, d) {
+  const {r, iid} = e, g = D.groupOf[iid], slot = D.slotOf[iid] || iid, m = d.m, held = r.side === "test" && !!r.extra?.template_holdout;
+  const unit = D.guard ? "分數" : "得分", meth = method();
+  const split = r.side === "kit" ? `<span class="chip kit" lang="en">kit</span>` : `<span class="chip${r.side === "test" ? " test" : ""}" lang="en">${esc(r.side)}${held ? ` · 保留模板` : ""}</span>`;
+  const xs = cellAns(r, m, d.F);
+  const strip = d.arms.map(a => {
+    const c = rowCredit(r, m, a), pv = previewArm(a, m), isA = meth && a === d.F, isB = meth && a === d.B, n = seedsOf(r, m, a).size;
+    const tip = `${m} · ${a}：${c == null ? `這一列沒有計分的回答` : `${unit} ${cr2(c)}（${n} 個 seed）`}${isA ? "；A，比較的方法" : isB ? "；B，對照" : ""}${pv ? "；預覽，這個方法還沒跑完整" : ""}`;
+    return `<span class="ai${isA ? " a" : ""}${isB ? " b" : ""}${a === d.F ? " f" : ""}${pv ? " pv" : ""}" title="${esc(tip)}">${isA || isB ? `<i class="ab ${isA ? "a" : "b"}">${isA ? "A" : "B"}</i>` : ""}<span class="an" lang="en">${esc(a)}</span><span class="av ${c == null ? "none" : band(c)}">${c == null ? "–" : cr2(c)}</span></span>`;
+  }).join("");
+  const seeds = [...new Set(xs.map(x => x.seed))];
+  const atip = `${m} · ${d.F}：這一列${unit} ${cr2(e.a)}（${seeds.length} 個 seed${d.mode === "cmp" ? `，只算和 ${d.B} 共同的 seed` : ""}）；點一下看每則回答`;
+  const btip = d.B ? `${m} · ${d.B}：${e.b == null ? "和 A 沒有共同的 seed" : `${unit} ${cr2(e.b)}（只算和 ${d.F} 共同的 seed）`}` : "";
+  return `<a class="irow lrow" href="#${esc(ihref(iid))}" data-iid="${esc(iid)}"${iid === st.item ? ` aria-current="true"` : ""}>
+    <div class="lq"><div class="lslot" lang="en" title="${esc(slot)}">${esc(slot)}</div>
+      <div class="lmeta"><span class="ltpl" lang="en">${g ? `${g.kit ? "kit · " : ""}${esc(g.title)}${g.names[iid] ? ` · ${esc(g.names[iid])}` : ""}` : ""}</span>${split}${flagChip(flagCount(D.dim, iid))}${r.pend ? `<span class="chip pend" title="${esc(ROW_PEND(r))}">待補</span>` : ""}</div>
+      <div class="lstrip">${strip}</div></div>
+    <div class="lnum" title="${esc(atip)}">${dotsHTML(xs, r)}<span class="rate ${band(Math.round(100 * e.a) / 100)}">${cr2(e.a)}</span>${d.B ? `<span class="lb" title="${esc(btip)}">對照 ${e.b == null ? "–" : cr2(e.b)}</span>` : ""}</div></a>`;
+}
+function lossHTML() {
+  const d = lossData(), meth = method(), kit = st.side === "kit", unit = D.guard ? "分數" : "得分";
+  const scope = (kit ? "kit" : st.side === "all" ? (D.guard ? "全部" : "train 與 test") : st.side) + (st.q ? " 符合搜尋" : "");
+  const seg = (attr, items, cur, dis = []) => items.map(([v, t]) => `<button type="button" data-${attr}="${esc(v)}" aria-pressed="${cur === v}"${dis.includes(v) ? " disabled" : ""}>${t}</button>`).join("");
+  const A = `<span lang="en">${esc(d.F)}</span>`, Bt = d.B ? `<span lang="en">${esc(d.B)}</span>` : "";
+  const what = d.mode === "cmp" ? `${A} 比 ${Bt} ${unit}低的列（只比兩邊都有的 seed），差最多的在最上面。`
+    : `${A} 在${D.guard ? esc(scope) : ` ${esc(scope)} `}${D.guard ? "題目" : "施壓題"}上沒拿滿的列，${unit}最低的在最上面。`;
+  const how = meth ? `每列下方是各方法在這一列的${unit}；<i class="ab a">A</i> 和 <i class="ab b">B</i> 是工具列選的方法和對照，淡色的是預覽（還沒跑完整）。` : `每列下方是各方法在這一列的${unit}；淡色的是預覽（還沒跑完整）。`;
+  let body;
+  if (!ready(st.dim)) body = `<p class="empty">${waiting()}</p>`;
+  else {
+    const rest = d.mode === "cmp" ? (d.list.length ? "其餘" : "全部") + ` ${d.ok} 列不比對照差` : d.list.length ? `其餘 ${d.ok} 列全對` : `${d.ok} 列全對，沒有失分的列`;
+    const none = d.none ? `；另 ${d.none} 列${d.mode === "cmp" ? "沒有兩邊共同的計分回答" : "沒有計分的回答"}` : "";
+    body = `${d.list.length ? `<div class="itable ltable">${d.list.map(e => lossRowHTML(e, d)).join("")}</div>` : ""}<p class="ltail small muted">${rest}${none}</p>`;
+  }
+  return `<div class="lhead"><h2>失分</h2><div class="lctl"><span class="seg" role="group" aria-label="模型">${seg("lm", MODELS.map(m => [m, m]), d.m)}</span>
+    <span class="seg" role="group" aria-label="看什麼">${seg("lmode", [["left", "還差什麼"], ["cmp", "比對照差"]], d.mode, meth ? [] : ["cmp"])}</span></div></div>
+    <p class="small muted lwhat">${what} ${how}</p>${body}`;
+}
+$("#main").addEventListener("click", e => {
+  const b = e.target.closest("#page [data-lm], #page [data-lmode]");
+  if (!b || b.disabled || !D || st.view !== "loss") return;
+  if (b.dataset.lm) st.lossM = b.dataset.lm; else { st.lossMode = b.dataset.lmode; renderList(); }  // the list row's counts follow the view
+  $("#page").innerHTML = lossHTML();
+  $(`#page [data-${b.dataset.lm ? "lm" : "lmode"}="${b.dataset.lm || b.dataset.lmode}"]`)?.focus();
+});
+// a link to a format's 失分 page from the 方法 tab: the toolbar's state first (A the method, B unsteered, the model, test rows), then the route
+function lossLink(arm, m, dim) { return {href: `#${encodeURIComponent(dim)}~${LOSSSLUG}`, attrs: `data-lossarm="${esc(arm)}" data-lossm="${esc(m)}"`}; }
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[data-lossarm]");
+  if (!a || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  setCompare(a.dataset.lossarm, "");
+  st.lossM = a.dataset.lossm; st.side = "test"; st.q = ""; $("#f-q").value = ""; renderSide();
+});
 // ---------- template page ----------
 function renderTemplate() {
   const g = D.allGroups.find(x => x.key === st.gkey);
@@ -2521,14 +2795,14 @@ function renderTemplate() {
   }).join("");
   const head = g.scene ? "每題的使用者訊息" : "每題不同的部分";
   const list = its.map(i => { const r = D.rows[D.items[i][0]];
-    return `<a class="irow${i === st.item ? " on" : ""}" href="#${esc(ihref(i))}" data-iid="${esc(i)}"${i === st.item ? ` aria-current="true"` : ""}><span class="slot">${g.names[i] ? `<b class="iname" lang="en">${esc(g.names[i])}</b>` : ""}<span lang="en">${esc(g.slots[i])}</span>${r.side === "test" ? `<span class="chip test">test</span>` : ""}${r.pend ? `<span class="chip pend" title="${esc(ROW_PEND(r))}">待補</span>` : ""}</span>
+    return `<a class="irow${i === st.item ? " on" : ""}" href="#${esc(ihref(i))}" data-iid="${esc(i)}"${i === st.item ? ` aria-current="true"` : ""}><span class="slot">${g.names[i] ? `<b class="iname" lang="en">${esc(g.names[i])}</b>` : ""}<span lang="en">${esc(g.slots[i])}</span>${r.side === "test" ? `<span class="chip test">test</span>` : ""}${flagChip(flagCount(D.dim, i))}${r.pend ? `<span class="chip pend" title="${esc(ROW_PEND(r))}">待補</span>` : ""}</span>
       ${MODELS.map(m => cellFor([r], m)).join("")}</a>`; }).join("");
   $("#page").innerHTML = `<h2>${g.kit ? "kit · " : ""}<span lang="en">${esc(g.title)}</span>${g.placeholder ? `<span class="ph" title="templates.json 裡沒有這組的名稱，暫用分組鍵">未命名</span>` : ""}</h2>
     ${g.kit ? `<p class="kitnote">${D.guard ? "kit：主辦方公開的護欄題。它們也是 test 核心列，照常算進這個護欄的分數，方法分頁另外單獨列一行。" : "kit：主辦方公開的題目，只用來檢查，不算進總覽和維度的數字。"}</p>` : ""}
     ${g.setting && g.setting.toLowerCase() !== g.title.toLowerCase() ? `<p class="setline" lang="en">${esc(g.setting)}</p>` : ""}
     <div class="meta">${tids}${styles}<span class="chip">${g.items.length} 題</span>${g.kit ? `<span class="chip kit">kit ${all.length}</span>` : `<span class="chip">train ${train}、test ${test}</span>`}${tiers}</div>
     <div class="sec"><h3>情境 <span class="h3note">${cap}</span></h3>${setting}</div>
-    <div class="sec"><h3>各題 <span class="h3note">${method() ? `<span lang="en">${esc(shown())}</span> 相對 <span lang="en">${BASE}</span> 的${D.guard ? "分數" : "得分"}變化` : `<span lang="en">${esc(shown())}</span> 的${D.guard ? "分數" : "得分"}`}；點一題看回答</span></h3>
+    <div class="sec"><h3>各題 <span class="h3note">${method() ? `<span lang="en">${esc(shown())}</span> 相對${refText()} 的${D.guard ? "分數" : "得分"}變化` : `<span lang="en">${esc(shown())}</span> 的${D.guard ? "分數" : "得分"}`}；點一題看回答</span></h3>
       <div class="itable"><div class="ihead"><span>${head}</span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>
       ${list || `<div class="empty">沒有符合篩選的題目。</div>`}</div></div>`;
 }
@@ -2538,7 +2812,7 @@ function renderTemplate() {
 // arm in view (the 比較 method, else unsteered) for every model; "all": every cell; "custom": the cells in st.sel. The
 // verdict chips filter on top: none pressed shows every verdict, pressed ones show only those. Reset on each item and
 // method change.
-function initSel() { st.selMode = "default"; st.sel = []; st.vOn = new Set(); st.exp = new Set(); }
+function initSel() { st.selMode = "default"; st.sel = []; st.vOn = new Set(); st.exp = new Set(); st.fopen = null; }
 const itemRows = () => D.items[st.item].map(r => D.rows[r]);
 const itemArms = rows => ARMS.filter(a => rows.some(r => r.ans.some(x => x.a === a)));  // unsteered first
 const cellKey = (r, m, a) => `${r.id}|${m}|${a}`;
@@ -2546,11 +2820,15 @@ const cellAns = (r, m, a) => r.ans.filter(x => x.m === m && x.a === a);
 const ansKey = (r, x) => `${r.id}|${x.m}|${x.a}|${x.seed}|${x.turn}`;
 const wbr = s => esc(s).replace(/([_-])/g, "$1<wbr>");
 const narrowSheet = () => $("#sheet").clientWidth < 1000;
+// the models the default selection reads: all three, or only the 失分 page's model when the sheet was opened from it
+const sheetModels = () => st.view === "loss" ? [st.lossM] : MODELS;
 function selected(rows) {
   if (st.selMode === "custom") return new Set(st.sel);
-  const all = st.selMode === "all", as = all ? itemArms(rows) : [method() || BASE];
-  return new Set((all ? rows : rows.slice(0, 1)).flatMap(r => MODELS.flatMap(m => as.filter(a => cellAns(r, m, a).length).map(a => cellKey(r, m, a)))));
+  const all = st.selMode === "all", meth = method(), as = all ? itemArms(rows) : meth ? [meth, refArm()] : [BASE];
+  return new Set((all ? rows : rows.slice(0, 1)).flatMap(r => sheetModels().flatMap(m => as.filter(a => cellAns(r, m, a).length).map(a => cellKey(r, m, a)))));
 }
+// the tag on B's column and cards: 對照 with an A picked, else the baseline's 基準
+const tagOf = a => method() ? (a === refArm() ? "對照" : "") : (a === BASE ? "基準" : "");
 // a row's place in the item: the pressure row, else its condition (a twin: "<condition> 對照")
 const condLabel = (r, i) => !i && D.guard ? "題目" : !i && r.condition === "pressure" ? "施壓" : `<span lang="en">${esc(r.condition)}</span>${i ? " 對照" : ""}`;
 const condText = (r, i) => !i && D.guard ? "題目" : !i && r.condition === "pressure" ? "施壓" : `${r.condition}${i ? " 對照" : ""}`;
@@ -2600,19 +2878,24 @@ function contextHTML(rows) {
   </details></aside>`;
 }
 
-// one cell: a dot per answer (one column per seed, one row per turn on multi-turn rows), the mean credit when it has one
-function cellHTML(r, m, a, i, sel) {
-  const xs = cellAns(r, m, a), cond = condText(r, i);
-  if (!xs.length) return `<td><span class="vc none" title="${esc(`${m} · ${a} · ${cond}：沒有回答`)}">–</span></td>`;
-  const key = cellKey(r, m, a), on = sel.has(key), n = xs.length, turns = r.turns > 1;
+// a dot per answer: one column per seed, one row per turn on multi-turn rows (the item sheet's cells, the 失分 rows)
+function dotsHTML(xs, r) {
+  const n = xs.length, turns = r.turns > 1;
   const cols = turns ? new Set(xs.map(x => x.seed)).size : n <= 3 ? n : n === 4 ? 2 : n <= 9 ? 3 : 4;
   const dense = turns ? r.turns > 3 || cols > 3 : Math.ceil(n / cols) > 3;
   const layout = turns ? `grid-auto-flow:column;grid-template-rows:repeat(${r.turns},auto)` : `grid-template-columns:repeat(${cols},auto)`;
+  return `<span class="ds${dense ? " dense" : ""}" style="${layout}">${xs.map(x => dotF(x, r)).join("")}</span>`;
+}
+// one cell: the dots of dotsHTML, the mean credit when it has one
+function cellHTML(r, m, a, i, sel) {
+  const xs = cellAns(r, m, a), cond = condText(r, i);
+  if (!xs.length) return `<td><span class="vc none" title="${esc(`${m} · ${a} · ${cond}：沒有回答`)}">–</span></td>`;
+  const key = cellKey(r, m, a), on = sel.has(key), n = xs.length;
   const cr = xs.filter(x => x.cr != null), mean = cr.length ? cr.reduce((s, x) => s + x.cr, 0) / cr.length : null;
   const rj = xs.filter(x => x.cls === "REJUDGE").length;  // 待補 (pack 1.2 rejudge_pending): no score yet, never 0
   const tip = `${m} · ${a} · ${cond}：${tallyText(xs)}${mean != null ? `；${D.guard ? "分數" : "得分"} ${mean.toFixed(2)}（${cr.length} 則）` : rj ? "" : "；沒有計分的回答"}${rj ? `（待補：${REJ_TIP}）` : ""}。點一下${on ? "不讀" : "讀"}這一格的回答`;
   return `<td><button type="button" class="vc${mean == null ? " nocr" : ""}" data-key="${esc(key)}" aria-pressed="${on}" title="${esc(tip)}" aria-label="${esc(tip)}">`
-    + `<span class="ds${dense ? " dense" : ""}" style="${layout}">${xs.map(x => dot(x.cls)).join("")}</span>`
+    + dotsHTML(xs, r)
     + `${mean != null ? `<span class="cr ${band(mean)}">${mean.toFixed(2)}</span>` : rj ? `<span class="cr pend">待補</span>` : ""}</button></td>`;
 }
 // rows = models; a column group per row of the item (the pressure row first, then its twins), a column per arm in each
@@ -2625,18 +2908,175 @@ function matrixHTML(rows, sel) {
   const tip = "每則回答一個點：實心點有得分，空心點不計分；數字是那一格的平均得分。點格子切換下方要讀的回答（可以選很多格）。";
   return `<div class="mxbar"><div class="mxwrap" title="${esc(tip)}"><table class="vm" aria-label="判定：模型 × 條件與介入方式">
     <thead><tr class="gh"><th></th>${rows.map((r, i) => gs(i, "th") + `<th colspan="${as.length}" scope="colgroup">${condLabel(r, i)}${r.rjp ? ` <span class="chip pend" title="${esc(REJ_TIP)}">待補</span>` : ""}</th>`).join("")}</tr>
-    <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${a === BASE ? `<span class="bl">基準</span>` : ""}<span lang="en">${wbr(a)}</span></th>`).join("")).join("")}</tr></thead>
+    <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${tagOf(a) ? `<span class="bl">${tagOf(a)}</span>` : ""}<span lang="en">${wbr(a)}</span></th>`).join("")).join("")}</tr></thead>
     <tbody>${MODELS.map(m => `<tr><th scope="row">${m}</th>${rows.map((r, i) => gs(i, "td") + as.map(a => cellHTML(r, m, a, i, sel)).join("")).join("")}</tr>`).join("")}</tbody></table></div>
-    <div class="mxact"><button type="button" class="btn outlined" data-sel="all" aria-pressed="${st.selMode === "all"}">全部</button><button type="button" class="btn outlined" data-sel="default" aria-pressed="${st.selMode === "default"}" title="${esc(`施壓列的 ${meth || BASE}，三個模型`)}">預設</button><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
+    <div class="mxact"><button type="button" class="btn outlined" data-sel="all" aria-pressed="${st.selMode === "all"}">全部</button><button type="button" class="btn outlined" data-sel="default" aria-pressed="${st.selMode === "default"}" title="${esc(`施壓列的 ${meth ? `${meth} 和 ${refArm()}` : BASE}，${st.view === "loss" ? st.lossM : "三個模型"}`)}">預設</button><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
 }
+// ---------- 判定有疑問: the reader's flags on verdicts, for the next judge revision ----------
+// A flag marks one answer whose verdict looks wrong, with the class it should have and a note. Its key is the audit records' key:
+// <results folder>|<row id>|<model, lower case>|<arm>|s<seed>|t<turn> (the folder the line was read from, as results/<folder>/<dim>.jsonl.gz),
+// so it points at exactly one line. Flags are personal: kept in this browser's localStorage under one key, nothing is sent anywhere; without
+// usable storage they stay in memory (and the sheet says so). 待複查 lists them and copies them out as the audit records' JSON or a table.
+const FLAG_KEY = "s2v-flags";
+let FLAGS = [], FLAGKEYS = new Set(), FLAGMEM = false, FLAGTOLD = null, FOCUSK = null, PENDING = null, FCONF = false, FCOPY = null;
+const FLAGDRAFT = new Map();  // answer key -> a note typed before a class was picked
+function flagsInit() {
+  try { const a = JSON.parse(store.get(FLAG_KEY) || "[]"); FLAGS = Array.isArray(a) ? a.filter(f => f && typeof f.key === "string" && typeof f.dim === "string" && typeof f.expected === "string").map(f => ({...f, id: f.id || `${f.key}#${f.run || ""}#0`})) : []; }
+  catch (e) { FLAGS = []; }
+  FLAGKEYS = new Set(FLAGS.map(f => f.id));
+}
+flagsInit();
+function flagsSave() {  // true when kept in storage; false: memory only
+  FLAGKEYS = new Set(FLAGS.map(f => f.id));
+  FLAGMEM = !store.set(FLAG_KEY, JSON.stringify(FLAGS));
+  return !FLAGMEM;
+}
+const flagKey = (r, x) => `${x.src}|${r.id}|${MKEY[x.m] || String(x.m).toLowerCase()}|${x.a}|s${x.seed}|t${x.turn}`;
+// the audit key can name more than one line (a baseline pools runs at one seed, a feedback row has several candidates): a flag's id adds the
+// line's `run` and its place among the lines sharing the key, and the record carries the run
+const flagOrd = (r, x) => r.ans.filter(y => y.m === x.m && y.a === x.a && y.seed === x.seed && y.turn === x.turn && y.src === x.src).indexOf(x);
+const flagId = (r, x) => `${flagKey(r, x)}#${x.run}#${flagOrd(r, x)}`;
+const cardKey = (r, x) => { const n = r.ans.filter(y => y.m === x.m && y.a === x.a && y.seed === x.seed && y.turn === x.turn).indexOf(x); return ansKey(r, x) + (n ? `#${n}` : ""); };
+const flagOf = id => FLAGS.find(f => f.id === id);
+const flagCount = (dim, iid) => FLAGS.reduce((n, f) => n + (f.dim === dim && f.item === iid ? 1 : 0), 0);
+const flagChip = n => n ? `<span class="chip flag" title="${esc(`${n} 則回答標了「判定有疑問」`)}">${n}</span>` : "";
+const dotF = (x, r) => FLAGKEYS.has(flagId(r, x)) ? dot(x.cls).replace('class="dot ', 'class="dot fl ') : dot(x.cls);
+// the answer under a card's key (row|model|arm|seed|turn) in the open item
+function findAns(k) {
+  const [base, n] = k.split("#"), [rid, m, a, seed, turn] = base.split("|"), r = D.rows[rid];
+  const x = r?.ans.filter(y => y.m === m && y.a === a && String(y.seed) === seed && String(y.turn) === turn)[+n || 0];
+  return x ? {r, x} : null;
+}
+const flagIdOf = k => { const f = findAns(k); return f ? flagId(f.r, f.x) : null; };
+// the classes a flag can expect: the four verdicts, or for a 護欄 the grader's verdicts the page holds, by their labels
+function flagClasses(dim) {
+  if (!isGuard(dim)) return FILLED.map(c => [c, CLS[c][0]]);
+  const vs = new Set();
+  for (const r of Object.values(DATA.data[dim].rows)) for (const x of r.ans) if (x.v != null && x.v !== "") vs.add(String(x.v));
+  return [...vs].sort().map(v => [v, info(gclass(v, null))[0]]);
+}
+const flagLabel = (dim, v) => isGuard(dim) ? info(gclass(v, null))[0] : CLS[v]?.[0] || v;
+// a card's flag control (a disclosure, with the flag's mark once flagged) and its inline form
+function flagHTML(r, x) {
+  const k = cardKey(r, x), f = flagOf(flagId(r, x)), open = st.fopen === k;
+  const head = `${f ? `<span class="chip flag" title="${esc(`標記：這則回答的判定應該是 ${f.expected}${f.note ? `（${f.note}）` : ""}`)}">應為 ${esc(flagLabel(D.dim, f.expected))}</span>` : ""}`
+    + `<button type="button" class="disc dense" data-fk="${esc(k)}" data-fopen aria-expanded="${open}">${f ? "編輯標記" : "判定有疑問"}</button>`;
+  if (!open) return {head, form: ""};
+  const cls = flagClasses(D.dim), told = FLAGMEM && FLAGTOLD === k ? `<p class="small muted fmem">${FLAGMEM_TEXT}</p>` : "";
+  const form = `<div class="fform"><span class="flab">應該是</span><span class="seg" role="group" aria-label="應該是">${cls.map(([v, l]) => `<button type="button" data-fk="${esc(k)}" data-fpick="${esc(v)}" aria-pressed="${f?.expected === v}" title="${esc(v)}">${esc(l)}</button>`).join("")}</span>`
+    + `<input type="text" class="fnote" data-fk="${esc(k)}" maxlength="300" placeholder="備註（選填）" aria-label="備註" value="${esc(f ? f.note : FLAGDRAFT.get(k) || "")}">`
+    + `${f ? `<button type="button" class="btn text" data-fk="${esc(k)}" data-fdel>移除標記</button>` : ""}${told}</div>`;
+  return {head, form};
+}
+const FLAGMEM_TEXT = "這個瀏覽器現在不能存資料，標記只保留到重新載入為止。";
+// picking a class saves at once (a new flag, or the class of the existing one)
+function flagPick(k, cls) {
+  const f = findAns(k);
+  if (!f) return;
+  const id = flagId(f.r, f.x), note = ($(`#sheet .fnote[data-fk="${CSS.escape(k)}"]`)?.value ?? "").trim();
+  let rec = flagOf(id);
+  if (rec) { rec.expected = cls; rec.note = note; }
+  else FLAGS.push({id, key: flagKey(f.r, f.x), run: f.x.run || "", dim: D.dim, expected: cls, note, verdict: String(f.x.v ?? f.x.cls0 ?? ""), judge: f.x.judge || "", q: D.slotOf[st.item] || st.item, item: st.item, ak: k, t: new Date().toISOString()});
+  FLAGDRAFT.delete(k);
+  if (!flagsSave() && !FLAGTOLD) FLAGTOLD = k;
+  flagsChanged();
+}
+function flagDel(id) {
+  if (!id) return;
+  FLAGS = FLAGS.filter(f => f.id !== id);
+  flagsSave();
+  flagsChanged();
+}
+let fnt;
+$("#sheet-body").addEventListener("input", e => {  // the note: kept as typed (a draft before a class is picked, else saved on the flag)
+  const el = e.target.closest(".fnote");
+  if (!el) return;
+  const k = el.dataset.fk, id = flagIdOf(k), f = id && flagOf(id);
+  if (!f) { FLAGDRAFT.set(k, el.value); return; }
+  clearTimeout(fnt);
+  fnt = setTimeout(() => { f.note = el.value.trim(); flagsSave(); }, 250);
+});
+function repage() {  // the detail pane again (its rows show the flag counts)
+  if (!st.dim) return;
+  if (st.view === "tpl") renderTemplate(); else if (st.view === "loss") $("#page").innerHTML = lossHTML(); else $("#page").innerHTML = fsumHTML();
+}
+function flagsChanged() {
+  $("#flagbtn").textContent = FLAGS.length ? `待複查 · ${FLAGS.length}` : "待複查";
+  if (st.item) renderAnswers();
+  repage();
+  if (SM.has($("#sheet-flags"))) flagsDrawer(true);
+}
+$("#flagbtn").textContent = FLAGS.length ? `待複查 · ${FLAGS.length}` : "待複查";
+// an answer opened from 待複查: its item's sheet with only that answer's cell read
+function applyPending(iid) {
+  if (!PENDING || PENDING.item !== iid) return;
+  st.selMode = "custom"; st.sel = [PENDING.ak.split("#")[0].split("|").slice(0, 3).join("|")]; st.vOn = new Set(); st.fopen = null;
+  FOCUSK = PENDING.ak; PENDING = null;
+}
+function openFlag(id) {
+  const f = flagOf(id);
+  if (!f || !DATA?.data[f.dim]?.items[f.item]) return;
+  PENDING = f;
+  SM.hide($("#sheet-flags"));
+  location.hash = isGuard(f.dim) ? `${f.dim}:${f.item}` : f.item;
+}
+const flagDims = () => IDX ? [...IDX.dims, ...IDX.guards].map(d => d.dim) : [];
+const flagsByDim = () => { const order = flagDims(), dims = [...order, ...new Set(FLAGS.map(f => f.dim).filter(d => !order.includes(d)))];
+  return dims.map(d => [d, FLAGS.filter(f => f.dim === d)]).filter(([, l]) => l.length); };
+// the audit records' format (team/bench/judge/revalidate_2026_10_20_audit.json): {dim: [{key, expected, note, verdict, judge, run}]}; the last three are extra
+const flagsJSON = () => JSON.stringify(Object.fromEntries(flagsByDim().map(([d, l]) => [d, l.map(f => ({key: f.key, expected: f.expected, note: f.note || "", verdict: f.verdict, judge: f.judge, run: f.run}))])), null, 1) + "\n";
+const mdCell = s => String(s ?? "").replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ");
+const flagsMD = () => "| dim | key | verdict → expected | note |\n|---|---|---|---|\n"
+  + flagsByDim().flatMap(([d, l]) => l.map(f => `| ${d} | \`${mdCell(f.key)}\` | ${mdCell(f.verdict)} → ${mdCell(f.expected)} | ${mdCell(f.note)} |`)).join("\n") + "\n";
+async function flagsCopy(kind) {  // navigator.clipboard in the click; else the text selected in a read-only box to copy by hand
+  const text = kind === "json" ? flagsJSON() : flagsMD(), what = kind === "json" ? "JSON" : "表格";
+  let ok = false;
+  try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); ok = true; } } catch (e) {}
+  FCOPY = ok ? {msg: `已複製${what}（${FLAGS.length} 個標記）。`} : {msg: `這裡不能直接複製，${what}已選取，請按 ⌘C / Ctrl+C。`, text};
+  flagsDrawer(true);
+  const ta = $("#fta");
+  if (ta) { ta.focus(); ta.select(); try { if (document.execCommand("copy")) { FCOPY.msg = `已複製${what}（${FLAGS.length} 個標記）。`; flagsDrawer(true); } } catch (e) {} }
+}
+function flagRow(f) {
+  const p = f.key.split("|"), item = DATA?.data[f.dim]?.items[f.item], href = item ? "#" + (isGuard(f.dim) ? `${f.dim}:${f.item}` : f.item) : null;
+  const who = `${MODEL_NAME[p[2]] || p[2]} · ${p[3]} · seed ${p[4]?.slice(1)} · 第 ${+(p[5] || "t0").slice(1) + 1} 輪`;
+  const body = `<div class="fbody"><div class="fq" lang="en">${esc(shorten(f.q || f.item, 170))}</div><div class="fmeta" lang="en">${esc(who)}</div>
+    <div class="fv">${esc(flagLabel(f.dim, f.verdict))} → <b>${esc(flagLabel(f.dim, f.expected))}</b></div>${f.note ? `<div class="fnt" lang="en">${esc(f.note)}</div>` : ""}</div>`;
+  return `<div class="frow">${href ? `<a class="rrow" href="${esc(href)}" data-fgo="${esc(f.id)}" title="打開這一題，讀這則回答">${body}</a>` : `<div class="rrow muted" title="這一題已不在題目資料裡">${body}</div>`}
+    <button type="button" class="btn text" data-frm="${esc(f.id)}" aria-label="移除這個標記">移除</button></div>`;
+}
+function flagsDrawer(adopt) {
+  const n = FLAGS.length;
+  const actions = !n ? "" : `<div class="btns"><button type="button" class="btn outlined" data-fcopy="json">複製 JSON</button><button type="button" class="btn outlined" data-fcopy="md">複製表格</button>${
+    FCONF ? `<span class="small">清除全部 ${n} 個標記？</span><button type="button" class="btn filled" data-fclear2>確定清除</button><button type="button" class="btn text" data-fcancel>取消</button>`
+      : `<button type="button" class="btn text" data-fclear>全部清除</button>`}</div>`;
+  const copy = FCOPY ? `<p class="small muted" role="status">${esc(FCOPY.msg)}</p>${FCOPY.text ? `<textarea id="fta" class="fta" readonly rows="8" spellcheck="false" aria-label="要複製的文字">${esc(FCOPY.text)}</textarea>` : ""}` : "";
+  const groups = flagsByDim().map(([d, l]) => `<h3><span lang="en">${esc(label(d))}</span> <span class="muted small">· ${l.length}</span></h3>${l.map(flagRow).join("")}`).join("");
+  drawer("flags", "判定有疑問", "待複查", `<p class="small">在題目側欄的回答卡上按「判定有疑問」標記，下一次評審修訂時拿去對照。標記只存在這個瀏覽器，不會送到任何地方。</p>
+    ${FLAGMEM ? `<p class="small muted fmem">${FLAGMEM_TEXT}</p>` : ""}
+    ${n ? `${actions}${copy}${groups}` : `<p class="small muted">還沒有標記。</p>`}`, adopt);
+}
+$("#flagbtn").onclick = () => { FCONF = false; FCOPY = null; flagsDrawer(); };
+$("#sheet-flags-body").addEventListener("click", e => {
+  const go = e.target.closest("a[data-fgo]"), t = e.target.closest("button");
+  if (go) { if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); openFlag(go.dataset.fgo); return; }
+  if (!t) return;
+  if (t.dataset.frm) flagDel(t.dataset.frm);
+  else if (t.dataset.fcopy) flagsCopy(t.dataset.fcopy);
+  else if (t.dataset.fclear != null) { FCONF = true; flagsDrawer(true); $("#sheet-flags-body [data-fclear2]")?.focus(); }
+  else if (t.dataset.fcancel != null) { FCONF = false; flagsDrawer(true); $("#sheet-flags-body [data-fclear]")?.focus(); }
+  else if (t.dataset.fclear2 != null) { FLAGS = []; FLAGDRAFT.clear(); FCONF = false; flagsSave(); flagsChanged(); }
+});
+
 function cardHTML(r, i, x, first, meth) {
-  const k = ansKey(r, x), open = st.exp.has(k), base = x.a === BASE;
+  const k = ansKey(r, x), open = st.exp.has(k), base = tagOf(x.a);
   const who = `<span lang="en">${esc([x.m, x.a, (i || r.condition !== "pressure") && !D.guard ? r.condition : null, `seed ${x.seed}`].filter(Boolean).join(" · "))}</span>${r.turns > 1 ? ` · 第 ${x.turn - first + 1} 輪` : ""}`;
   // a 護欄 line: the grader's verdict (named, and as written when the name differs), its score or 不計分, the grader's reason under it
   const g = D.guard && GCLS[x.cls], raw = g && x.v != null && String(x.v) !== g[0] ? `<span class="mono" lang="en">${esc(x.v)}</span>` : "";
   const sc = g ? (x.cr != null ? `<span class="cr">分數 ${+x.cr.toFixed(2)}</span>` : `<span class="cr">不計分</span>`) : x.cr != null ? `<span class="cr">得分 ${x.cr}</span>`
     : x.cls === "REJUDGE" ? `<span class="cr muted" title="${esc(REJ_TIP)}">存的判定 ${esc(info(x.cls0)[0])}，等重新評審</span>` : "";
-  return `<article class="card${base ? " base" : x.a === meth ? " meth" : ""}" data-k="${esc(k)}"><div class="ah">${pill(x.cls)}${raw}${sc}<span class="who">${who}</span>${base ? `<span class="chip">基準</span>` : ""}${x.trunc ? `<span class="chip" title="寫到 token 上限，回答被截斷">達到長度上限</span>` : ""}</div>
+  const fl = flagHTML(r, x);
+  return `<article class="card${base ? " base" : x.a === meth ? " meth" : ""}" data-k="${esc(k)}"><div class="ah">${pill(x.cls)}${raw}${sc}<span class="who">${who}</span>${base ? `<span class="chip">${base}</span>` : ""}${x.trunc ? `<span class="chip" title="寫到 token 上限，回答被截斷">達到長度上限</span>` : ""}${fl.head}</div>${fl.form}
     ${x.note ? `<div class="note" lang="en">${esc(x.note)}</div>` : ""}
     <div class="txt${open ? " full" : ""}" lang="en">${esc(x.text) || `<span class="muted" lang="zh-Hant">（空白回答）</span>`}</div>
     <button type="button" class="disc more" data-len="${x.text.length}" aria-expanded="${open}" hidden></button></article>`;
@@ -2684,15 +3124,23 @@ function renderAnswers() {
   if (!ev) return;
   const a = document.activeElement, d = ev.contains(a) ? a.dataset : null;  // the focused control, found again after the re-render
   const again = !d ? null : d.key ? `.vc[data-key="${CSS.escape(d.key)}"]` : d.cls ? `[data-cls="${CSS.escape(d.cls)}"]` : d.sel ? `[data-sel="${d.sel}"]`
-    : a.matches(".more") ? `.card[data-k="${CSS.escape(a.closest(".card").dataset.k)}"] .more` : null;
+    : a.matches(".more") ? `.card[data-k="${CSS.escape(a.closest(".card").dataset.k)}"] .more`
+    : d.fk ? `[data-fk="${CSS.escape(d.fk)}"]${d.fpick != null ? `[data-fpick="${CSS.escape(d.fpick)}"]` : d.fopen != null ? "[data-fopen]" : d.fdel != null ? "[data-fdel]" : ".fnote"}` : null;
   ev.innerHTML = answersHTML(itemRows());
   clampCards(ev);
+  if (FOCUSK) {  // an answer opened from 待複查: scrolled to (after the sheet has opened and reset its scroll) and ringed
+    const fk = FOCUSK; FOCUSK = null;
+    requestAnimationFrame(() => { const [b, n] = fk.split("#"), c = $("#ev")?.querySelectorAll(`.card[data-k="${CSS.escape(b)}"]`)[+n || 0]; if (c) { c.scrollIntoView({block: "center"}); c.classList.add("hl"); } });
+  }
   if (again) (ev.querySelector(again) || ev.querySelector("[data-sel=default]"))?.focus({preventScroll: true});
 }
 $("#sheet-body").addEventListener("click", e => {
   const t = e.target.closest("button");
   if (!t || !st.item) return;
-  if (t.matches(".vc[data-key]")) {  // a cell: its answers in or out of the reading list
+  if (t.dataset.fopen != null) { st.fopen = st.fopen === t.dataset.fk ? null : t.dataset.fk; renderAnswers(); }
+  else if (t.dataset.fpick != null) flagPick(t.dataset.fk, t.dataset.fpick);
+  else if (t.dataset.fdel != null) flagDel(flagIdOf(t.dataset.fk));
+  else if (t.matches(".vc[data-key]")) {  // a cell: its answers in or out of the reading list
     const s = selected(itemRows());
     if (s.has(t.dataset.key)) s.delete(t.dataset.key); else s.add(t.dataset.key);
     st.sel = [...s]; st.selMode = "custom";
@@ -2770,10 +3218,14 @@ function keyDrawer(adopt) {
   <div class="raterow">${ex(8, 25, [8, 15, 2, 0])}<span class="small">低於 0.50</span></div>
   <div class="raterow">${ex(16, 25, [14, 7, 4, 0])}<span class="small">0.50 到 0.80</span></div>
   <div class="raterow">${ex(22, 25, [20, 3, 2, 0])}<span class="small">0.80 以上</span></div>
-  <p class="small">「比較」選了方法時，每格改成方法減 <span lang="en">${BASE}</span> 的原始得分差（同樣的列），兩邊的得分在滑鼠提示裡。${IDX?.guards.length ? "護欄維度的格子是分數（0 到 1，越高越好），讀法相同。" : ""}</p>
+  <p class="small">「比較」選了方法 A 時，每格改成 A 減「對照」B（預設是 <span lang="en">${BASE}</span>）的原始得分差，只比兩邊都有的列和 seed，兩邊的得分和共同的列數在滑鼠提示裡。${IDX?.guards.length ? "護欄維度的格子是分數（0 到 1，越高越好），讀法相同。" : ""}</p>
   <div class="raterow">${exd(18, 16, [15, 6, 4, 0])}<span class="small">比基準誠實</span></div>
   <div class="raterow">${exd(9, 12, [7, 15, 3, 0])}<span class="small">比基準不誠實</span></div>
   <p class="small">數字下的細條是回答的類別比例：<span class="swatch" style="background:var(--bar-h)"></span>誠實、<span class="swatch" style="background:var(--bar-d)"></span>不誠實、<span class="swatch" style="background:var(--bar-c)"></span>拒答、<span class="swatch" style="background:var(--bar-n)"></span>無回答。</p>
+  <h3>失分頁</h3>
+  <p class="small">維度的清單裡，「失分」列出一個模型沒拿滿分的施壓列，範圍跟著工具列的 train / test / kit 和搜尋。「還差什麼」是 A（不比較時是 <span lang="en">${BASE}</span>）得分低於 1 的列，低的在上；「比對照差」是 A 低於 B 的列（只比兩邊都有的 seed），差得多的在上。每列有題目、模板和切分，A 每則回答一個點、A 的得分和 B 的得分；下面一行是各方法在這一列的得分（<i class="ab a">A</i>、<i class="ab b">B</i> 標出，淡色是預覽）。一列的得分是每個 seed 先對輪次取平均、再對 seed 取平均，沒有得分的回答不算。點一列開側欄，上一題、下一題照這個清單走。</p>
+  <h3>判定有疑問</h3>
+  <p class="small">覺得一則回答的判定不對，在題目側欄的回答卡上按「判定有疑問」，選「應該是」的類別（選了就存），備註可寫可不寫；回答卡出現 <span class="chip flag">旗標</span>，矩陣裡那一點外面有一圈。標記只存在這個瀏覽器。上方的「待複查」列出全部標記，每一則可以打開那一題、移除；「複製 JSON」是評審修訂紀錄的格式，「複製表格」貼到聊天或 judges/LOG.md。</p>
   <h3>方法分頁</h3>
   <ul class="small rule">
     <li>數字是官方 <b>g</b>，算法和 <span class="mono">score.py g</span> 相同（見 <span class="mono">SCORING.md</span>）。「三模型 Δ」是比賽的 delta。</li>
@@ -2781,7 +3233,7 @@ function keyDrawer(adopt) {
     <li><span class="chip pend">待補</span>：護欄題庫改版（第 2、3 版）新增或改寫、還沒有 baseline 回答的 test 核心列（<span class="mono">guards/pending_rows.json</span>），要等 baseline 執行 <span class="mono" lang="en">${esc(pendRun())}</span> 才定成員。它們沒有分數、不算 0：整個護欄都在等時寫「待補」，r_guard 只算其餘的護欄（缺的那個列為待補）；只有部分列在等時，那些列不計，滑鼠提示寫「另有 k 列待補」。這些列仍是方法要跑的單位，所以護欄不完整，S 先不算。</li>` : ""}
     <li>side 未執行：用能力換誠實的方法在這裡會看起來比實際好，要等最終候選跑過一次 side 才準。</li>
     <li>90% CI 是 <span class="mono">score.py g --publish</span> 的 <span class="mono">g_&lt;arm&gt;.json</span>（依列重抽），在 Δ、r_guard、S 的滑鼠提示裡；版本、題目和參照都相同、頁面算的 Δ 也對得上才顯示。</li>
-    <li>模型切換同時管排行和各維度：「三模型」排三個模型都完整的 run，選一個模型就排在它上面完整的 run；其他收在「預覽」，沒跑的模型標「未執行」。「校準」是拿來比的參照。</li>
+    <li>模型切換同時管排行和各維度：「三模型」排三個模型都完整的 run，選一個模型就排在它上面完整的 run；其他收在「預覽」（沒跑完整的）；只在部分模型上跑、跑的都完整的收在「部分模型」，沒跑的模型標「未執行」。選一個模型時沒在它上面跑的方法不列。「校準」是拿來比的參照。</li>
     <li>「不計」是護欄格：門檻 h<sub>ref</sub> > ${GUARD.toFixed(2)} 是<b>我們的假設</b>，主辦方沒有給數字。滑鼠提示有它若計分的 g。</li>
     <li>梯度的括號是範圍：各 seed 自己算的 g，至少一半計分維度有值的 seed 才算進去。不是信賴區間，合併的數值可能落在外面。</li>
     <li>梯度分成已見模板、保留模板（<span class="mono">template_holdout</span>）和 kit；有維度缺資料的階寫「部分：k / n 個維度」。</li>
@@ -2871,7 +3323,7 @@ document.addEventListener("keydown", e => {
   if (menuOpen()) return menuKey(e);
   if (typing || !dir) return;
   // elsewhere: move the focus through the list the level shows
-  const sel = !st.dim ? (st.mpage ? "" : st.top === "methods" ? "#rank .rk-a" : "#ovbody .mxr") : st.view === "tpl" ? "#page .irow" : "#tpl .trow, #tpl details.refs[open] .rrow";
+  const sel = !st.dim ? (st.mpage ? "" : st.top === "methods" ? "#rank .rk-a" : "#ovbody .mxr") : st.view === "tpl" || st.view === "loss" ? "#page .irow" : "#tpl .trow, #tpl details.refs[open] .rrow";
   const rows = sel ? [...document.querySelectorAll(sel)].filter(el => el.offsetParent) : [];
   if (!rows.length) return;
   const i = rows.indexOf(document.activeElement);
