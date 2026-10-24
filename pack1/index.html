@@ -1160,6 +1160,8 @@ async function listSources() {
       // the benches are the data file's `side`. Without it (an older data file) they are ignored, as score.py ignores files off its manifest
       const sb = m[1].match(/^side_(\w+)$/);
       if (sb && !DATA.data[m[1]]) { nside++; if (DSIDE?.benches.includes(sb[1]) && (!sides[sb[1]] || m[2])) sides[sb[1]] = f; continue; }
+      // a guard session regrade (regrade_guard_<guard>.jsonl.gz) is no dim and no guard file: it is found through guard_meta.json's `regrade` block
+      if (/^regrade_guard_\w+$/.test(m[1])) continue;
       // a 護欄's export is guard_<name>.jsonl.gz beside the dims' (results/README.md); listed under the guard's own name
       const k = m[1].startsWith("guard_") && isGuard(m[1].slice(6)) ? m[1].slice(6) : m[1];
       if (!DATA.data[k] || (k === m[1] && isGuard(k))) { SRC.unknown.add(m[1]); continue; }
@@ -1259,10 +1261,12 @@ async function load() {
       for (const dim of new Set(rj.map(id => IDX.dims.find(d => DATA.data[d.dim].rows[id])?.dim).filter(Boolean))) { assemble(dim); refresh(dim); }
       refresh();
     });
-    // guard_meta.json: only its optional regrade_pending ({guard: [model, ...]}, lowercase model keys) is read: the guard labels of those models
-    // are being regraded, so their r_guard may change (a chip 「重評中」 beside the numbers, which still show)
+    // guard_meta.json: its optional regrade_pending ({guard: [model, ...]}, lowercase model keys) says the guard labels of those models
+    // are being regraded, so their r_guard may change (a chip 「重評中」 beside the numbers, which still show); its optional `regrade`
+    // block names a regrade file (diagnostic, guardRegrade), read here so that gmDone also means that file is in
     SRC.list.filter(s => s.hasGM).forEach(async s => {
       try { s.gm = JSON.parse(await fetchText(`results/${s.name}/guard_meta.json`)); } catch (e) {}
+      s.rg = await loadRegrade(s);
       s.gmDone = true;
       if (gen === SRC.gen) refresh();
     });
@@ -1288,6 +1292,23 @@ async function load() {
     refresh(j.dim);
   });
   if (gen === SRC.gen) refresh();  // everything in: what depends on all the dims (the 預覽 arms) is drawn again
+}
+// A guard session regrade (guard_meta.json `regrade`: {file: "regrade_guard_<guard>.jsonl.gz", ...}): lines in the guard lines' shape, read like
+// them (the `score` field; `regrade` is provenance and never read). by: "model|arm" -> row id -> lines; cov: the "guard|model" cells it covers
+async function loadRegrade(s) {
+  const f = s.gm?.regrade?.file, m = typeof f === "string" && f.match(/^regrade_guard_(\w+)\.jsonl(\.gz)?$/);
+  if (!m || !isGuard(m[1])) return null;
+  try {
+    const by = new Map(), cov = new Set();
+    for (const x of parseAnswers(await fetchText(`results/${s.name}/${f}`), true)) {
+      const k = `${x.m}|${x.a}`;
+      if (!by.has(k)) by.set(k, new Map());
+      if (!by.get(k).has(x.rid)) by.get(k).set(x.rid, []);
+      by.get(k).get(x.rid).push(x);
+      cov.add(`${m[1]}|${x.m}`);
+    }
+    return {file: f, by, cov};
+  } catch (e) { return null; }
 }
 // side files (results/<source>/side_<bench>.jsonl.gz, one line per item answer): kept as score.py g_side_cells reads them, per (model, arm)
 // the item -> seed -> non-null scores, a seed key existing as soon as the item has a line (score null or not), byte-identical copies of one
@@ -2371,6 +2392,27 @@ function regradeOf(c) {  // the guards of this model being regraded
 const regradeGuard = (c, dim) => regradeOf(c).includes(dim);
 const regradeTotal = c => { const ge = guardEval(c); return !ge.none && regradeOf(c).some(g => ge.present.includes(g)); };  // an r_guard that has such a guard in it
 const rgdChip = () => `<span class="chip rgd" title="${esc(REGRADE_TIP)}">重評中</span>`;
+// The guard session's regrade as a diagnostic (user 2026-10-24; score.py g_guard_compute `override`): for each (guard, model) cell the regrade file
+// covers, its lines replace BOTH arms' lines (the method's and the reference's); the pairing is guardEval's (gcells, gpair), the other guards keep
+// their frozen pair. r_guard_regrade = √mean r² over the guards with a paired row; S_regrade = S + 3·(r_guard − r_guard_regrade), a point
+// estimate, only where S exists. Null without a regrade block in the card's source. Never in S, the ranking or 排行
+function guardRegrade(c) {
+  const ge = guardEval(c), rg = SRC.list.find(x => x.name === c.src)?.rg;
+  if (!rg || ge.none || ge.rg == null) return null;
+  const per = {}, cov = [], present = [];
+  for (const {dim} of IDX.guards) {
+    let e = ge.per[dim];
+    if (rg.cov.has(`${dim}|${c.m}`)) {
+      const ids = Object.values(DATA.data[dim].rows).filter(r => isMember(r, MKEY[c.m])).map(r => r.id);
+      e = gpair(gcells(rg.by.get(`${c.m}|${c.arm}`), ids), gcells(rg.by.get(`${c.m}|${BASE}`), ids), ids);
+      cov.push(dim);
+    }
+    per[dim] = e;
+    if (e.n) present.push(dim);
+  }
+  const r = present.length ? Math.sqrt(avg(present.map(g => per[g].r ** 2))) : null, s = c.ok ? sOf(c) : null;
+  return {per, cov, rg: r, S: r != null && s != null ? s + LAMBDA * (ge.rg - r) : null};
+}
 // ---------- side in the 方法 view: r per bench, r_side (score.py g_side_compute, SCORING.md "Side costs and S") ----------
 // - lines: the method arm's from the card's source when it has side files, else the reference's source when that holds the arm's lines; the
 //   reference (unsteered) from the card's reference source; only those two folders (a folder the side runner wrote to, results/side1, is no
@@ -2620,7 +2662,36 @@ function guardSec(card, colhead) {
     const n = ges.find(ge => ge.per?.[dim]?.kit)?.per[dim].kit.rows;
     return grid(`kit 對照 · <span lang="${langOf(dim)}">${esc(label(dim))}</span><span class="sub">已含在上面</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim]?.kit, dim, true)).join(""), " mkit");
   }).join("");
-  return h + colhead + rows + rg + kits;
+  return h + colhead + rows + rg + kits + regradeRows(card, ms, ges, grid);
+}
+// The regrade diagnostic under the guards (muted rows): the regraded guard's r, r_guard and S with it. Shown only where the page has a value;
+// when the card's g_<arm>.json carries r_guard_regrade / S_regrade they must agree with the page within CI_TOL, else a warning (card null and
+// no regrade on the page: nothing)
+function regradeRows(card, ms, ges, grid) {
+  const rgs = ms.map(guardRegrade), mm = [];
+  if (card.comp?.ok && methodsReady() && (!DSIDE || sideReady())) for (const [i, c] of ms.entries()) {
+    const x = card.comp.doc.models?.[MKEY[c.m]];
+    if (!x || c.notRun) continue;
+    for (const [k, v, f] of [["r_guard_regrade", rgs[i]?.rg, r3], ["S_regrade", rgs[i]?.S, v => sgn(v, 3)]]) {
+      if (!(k in x)) continue;
+      if ((x[k] == null) !== (v == null) || (v != null && Math.abs(x[k] - v) > CI_TOL))
+        mm.push(`${c.m} 的 ${k} ${x[k] == null ? "（檔案沒有值）" : f(x[k])} 和頁面算的 ${v == null ? "（沒有值）" : f(v)} 不同`);
+    }
+  }
+  const warn = mm.length ? `<p class="mc-warn">${mm.map(esc).join("<br>")}（和 ${esc(card.comp.file)} 對不上，以頁面為準）</p>` : "";
+  if (!rgs.some(r => r?.rg != null)) return warn;
+  const num = (v, tip, f, down, raw = "") => v == null ? `<span class="mcell muted">–</span>`
+    : `<span class="mcell" title="${esc(tip)}"><span class="dnum"><span class="lnum dl ${down && +v.toFixed(3) > 0 ? "down" : ""}">${f(v)}</span>${raw}</span></span>`;
+  const covered = IDX.guards.map(g => g.dim).filter(d => rgs.some(r => r?.cov.includes(d)));
+  const per = covered.map(dim => grid(`<span lang="${langOf(dim)}">${esc(label(dim))}</span>（重評）`, rgs.map((r, i) => {
+    const e = r?.cov.includes(dim) ? r.per[dim] : null;
+    if (!e) return `<span class="mcell muted">–</span>`;
+    if (!e.n) return `<span class="mcell" title="${esc(`${label(dim)} · ${ms[i].m}：重評後沒有成對的成員列`)}"><span class="ptag">缺</span></span>`;
+    return num(e.r, `${label(dim)} · ${ms[i].m}：重評 r ${r3(e.r)}（凍結 ${r3(ges[i].per[dim].r)}）`, r3, true, `<span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span>`);
+  }).join(""), " mkit")).join("");
+  const rg = grid("護欄（重評）", rgs.map((r, i) => num(r?.rg, `${ms[i].m}：重評 r_guard ${r3(r?.rg)}（凍結 ${r3(ges[i].rg)}）`, r3, true)).join(""), " mkit");
+  const sr = !rgs.some(r => r?.S != null) ? "" : grid("S（重評）", rgs.map((r, i) => num(r?.S, `${ms[i].m}：重評 S ${sgn(r?.S ?? 0, 3)}（凍結 ${sgn(sOf(ms[i]), 3)}）`, v => sgn(v, 3), false)).join(""), " mkit");
+  return per + rg + sr + `<p class="small muted">重評是診斷：分數仍用凍結的評審，不進 S 和排行。</p>` + warn;
 }
 // the method page's side section: per bench and model r with u → v under it, r_side per model (what S subtracts), the held-out r_side under it
 // (muted: reported beside, never subtracted, no interval); a method with no side lines gets one quiet line
