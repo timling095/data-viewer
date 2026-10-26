@@ -320,6 +320,9 @@ table.rank, table.cmpt { width: 100%; border-collapse: collapse; font-variant-nu
 .tri .dl { font-size: 13.5px; font-weight: 600; padding: 0; color: var(--ink); }
 .tri .dl.down { color: var(--worse); }
 .rk-n .ptag { margin-left: 4px; }
+.rk-n.nu .nuv { font-size: 12.5px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rk-n.nu i { font-style: normal; color: var(--faint); padding: 0 3px; }
+.mcell.nu { font-size: 12.5px; color: var(--muted); }
 .cmp { margin-top: 18px; }
 .cmphead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 8px; }
 .cmphead .mgh { margin: 0; }
@@ -1169,7 +1172,7 @@ async function listSources() {
     }
     // g_<arm>.json: score.py g --publish's composite with its bootstrap intervals (SCORING.md "Published composite")
     const comps = fs.map(f => f.match(/^g_(.+)\.json$/)).filter(Boolean).map(m => [m[1], m[0]]);
-    return {name, dims, sides, nside, hasMeta: fs.includes("meta.json"), hasInt: fs.includes("intervention.json"), hasGM: fs.includes("guard_meta.json"), gm: null, gmDone: !fs.includes("guard_meta.json"), meta: null, err: null, comps, comp: {}, compDone: !comps.length};
+    return {name, dims, sides, nside, hasMeta: fs.includes("meta.json"), hasInt: fs.includes("intervention.json"), hasNU: fs.includes("null_unsteered.json"), nu: null, hasGM: fs.includes("guard_meta.json"), gm: null, gmDone: !fs.includes("guard_meta.json"), meta: null, err: null, comps, comp: {}, compDone: !comps.length};
   })).then(list => list.filter(s => Object.keys(s.dims).length || s.hasMeta || s.comps.length || !s.nside));
   // (a folder that holds side files only, such as results/side1 where the side runner wrote them, is no source: its files reach the page
   // through the folders that link or copy them, the method's and the reference's)
@@ -1268,6 +1271,11 @@ async function load() {
       try { s.gm = JSON.parse(await fetchText(`results/${s.name}/guard_meta.json`)); } catch (e) {}
       s.rg = await loadRegrade(s);
       s.gmDone = true;
+      if (gen === SRC.gen) refresh();
+    });
+    // baseline/null_unsteered.json (results/README.md "Null of an unsteered submission"): a published diagnostic, read on its own; nothing waits on it
+    SRC.list.filter(s => s.hasNU && s.name === "baseline").forEach(async s => {
+      try { s.nu = JSON.parse(await fetchText(`results/${s.name}/null_unsteered.json`)); } catch (e) {}
       if (gen === SRC.gen) refresh();
     });
     SRC.list.filter(s => s.comps.length).forEach(async s => {
@@ -2872,8 +2880,33 @@ function gCellR(c) {  // 護欄: the three models' r_guard in order (n/7 when fe
   const tip = `r_guard ${triWho(vs)}。` + MODELS.map((m, i) => rgText(m, ges[i], c.per[m])).join("；");
   return `<td class="rk-n" title="${esc(tip)}">${tri(vs, MODELS.map(m => regradeTotal(c.per[m])))}${n < N ? `<span class="raw">${n}/${N}</span>` : ""}${part ? `<span class="raw">部分</span>` : ""}</td>`;
 }
-// unsteered, the reference: an unranked row after every sort, the name and 基準, no numbers; opens its card
-const baseRow = cols => `<tr class="rkr cal base" data-href="${esc(mhref(BASEC))}"><th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(BASEC))}" lang="en">${BASE}</a><span class="ctag">基準</span></th>${"<td></td>".repeat(cols - 1)}</tr>`;
+// unsteered, the reference: an unranked row after every sort; opens its card. With the published null of an unsteered submission
+// (nullU) its cells carry that diagnostic's numbers, muted; never ranked, compared or sorted
+const NU_MSG = "兩個新的 unsteered seed 當作方法來算；不排名";
+function nullU() {  // the file, only when it is about this page's scoring version and rows (the gate of the cards' CI); else nothing
+  const d = SRC.list.find(s => s.name === "baseline")?.nu;
+  return d && d.models && d.scoring_version === SCORING && IDX?.meta.sets_sha256 && d.sets_sha256 === IDX.meta.sets_sha256 ? d : null;
+}
+function nullCell(nu, k) {  // one cell of the 基準 row, by the column's sort key
+  const m1 = one(), xs = MODELS.map(m => nu.models[MKEY[m]] || null), x1 = m1 ? xs[MODELS.indexOf(m1)] : null;
+  const td = (html, tip) => `<td class="rk-n nu" title="${esc(`${tip}。${NU_MSG}`)}">${html}</td>`;
+  const num = (v, who) => td(v == null ? `<span class="muted">–</span>` : `<span class="nuv">${sgn(v)}</span>`, `${who} ${v == null ? "–" : sgn(v, 3)}`);
+  const cost = (f, who) => {
+    const vs = m1 ? [x1?.[f] ?? null] : xs.map(x => x?.[f] ?? null);
+    return td(`<span class="nuv">${vs.map(v => v == null ? "–" : r3(v)).join("<i>·</i>")}</span>`, m1 ? `${m1} ${who} ${r3(vs[0])}` : `${who} ${triWho(vs)}`);
+  };
+  if (k === "S") return m1 ? num(x1?.S ?? null, `${m1} S`) : num(nu.cross_model?.S ?? null, "三模型 S");
+  if (k.startsWith("S:")) return num(nu.models[MKEY[k.slice(2)]]?.S ?? null, `${k.slice(2)} S`);
+  if (k === "all") return m1 ? num(x1?.delta ?? null, `${m1} Δ`) : num(nu.cross_model?.delta ?? null, "三模型 Δ");
+  if (k === "rg") return cost("r_guard", "r_guard");
+  if (k === "rs") return cost("r_side", "r_side");
+  return "<td></td>";
+}
+const baseRow = () => {
+  const nu = nullU(), ks = sorts().map(([k]) => k);
+  return `<tr class="rkr cal base" data-href="${esc(mhref(BASEC))}"><th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(BASEC))}" lang="en">${BASE}</a><span class="ctag">基準</span>${
+    nu ? `<span class="rk-sub">未干預估計 · seed 3–4 對 0–2</span>` : ""}</th>${ks.slice(1).map(k => nu ? nullCell(nu, k) : "<td></td>").join("")}</tr>`;
+};
 function pendRow(a, cols = sorts().length) {
   return `<tr class="rkr pend cal"><th scope="row" class="rk-m"><b lang="en">${esc(a)}</b><span class="ctag">校準</span><span class="rk-sub">${esc(IDX.meta.arm_roles[a].pending || "結果還沒進 results/")}</span></th>${"<td></td>".repeat(cols - 1)}</tr>`;
 }
@@ -2881,7 +2914,7 @@ function rankHTML(rows, pend) {
   const ms = msortOf(rows);
   const head = sorts().map(([k, t]) => { const on = ms.k === k, srt = on ? (ms.d > 0 ? "ascending" : "descending") : "none";
     return `<th scope="col" aria-sort="${srt}"${k === "name" ? ` class="rk-m"` : ""}><button type="button" class="sorth" data-sort="${k}" title="${!one() && (k === "rg" || k === "rs") ? `依三個模型的最大值排序：${t}` : `依「${t}」排序`}">${t}</button></th>`; }).join("");
-  return `<div class="rankwrap"><table class="rank" id="rktab"><thead><tr>${head}</tr></thead><tbody>${rows.map(rankRow).join("")}${pend.map(pendRow).join("")}${ARMS.includes(BASE) ? baseRow(sorts().length) : ""}${
+  return `<div class="rankwrap"><table class="rank" id="rktab"><thead><tr>${head}</tr></thead><tbody>${rows.map(rankRow).join("")}${pend.map(pendRow).join("")}${ARMS.includes(BASE) ? baseRow() : ""}${
     !rows.length && !pend.length ? `<tr><td colspan="${sorts().length}" class="rk-empty">還沒有完整的方法 run。</td></tr>` : ""}</tbody></table></div>`;
 }
 // 各維度 (the heatmap): a format per row, a method per column (the table's order), unsteered first. A cell is the arm's raw credit (score.py's h,
@@ -2995,7 +3028,7 @@ function rankPage() {
 // Top to bottom: the leaderboard row (the model switch of 排行), 介入 (what the method changed), 診斷 (the numbers the card has always shown),
 // 回答 (the answers of one model, per dimension, bucketed by verdict). #methods/<id>/<dim>/<model> opens a dim's 回答, and
 // #methods/<id>/<dim>/<model>/<item> an item of it in the sheet, which then steps through the same list.
-// unsteered has a card too (the reference): no S, no Δ, no 診斷, and no regression order in its 回答.
+// unsteered has a card too (the reference): no S, no Δ, no 診斷 (only the muted null of an unsteered submission), and no regression order in its 回答.
 const BASEC = {id: BASE, arm: BASE, base: true};
 const cardOf = id => id === BASE ? (ARMS.includes(BASE) ? BASEC : null) : cards().find(x => x.id === id) || null;
 const cardArmNow = () => st.mpage ? (st.mpage === BASE ? BASE : cards().find(x => x.id === st.mpage)?.arm || "") : "";
@@ -3024,9 +3057,34 @@ function cardHead(c) {
   // not complete on this scope (a preview, a partial run, a model it was not run on): the one-line summary of 排行's folds
   return `<section aria-label="排行的數字">${seg}<div class="mc-pv">${previewLine(c, partialModels(c) ? "部分模型" : "預覽")}</div></section>`;
 }
-function baseHead() {
+function baseHead() {  // the reference's card: its name, and (with the null of an unsteered submission) the 基準 row's muted numbers
+  const m = one(), nu = nullU();
+  const th = sorts().map(([k, t]) => `<th scope="col"${k === "name" ? ` class="rk-m"` : ""}>${t}</th>`).join("");
+  const num = !nu ? "" : `<section aria-label="排行的數字"><div class="cmphead"><h2 class="mgh">排行的數字${m ? ` · ${m}` : ""}</h2>${modelSeg()}</div><div class="rankwrap"><table class="rank hd"><thead><tr>${th}</tr></thead><tbody>${
+    baseRow().replace(/ data-href="[^"]*"/, "")}</tbody></table></div></section>`;
   return `<section aria-label="基準"><div class="mcard page"><header class="mc-head"><div class="mc-t"><h3 lang="en">${BASE}</h3><span class="ctag">基準</span>
-    </div></header></div></section>`;
+    </div></header></div></section>${num}`;
+}
+// 未干預估計 (the unsteered card): the published null of an unsteered submission, per dim g, per guard and per bench regression, held-out r_side;
+// numbers as published, one per cell, muted
+function nullSec() {
+  const nu = nullU();
+  if (!nu) return "";
+  const xs = MODELS.map(m => nu.models[MKEY[m]] || null);
+  const grid = (lab, cells) => `<div class="mgrid mrow mdim"><span class="mlab">${lab}</span>${cells}</div>`;
+  const colhead = `<div class="mgrid mhead" aria-hidden="true"><span></span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>`;
+  const cell = (v, f, tip) => v == null ? `<span class="mcell muted">–</span>` : `<span class="mcell nu" title="${esc(`${tip()}。${NU_MSG}`)}">${f(v)}</span>`;
+  const row = (name, get, f, tip) => grid(`<span lang="en">${esc(nameOf(name))}</span>`, xs.map((x, i) => cell(x ? get(x) : null, f, () => tip(MODELS[i], x))).join(""));
+  const dims = IDX.dims.map(d => d.dim).filter(d => xs.some(x => x?.dims?.[d]));
+  const guards = IDX.guards.map(g => g.dim).filter(d => xs.some(x => x?.guards && d in x.guards));
+  const benches = [...new Set(xs.flatMap(x => Object.keys(x?.side_benches || {})))];
+  const heldout = grid(`r_side（保留）`, xs.map((x, i) => cell(x?.r_side_heldout ?? null, r3, () => `${MODELS[i]} r_side（保留）${r3(x.r_side_heldout)}`)).join(""));
+  return `<details class="fold csec" data-cfold="null"${st.mshut.has("null") ? "" : " open"}><summary class="csum">未干預估計</summary>
+    <p class="small muted">兩個新的 unsteered seed（3、4）當作方法對 seed 0–2 算；顯示的是已發布的數字，頁面無法重算。</p>${colhead}
+    ${dims.length ? `<h4 class="msec">各維度 g</h4>${dims.map(d => row(d, x => x.dims?.[d]?.g ?? null, v => sgn(v),
+      (m, x) => `${nameOf(d)} · ${m}：g ${sgn(x.dims[d].g, 3)}（得分 ${cr2(x.dims[d].h)}，${BASE} ${cr2(x.dims[d].h_ref)}；${x.dims[d].n_rows} 列）`)).join("")}` : ""}
+    ${guards.length ? `<h4 class="msec">護欄</h4>${guards.map(d => row(d, x => x.guards?.[d] ?? null, r3, (m, x) => `${label(d)} · ${m}：${r3(x.guards[d])}`)).join("")}` : ""}
+    ${benches.length ? `<h4 class="msec">side</h4>${benches.map(b => row(b, x => x.side_benches?.[b] ?? null, r3, (m, x) => `${b} · ${m}：${r3(x.side_benches[b])}`)).join("")}${heldout}` : ""}</details>`;
 }
 
 // ---- 介入: what the method changed, read from results/<run>/intervention.json (results/README.md), else the run's description ----
@@ -3213,7 +3271,7 @@ function markCur() {
 }
 
 function cardPage(c) {
-  return c.base ? baseHead() + interventionHTML(c) + answersSec(c) : cardHead(c) + interventionHTML(c) + diagSec(c) + answersSec(c);
+  return c.base ? baseHead() + interventionHTML(c) + nullSec() + answersSec(c) : cardHead(c) + interventionHTML(c) + diagSec(c) + answersSec(c);
 }
 function methodPage() {
   if (!$("#mpg")) { $("#main").innerHTML = `<div class="ov" id="mpg"></div>`; LASTP = null; }
