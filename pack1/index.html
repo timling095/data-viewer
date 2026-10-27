@@ -3190,6 +3190,10 @@ function bundleLine(x) {
   const tip = [b.file, `sha256 ${b.sha256}`, b.recorded_in && `記錄在 ${b.recorded_in}`, b.source].filter(Boolean).join("\n");
   return `<span title="${esc(tip)}">bundle <span class="mono" lang="en">${esc(String(b.file || "").split("/").pop())}</span> · sha256 <span class="mono">${esc(String(b.sha256 || "").slice(0, 10))}</span>${b.toolkit_version ? ` · toolkit ${esc(b.toolkit_version)}` : ""}</span>`;
 }
+function gateLine(g, m) {  // released rows bypass the control; text and answers notes go in the tooltip
+  const tip = [g.control, g.bundle && `bundle ${g.bundle}`, g.bundle_sha256 && `sha256 ${g.bundle_sha256}`, g.text, g.answers].filter(Boolean).join("\n");
+  return `${m ? `${m}：` : ""}<span title="${esc(tip)}">閘門 <span class="mono" lang="en">${esc(g.arch || "")}</span>${g.control ? ` · <span lang="en">${esc(String(g.control).split(" (")[0])}</span>` : ""} · 放行的列重用 unsteered 的回答</span>`;
+}
 function interventionHTML(c) {  // a later pass extends the fallback; the section reads the run's intervention.json when it has one
   const name = intSrc(c), d = name && INT[name], a = d?.s === "ok" ? d.doc.arms[c.arm] : null, h = `<h3 class="csh">介入</h3>`;
   if (!a) {
@@ -3199,7 +3203,7 @@ function interventionHTML(c) {  // a later pass extends the fallback; the sectio
   }
   const mdl = a.models || {}, keys = MODELS.filter(m => mdl[MKEY[m]]);
   if (!keys.length) return "";
-  const sig = m => { const x = mdl[MKEY[m]], {base, revision, revision_loaded, ...w} = x.weights || {}; return JSON.stringify([x.label, x.chat, x.params, w, x.notes, x.no_benchmark_system_message, x.bundle?.controls]); };
+  const sig = m => { const x = mdl[MKEY[m]], {base, revision, revision_loaded, ...w} = x.weights || {}; return JSON.stringify([x.label, x.chat, x.params, w, x.notes, x.no_benchmark_system_message, x.bundle?.controls, x.gate]); };
   const same = keys.length > 1 && keys.every(m => sig(m) === sig(keys[0]));
   const cur = one() && keys.includes(one()) ? one() : keys.includes(st.im) ? st.im : keys[0];
   const shown = same ? (one() && keys.includes(one()) ? [one()] : keys) : [cur], x = mdl[MKEY[shown[0]]];
@@ -3211,6 +3215,7 @@ function interventionHTML(c) {  // a later pass extends the fallback; the sectio
     ${chatHTML(x)}
     <p class="small iw">${shown.map(m => weightsLine(mdl[MKEY[m]], shown.length > 1 ? m : "")).join("<br>")}</p>
     <p class="small muted">${shown.map(m => (shown.length > 1 ? `${m}：` : "") + bundleLine(mdl[MKEY[m]])).join("<br>")}</p>
+    ${shown.some(m => mdl[MKEY[m]].gate) ? `<p class="small muted">${shown.filter(m => mdl[MKEY[m]].gate).map(m => gateLine(mdl[MKEY[m]].gate, shown.length > 1 ? m : "")).join("<br>")}</p>` : ""}
     ${x.no_benchmark_system_message ? `<p class="small muted">題目沒有系統訊息時：<span lang="en">${esc(x.no_benchmark_system_message)}</span></p>` : ""}
     ${x.notes ? `<p class="small muted"><span lang="en">${esc(x.notes)}</span></p>` : ""}</section>`;
 }
