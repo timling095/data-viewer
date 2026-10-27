@@ -364,7 +364,7 @@ details.mdropped > summary { color: var(--muted); }  /* not measured: folded and
 .mcell { display: flex; align-items: baseline; gap: 2px 6px; flex-wrap: wrap; min-width: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
 .mcell .dl { font-size: 13.5px; font-weight: 600; padding: 0; color: var(--ink); }
 .mcell .dl.up { color: var(--better); } .mcell .dl.down { color: var(--worse); }
-/* a cell that links to a method card's 回答: the same look, only the pointer and a hover / focus state differ */
+/* a cell that links to a method card's rows (the sheet on the first one): the same look, only the pointer and a hover / focus state differ */
 a.mcell, a.cl { color: inherit; text-decoration: none; cursor: pointer; }
 a.mcell:hover, a.mcell:focus-visible { background: color-mix(in srgb, currentColor 8%, transparent); border-radius: 4px; }
 .cmpt td.cg:has(> a.cl) { padding: 0; }
@@ -456,18 +456,7 @@ mark { background: var(--vary); color: inherit; border-radius: 3px; padding: 0 1
 .irow .slot .iname { display: block; font-weight: 600; font-size: 13px; }
 .irow .slot .chip { margin-left: 6px; vertical-align: 1px; }
 
-/* a card's 回答 rows: an .irow (a link opening the item sheet): the question, its template and split, the strip of every arm's credit on the
-   row; on the trailing side the dots and credit, and unsteered's credit small under them */
 .seg button:disabled { color: var(--off-ink); cursor: default; --sl: transparent; }
-.irow.lrow { grid-template-columns: minmax(0, 1fr) auto; gap: 0 14px; align-items: start; }
-.lslot { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.lmeta { display: flex; flex-wrap: wrap; gap: 3px 6px; align-items: center; margin-top: 3px; font-size: 12px; color: var(--muted); }
-.lmeta .ltpl { min-width: 0; overflow-wrap: anywhere; }
-.lstrip { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 5px; font-size: 11.5px; color: var(--muted); }
-.ai { display: inline-flex; gap: 4px; align-items: baseline; white-space: nowrap; }
-.ai.pv { opacity: .55; }
-.ai .av { font-weight: 600; font-variant-numeric: tabular-nums; }
-.ai .av.lo { color: var(--lo-ink); } .ai .av.mid { color: var(--mid-ink); } .ai .av.hi { color: var(--hi-ink); } .ai .av.none { color: var(--faint); font-weight: 400; }
 .lnum { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .lnum .ds { display: grid; gap: 3px; }
 .lnum .ds.dense { gap: 2px; }
@@ -475,11 +464,8 @@ mark { background: var(--vary); color: inherit; border-radius: 3px; padding: 0 1
 .lnum .ds.dense .dot { width: 5px; height: 5px; }
 .lnum .ds.dense .dot.o { border-width: 1px; }
 .lnum .rate { min-width: 3.3em; }
-.lb { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ltail { margin: 10px 2px 0; }
 
-/* method card: sections 介入 / 診斷 / 回答 under the leaderboard row. 回答: a row per dimension (name, the arm's g or r, the bucket counts as
-   dots), opening to the verdict buckets, each a list of answer rows */
+/* method card: sections 介入 / 診斷 under the leaderboard row */
 .rank.hd .rkr { cursor: default; }
 .rank.hd tbody tr:hover { background: var(--panel); }
 .rank.hd tr.cal:hover { background: color-mix(in srgb, var(--sunk) 60%, var(--panel)); }
@@ -498,31 +484,6 @@ details.csec > summary.csum { font-size: 12px; font-weight: 600; letter-spacing:
 .ibh { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 13px; }
 .ib p { margin: 6px 0 0; }
 .itxt { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.5 var(--mono, ui-monospace, monospace); max-height: 420px; overflow: auto; }
-.adlist { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; }
-.adim { border-bottom: 1px solid var(--line); scroll-margin-top: calc(var(--hdr, 60px) + 8px); }
-.adim:last-child { border-bottom: 0; }
-.adsum { display: grid; grid-template-columns: minmax(0, 1fr) 7em minmax(0, 1.4fr); gap: 4px 12px; align-items: center; padding: 8px 14px; font-size: 13.5px; list-style: none; cursor: pointer; }
-.adim.off .adsum { cursor: default; }
-details.adim > summary::-webkit-details-marker { display: none; }
-details.adim > summary { position: relative; padding-left: 30px; }
-details.adim > summary::before { content: ""; position: absolute; left: 8px; top: 50%; margin-top: -9px; width: 18px; height: 18px; background-color: var(--accent);
-  -webkit-mask: var(--i-right) center / 18px no-repeat; mask: var(--i-right) center / 18px no-repeat; transition: transform 150ms cubic-bezier(.2, 0, 0, 1); }
-details.adim[open] > summary::before { transform: rotate(90deg); }
-details.adim > summary:hover, details.adim > summary:focus-visible { background: var(--sunk); outline-offset: -2px; }
-.adim.off { padding-left: 16px; color: var(--muted); }
-.adn { font-family: var(--display); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
-.adg { font-variant-numeric: tabular-nums; display: flex; justify-content: flex-end; }
-.adg .num { align-items: flex-end; }
-.adg .dl { font-size: 13.5px; font-weight: 600; color: var(--ink); } .adg .dl.up { color: var(--better); } .adg .dl.down { color: var(--worse); }
-.adb { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.abc { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
-.adb .n, .abk .n { color: var(--muted); }
-.adbody { padding: 0 14px 14px 30px; }
-.abk { display: flex; align-items: center; gap: 8px; margin: 14px 0 6px; font-size: 13.5px; }
-.abs { padding: 6px 14px 2px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; color: var(--muted); background: var(--sunk); border-bottom: 1px solid var(--line); }
-.lb.reg { color: var(--worse); font-weight: 600; }
-.adbody .btn.text { margin-top: 6px; }
-.adbody .itable { max-width: none; }
 
 /* 判定有疑問: a flag on an answer's verdict. The card's control is a disclosure (.disc), its form a segmented button of the classes and a
    note field; the mark is a chip with the flag icon; a flagged answer's dot gets a ring; 待複查 lists them in the standard sheet */
@@ -669,6 +630,9 @@ button.vc:hover { border-color: var(--outline); }
 .card .ah .cr { font-variant-numeric: tabular-nums; }
 .card .ah .who { color: var(--ink); }
 .card .note { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.card.nt { border-left: 3px solid var(--faint); }
+.card.nt .ntn { font-size: 12.5px; color: var(--muted); margin: 0 0 4px; }
+.card.nt .ah { padding: 2px 0; }
 .card .txt { font-family: var(--display); font-size: 15px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px;
   max-height: calc(14 * 1.6em); overflow: hidden; position: relative; }
 .card .txt.clip::after { content: ""; position: absolute; inset: auto 0 0 0; height: 3.2em; background: linear-gradient(transparent, var(--panel)); }
@@ -780,9 +744,6 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   .mlab { grid-column: 1 / -1; }
   .mrow { padding: 4px 0; }
   .rank th, .rank td { padding: 7px 8px; }
-  .adsum { grid-template-columns: minmax(0, 1fr) auto; padding-right: 10px; }
-  .adb { grid-column: 1 / -1; }
-  .adbody { padding-left: 12px; padding-right: 10px; }
   .cmpt th, .cmpt td { padding: 5px 8px; }
   a.cl { padding: 5px 8px; }
   .num.big .rate { font-size: 17px; padding: 1px 5px; }
@@ -819,7 +780,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
 </header>
 <div class="chrome" id="chrome">
 <div class="tabs" id="tabs" role="tablist" aria-label="總覽">
-  <button type="button" class="tab" role="tab" id="tab-fmt" data-top="fmt" aria-controls="main" aria-selected="true">維度</button><button type="button" class="tab" role="tab" id="tab-rank" data-top="rank" aria-controls="main" aria-selected="false" tabindex="-1">排行</button>
+  <button type="button" class="tab" role="tab" id="tab-rank" data-top="rank" aria-controls="main" aria-selected="true">排行</button><button type="button" class="tab" role="tab" id="tab-fmt" data-top="fmt" aria-controls="main" aria-selected="false" tabindex="-1">維度</button>
 </div>
 <div class="toolbar" id="toolbar">
   <div class="filters" id="filters" hidden>
@@ -948,9 +909,9 @@ const label = dim => nameOf(dim);  // 護欄 too: English ids read better than C
 const langOf = () => "en";
 // The 維度 tab has no model switch: the catalogue is a row viewer and every list shows the three models side by side. The compare of earlier
 // versions (store keys s2v-method2 / s2v-ref) is gone: stored values are never read.
-const st = { top: "fmt", mpage: null, msort: null, mmodel: "all", dim: null, gkey: null, item: null, view: "list", sel: [], selMode: null, vOn: new Set(), exp: new Set(), detOpen: false, side: "all", q: "",
+const st = { top: "rank", mpage: null, msort: null, mmodel: "all", dim: null, gkey: null, item: null, view: "list", sel: [], selMode: null, vOn: new Set(), exp: new Set(), detOpen: false, side: "all", q: "",
   open: new Set(), mopen: new Set(), afold: false,
-  am: null, amSet: false, aopen: new Set(), amore: new Set(), mshut: new Set(), im: MODELS[0], cdim: null, citem: null, ascroll: null };
+  am: null, cgo: null, mshut: new Set(), im: MODELS[0], cdim: null, citem: null };
 function initData(x) {
   DATA = x; IDX = {meta: x.meta || {}, dims: x.dims || [], guards: x.guards || []};
   GIDS = new Set(IDX.guards.map(g => g.dim)); GMAN = x.guard_manifest || {}; GSCREEN = new Set(IDX.meta.guard_screen_runs || []);
@@ -1079,7 +1040,9 @@ const pendHTML = (m, k, big, tail = "") => { const tip = pendTip(m, `這 ${k} �
 const pressureRows = iids => iids.map(i => D.rows[D.items[i][0]]);
 // ---------- answers: results/<source>/<dim>.jsonl(.gz), pooled per (model, arm) over the sources switched on ----------
 // local: the page is served next to results/ (a checkout and python3 -m http.server); github: the contents API with a token
-const SRC = { mode: null, listed: false, list: [], error: null, off: new Set(), unknown: new Set(), gen: 0, n: 0, N: 0 };
+// gen: the epoch of the listing and the data file (loadData and reload() start a new one; what an older epoch still has in flight is dropped
+// when it lands); a source switched on or off (load()) keeps it, so nothing in flight is thrown away. listing: the first listing is running
+const SRC = { mode: null, listed: false, listing: false, list: [], error: null, off: new Set(), unknown: new Set(), gen: 0 };
 try { SRC.off = new Set(JSON.parse(store.get("s2v-off") || "[]")); } catch (e) {}
 let GH = {...GITHUB};
 try { GH = {...GITHUB, ...JSON.parse(store.get("s2v-gh") || "{}")}; } catch (e) {}
@@ -1097,7 +1060,7 @@ const RAW = {}, ARMS_OF = {}, FAILED = {}, STALE = {};
 // side answers, per `<source>/<bench>`: "model|arm" -> item -> seed -> [scores], read only when 排行 needs them (ensureSide); SGEN counts
 // the loads, for what is cached over them
 const SIDE = {};
-let SGEN = 0, SIDE_BUSY = false;
+let SGEN = 0;
 const on = s => !SRC.off.has(s.name);
 
 class LoadError extends Error { constructor(msg, kind) { super(msg); this.kind = kind; } }
@@ -1105,12 +1068,12 @@ function ghURL(sub) {
   const path = [...GH.path.split("/"), ...sub.split("/")].filter(Boolean).map(encodeURIComponent).join("/");
   return `https://api.github.com/repos/${encodeURIComponent(GH.owner)}/${encodeURIComponent(GH.repo)}/contents/${path}?ref=${encodeURIComponent(GH.ref)}`;
 }
-async function ghFetch(sub, raw) {
+async function ghFetch(sub, raw, signal) {
   const headers = {Accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"};
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
   let r;
-  try { r = await fetch(ghURL(sub), {headers, cache: "no-store"}); }
-  catch (e) { throw new LoadError("連不上 GitHub（網路錯誤，或 api.github.com 被擋掉）。", "net"); }
+  try { r = await fetch(ghURL(sub), {headers, cache: "no-store", signal}); }
+  catch (e) { throw signal?.aborted ? timeoutError(sub) : new LoadError("連不上 GitHub（網路錯誤，或 api.github.com 被擋掉）。", "net"); }
   if (r.ok) return r;
   const repo = `${GH.owner}/${GH.repo}`;
   if (r.status === 401) throw new LoadError(`GitHub 不接受這個 token（401）：打錯了或已過期。請重新產生 fine-grained token（Repository access 選 ${repo}，Contents: Read-only）。`, "auth");
@@ -1119,14 +1082,27 @@ async function ghFetch(sub, raw) {
   if (r.status === 404) throw new LoadError(`找不到 ${GH.path}/${sub}（404）：路徑「${GH.path}」或 ref「${GH.ref}」不對，或這個 token 看不到 ${repo}。`, "notfound");
   throw new LoadError(`GitHub 回應 ${r.status}（${sub}）。`, "http");
 }
-async function localFetch(sub) {
+async function localFetch(sub, signal) {
   let r;
-  try { r = await fetch(sub.split("/").map(encodeURIComponent).join("/"), {cache: "no-cache"}); }
-  catch (e) { throw new LoadError(`讀不到 ${sub}（網路錯誤）。伺服器還在執行嗎？`, "net"); }
+  try { r = await fetch(sub.split("/").map(encodeURIComponent).join("/"), {cache: "no-cache", signal}); }
+  catch (e) { throw signal?.aborted ? timeoutError(sub) : new LoadError(`讀不到 ${sub}（網路錯誤）。伺服器還在執行嗎？`, "net"); }
   if (!r.ok) throw new LoadError(`讀不到 ${sub}（${r.status}）。`, "http");
   return r;
 }
-const get = (sub, raw) => SRC.mode === "local" ? localFetch(sub) : ghFetch(sub, raw);
+const get = (sub, raw, signal) => SRC.mode === "local" ? localFetch(sub, signal) : ghFetch(sub, raw, signal);
+// Every request has a deadline, the body's read included, so nothing the page waits on can stay pending: a stalled connection (a phone that
+// switched apps, a proxy that holds the request) ends as a LoadError "timeout", which the callers treat like any failed file. The race
+// means the deadline holds even when the fetch ignores its abort signal.
+const TIMEOUT_MS = 30000;
+const timeoutError = what => new LoadError(`${what} 等了 ${TIMEOUT_MS / 1000} 秒沒有回應。`, "timeout");
+function deadline(what, fn, ms = TIMEOUT_MS) {
+  const ctl = new AbortController();
+  let t;
+  const dead = new Promise((_, rej) => { t = setTimeout(() => { ctl.abort(); rej(timeoutError(what)); }, ms); });
+  const work = fn(ctl.signal);
+  work.catch(() => {});
+  return Promise.race([work, dead]).finally(() => clearTimeout(t));
+}
 // the relative links of a server's directory listing (python3 -m http.server and the like)
 function hrefs(html) {
   const out = [];
@@ -1139,23 +1115,38 @@ function hrefs(html) {
 async function detectMode() {
   if (new URLSearchParams(location.search).get("mode") === "github") return "github";
   if (/^https?:$/.test(location.protocol)) {
-    try { const r = await fetch("results/", {cache: "no-cache"}); if (r.ok && hrefs(await r.text()).some(h => h.endsWith("/"))) return "local"; } catch (e) {}
+    try { if (await deadline("results/", async signal => { const r = await fetch("results/", {cache: "no-cache", signal}); return r.ok && hrefs(await r.text()).some(h => h.endsWith("/")); })) return "local"; } catch (e) {}
   }
   return "github";
 }
+// results/<run>/lite/ (results/README.md "Viewer copies without answer text"): the same files with the answer text of some arms left out; lite.json
+// lists the files copied and, per file, the arms that lost `answer` and `note` (their lines carry answer_sha256 instead). A file with arms listed is read
+// from lite/ in place of the full one, never both; any other file (no arm left out, so nothing to save) and a run without lite/ are read as ever. lite.arms: the arms left out of the dims' and guards'
+// files (a side file leaves out every arm, but the page never shows a side answer)
+async function loadLite(name, has) {
+  if (!has) return null;
+  try {
+    const j = JSON.parse(await fetchText(`results/${name}/lite/lite.json`));
+    if (!j || typeof j.omitted !== "object" || !j.omitted) return null;
+    const omitted = new Map(Object.entries(j.omitted).map(([f, a]) => [f, new Set(Array.isArray(a) ? a : [])]));
+    return {omitted, arms: new Set([...omitted].filter(([f]) => !f.startsWith("side_")).flatMap(([, a]) => [...a]))};
+  } catch (e) { return null; }
+}
+const srcPath = (s, f) => s.lite?.omitted.get(f)?.size ? `results/${s.name}/lite/${f}` : `results/${s.name}/${f}`;
 async function listSources() {
   let names, files;
   if (SRC.mode === "local") {
-    names = hrefs(await (await localFetch("results/")).text()).filter(h => h.endsWith("/")).map(h => h.slice(0, -1));
-    files = async n => hrefs(await (await localFetch(`results/${n}/`)).text()).filter(h => !h.endsWith("/"));
+    names = hrefs(await deadline("results/", async sg => (await localFetch("results/", sg)).text())).filter(h => h.endsWith("/")).map(h => h.slice(0, -1));
+    files = async n => hrefs(await deadline(`results/${n}/`, async sg => (await localFetch(`results/${n}/`, sg)).text())).map(h => h.endsWith("/") ? {name: h.slice(0, -1), dir: true} : {name: h, dir: false});
   } else {
-    names = (await (await ghFetch("results", false)).json()).filter(x => x.type === "dir").map(x => x.name);
-    files = async n => (await (await ghFetch(`results/${n}`, false)).json()).filter(x => x.type === "file").map(x => x.name);
+    names = (await deadline("results", async sg => (await ghFetch("results", false, sg)).json())).filter(x => x.type === "dir").map(x => x.name);
+    files = async n => (await deadline(`results/${n}`, async sg => (await ghFetch(`results/${n}`, false, sg)).json())).filter(x => x.type === "file" || x.type === "dir").map(x => ({name: x.name, dir: x.type === "dir"}));
   }
   names.sort((a, b) => (a !== "baseline") - (b !== "baseline") || a.localeCompare(b));
   return Promise.all(names.map(async name => {
-    const fs = await files(name), dims = {}, sides = {};
+    const ents = await files(name), fs = ents.filter(e => !e.dir).map(e => e.name), dims = {}, sides = {};
     let nside = 0;
+
     for (const f of fs) {  // <dim>.jsonl.gz first, plain <dim>.jsonl if that is what the source has
       const m = f.match(/^(\w+)\.jsonl(\.gz)?$/);
       if (!m) continue;
@@ -1172,16 +1163,25 @@ async function listSources() {
     }
     // g_<arm>.json: score.py g --publish's composite with its bootstrap intervals (SCORING.md "Published composite")
     const comps = fs.map(f => f.match(/^g_(.+)\.json$/)).filter(Boolean).map(m => [m[1], m[0]]);
-    return {name, dims, sides, nside, hasMeta: fs.includes("meta.json"), hasInt: fs.includes("intervention.json"), hasNU: fs.includes("null_unsteered.json"), nu: null, hasGM: fs.includes("guard_meta.json"), gm: null, gmDone: !fs.includes("guard_meta.json"), meta: null, err: null, comps, comp: {}, compDone: !comps.length};
+    // (a folder dropped below, such as a side-only one, never reads its lite.json)
+    const lite = Object.keys(dims).length || fs.includes("meta.json") || comps.length || !nside ? await loadLite(name, ents.some(e => e.dir && e.name === "lite")) : null;
+    return {name, lite, dims, sides, nside, hasMeta: fs.includes("meta.json"), hasInt: fs.includes("intervention.json"), hasNU: fs.includes("null_unsteered.json"), nu: null, hasGM: fs.includes("guard_meta.json"), gm: null, gmDone: !fs.includes("guard_meta.json"), meta: null, err: null, comps, comp: {}, compDone: !comps.length};
   })).then(list => list.filter(s => Object.keys(s.dims).length || s.hasMeta || s.comps.length || !s.nside));
   // (a folder that holds side files only, such as results/side1 where the side runner wrote them, is no source: its files reach the page
   // through the folders that link or copy them, the method's and the reference's)
 }
-async function fetchText(sub) {
-  const buf = new Uint8Array(await (await get(sub, true)).arrayBuffer());
-  if (buf[0] === 0x1f && buf[1] === 0x8b)  // gzip bytes (a server that already decoded them sends the text)
-    return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
-  return new TextDecoder().decode(buf);
+async function fetchText(sub, tries = 2) {
+  try {
+    return await deadline(sub, async signal => {
+      const buf = new Uint8Array(await (await get(sub, true, signal)).arrayBuffer());
+      if (buf[0] === 0x1f && buf[1] === 0x8b)  // gzip bytes (a server that already decoded them sends the text)
+        return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+      return new TextDecoder().decode(buf);
+    });
+  } catch (e) {  // a connection that dropped at once (a phone back from another app) gets one more go; a timeout does not, it already took 30 s
+    if (e instanceof LoadError && e.kind === "net" && tries > 1) { await new Promise(r => setTimeout(r, 800)); return fetchText(sub, tries - 1); }
+    throw e;
+  }
 }
 // a dim's line with a verdict but credit null (scoring v2: an item gated out, an answer cut off where the rule says so): present, not scored.
 // Its verdict keeps its name, hollow, and stays out of the split bar (the note says why)
@@ -1191,6 +1191,9 @@ function unscoredCls(v) {
   GCLS[key] ||= [lab, `o ${dc.split(" ").pop()}`, `判為${lab}，但這則不計分（見備註）`, "none", false];
   return key;
 }
+// what a line is told apart from its copies by (rule 4: byte-identical copies of one (row, seed, turn, answer) count once): the answer text, or
+// in a lite/ copy of an omitted arm (no `answer`) answer_sha256, the first 16 hex digits of sha256(answer); the prefix keeps the two apart
+const ansKeyOf = x => x.answer !== undefined || x.answer_sha256 === undefined ? x.answer : `\0${x.answer_sha256}`;
 // a line: the exported credit (dims) or score (護欄, 0..1, null outside the member core cells), never recomputed; si: its place in the
 // split bar (the dims' four classes; a guard line by its kind, scored lines only; an unscored line is -1: hollow, not in the bar)
 function parseAnswers(text, gd) {
@@ -1200,7 +1203,7 @@ function parseAnswers(text, gd) {
     let x; try { x = JSON.parse(line); } catch (e) { continue; }
     const cr = (gd ? x.score : x.credit) ?? null, cls = gd ? gclass(x.verdict, cr) : cr == null ? unscoredCls(x.verdict) : x.verdict;
     out.push({rid: x.row_id, m: MODEL_NAME[x.model] || x.model, a: x.arm, seed: x.seed, run: x.run || "", judge: x.judge || "", turn: x.turn ?? 0, cls, cls0: cls, v: x.verdict,
-              note: x.note || "", text: x.answer ?? "", trunc: !!x.truncated, cr, si: gd ? (cr == null ? -1 : GSPLIT.indexOf(GCLS[cls][3])) : FILLED.indexOf(cls),
+              note: x.note || "", text: x.answer ?? "", dk: ansKeyOf(x) ?? "", nt: x.answer === undefined && x.answer_sha256 !== undefined, trunc: !!x.truncated, cr, si: gd ? (cr == null ? -1 : GSPLIT.indexOf(GCLS[cls][3])) : FILLED.indexOf(cls),
               rjn: !gd && cr == null && REJ_NOTE.test(x.note || "")});
   }
   return out;
@@ -1212,9 +1215,9 @@ function parseAnswers(text, gd) {
 const REJ_NOTE = /^reference replaced \d{4}-\d{2}-\d{2}; the stored verdict predates it/;
 const rejRows = () => new Set(SRC.list.filter(on).flatMap(s => s.meta?.rejudge_pending?.rows || []));
 const REJ_TIP = "參考答案在 2026-10-19 稽核時換過，等重新評審；沒有分數，不算 0";
-async function pool(jobs, k, fn) {
+async function pool(jobs, k, fn) {  // a job that throws ends that job, never the worker (and so never the jobs behind it)
   let i = 0;
-  await Promise.all(Array.from({length: Math.min(k, jobs.length)}, async () => { while (i < jobs.length) await fn(jobs[i++]); }));
+  await Promise.all(Array.from({length: Math.min(k, jobs.length)}, async () => { while (i < jobs.length) { try { await fn(jobs[i++]); } catch (e) { console.error(e); } } }));
 }
 // a dim's numbers are final once every switched-on source's file of it is in (or failed)
 const waiting = () => SRC.error ? "還沒有載入回答，見「資料來源」。" : "回答載入中…";
@@ -1248,20 +1251,26 @@ async function loadData() {
   if (RESTORE && !RESTORE.done) { RESTORE.done = true; reopen(RESTORE.kind, RESTORE.n); }
   load();
 }
+const LOADING = new Set();  // answer files being read ("<source>/<dim>"): a second load() (a source switched) leaves them to the first
 async function load() {
-  const gen = ++SRC.gen;
+  const gen = SRC.gen;
   SRC.error = null;
   if (!SRC.listed) {
+    if (SRC.listing) return;  // the first load() is still listing; it reads what is switched on when it is done
     if (SRC.mode === "github" && !TOKEN) { SRC.error = {kind: "notoken"}; refresh(); settings(); return; }
-    try { const list = await listSources(); if (gen !== SRC.gen) return; SRC.list = list; SRC.listed = true; }
-    catch (e) { if (gen !== SRC.gen) return; SRC.error = e; refresh(); settings(); return; }
+    SRC.listing = true;
+    try { const list = await listSources(); if (gen !== SRC.gen) return; SRC.list = list; SRC.listed = true; SRC.listing = false; }
+    catch (e) { if (gen !== SRC.gen) return; SRC.listing = false; SRC.error = e; refresh(); settings(); return; }
+    // Each of these ends in its done flag (a failed read counts as done) and a refresh(), whatever happened meanwhile: the readiness of 排行
+    // (methodsReady, loadStat) is made of them, and nothing else draws the page again when one of them lands
     SRC.list.filter(s => s.hasMeta).forEach(async s => {
       try { s.meta = JSON.parse(await fetchText(`results/${s.name}/meta.json`)); } catch (e) {}
       s.metaDone = true;
-      if (gen !== SRC.gen) return;
       // rejudge_pending names rows of the dims; their lines are classed in assemble, so the dims holding them are assembled again
-      const rj = s.meta?.rejudge_pending?.rows || [];
-      for (const dim of new Set(rj.map(id => IDX.dims.find(d => DATA.data[d.dim].rows[id])?.dim).filter(Boolean))) { assemble(dim); refresh(dim); }
+      if (gen === SRC.gen) try {
+        const rj = s.meta?.rejudge_pending?.rows || [];
+        for (const dim of new Set(rj.map(id => IDX.dims.find(d => DATA.data[d.dim].rows[id])?.dim).filter(Boolean))) { assemble(dim); refresh(dim); }
+      } catch (e) { console.error(e); }
       refresh();
     });
     // guard_meta.json: its optional regrade_pending ({guard: [model, ...]}, lowercase model keys) says the guard labels of those models
@@ -1269,37 +1278,39 @@ async function load() {
     // block names a regrade file (diagnostic, guardRegrade), read here so that gmDone also means that file is in
     SRC.list.filter(s => s.hasGM).forEach(async s => {
       try { s.gm = JSON.parse(await fetchText(`results/${s.name}/guard_meta.json`)); } catch (e) {}
-      s.rg = await loadRegrade(s);
+      try { s.rg = await loadRegrade(s); } catch (e) { s.rg = null; }
       s.gmDone = true;
-      if (gen === SRC.gen) refresh();
+      refresh();
     });
     // baseline/null_unsteered.json (results/README.md "Null of an unsteered submission"): a published diagnostic, read on its own; nothing waits on it
     SRC.list.filter(s => s.hasNU && s.name === "baseline").forEach(async s => {
       try { s.nu = JSON.parse(await fetchText(`results/${s.name}/null_unsteered.json`)); } catch (e) {}
-      if (gen === SRC.gen) refresh();
+      refresh();
     });
     SRC.list.filter(s => s.comps.length).forEach(async s => {
       await Promise.all(s.comps.map(async ([arm, f]) => { try { s.comp[arm] = JSON.parse(await fetchText(`results/${s.name}/${f}`)); } catch (e) {} }));
       s.compDone = true;
-      if (gen === SRC.gen) refresh();
+      refresh();
     });
   }
   const first = parseHash().dim;  // the dim on screen first
-  const jobs = SRC.list.filter(on).flatMap(s => Object.entries(s.dims).map(([dim, f]) => ({s, dim, f})))
-    .filter(j => !RAW[`${j.s.name}/${j.dim}`] && !FAILED[`${j.s.name}/${j.dim}`])
+  const jobs = SRC.list.filter(on).flatMap(s => Object.entries(s.dims).map(([dim, f]) => ({s, dim, f, key: `${s.name}/${dim}`})))
+    .filter(j => !RAW[j.key] && !FAILED[j.key] && !LOADING.has(j.key))
     .sort((a, b) => (a.dim !== first) - (b.dim !== first));
-  SRC.n = 0; SRC.N = jobs.length;
+  for (const j of jobs) LOADING.add(j.key);
   for (const d of Object.keys(DATA.data)) assemble(d);
   refresh();
   await pool(jobs, 4, async j => {
-    const key = `${j.s.name}/${j.dim}`;
-    try { const xs = parseAnswers(await fetchText(`results/${j.s.name}/${j.f}`), isGuard(j.dim)); if (gen !== SRC.gen) return; for (const x of xs) x.src = j.s.name; RAW[key] = xs; ARMS_OF[key] = new Set(xs.map(x => x.a)); }
-    catch (e) { if (gen !== SRC.gen) return; FAILED[key] = e.message; j.s.err = e.message; }
-    SRC.n++;
-    assemble(j.dim);
-    refresh(j.dim);
+    try {
+      try { const xs = parseAnswers(await fetchText(srcPath(j.s, j.f)), isGuard(j.dim)); if (gen !== SRC.gen) return; for (const x of xs) x.src = j.s.name; RAW[j.key] = xs; ARMS_OF[j.key] = new Set(xs.map(x => x.a)); }
+      catch (e) { if (gen !== SRC.gen) return; FAILED[j.key] = e.message; j.s.err = e.message; }
+      LOADING.delete(j.key);
+      assemble(j.dim);
+    } finally { if (gen === SRC.gen) refresh(j.dim); }
   });
-  if (gen === SRC.gen) refresh();  // everything in: what depends on all the dims (the 預覽 arms) is drawn again
+  if (gen !== SRC.gen) return;
+  ensureSide();  // the side files follow the answers, whatever page is shown: the leaderboard waits on them
+  refresh();  // everything in: what depends on all the dims (the 預覽 arms) is drawn again
 }
 // A guard session regrade (guard_meta.json `regrade`: {file: "regrade_guard_<guard>.jsonl.gz", ...}): lines in the guard lines' shape, read like
 // them (the `score` field; `regrade` is provenance and never read). by: "model|arm" -> row id -> lines; cov: the "guard|model" cells it covers
@@ -1308,7 +1319,7 @@ async function loadRegrade(s) {
   if (!m || !isGuard(m[1])) return null;
   try {
     const by = new Map(), cov = new Set();
-    for (const x of parseAnswers(await fetchText(`results/${s.name}/${f}`), true)) {
+    for (const x of parseAnswers(await fetchText(srcPath(s, f)), true)) {
       const k = `${x.m}|${x.a}`;
       if (!by.has(k)) by.set(k, new Map());
       if (!by.get(k).has(x.rid)) by.get(k).set(x.rid, []);
@@ -1330,7 +1341,7 @@ function parseSide(text) {
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
     let x; try { x = JSON.parse(line); } catch (e) { continue; }
-    const m = MODEL_NAME[x.model] || x.model, k = `${m}|${x.arm}`, id = String(x.row_id), dk = `${k}|${id}|${x.seed}|${x.answer}`;
+    const m = MODEL_NAME[x.model] || x.model, k = `${m}|${x.arm}`, id = String(x.row_id), dk = `${k}|${id}|${x.seed}|${ansKeyOf(x)}`;
     if (!tolOk.has(k)) tolOk.set(k, true);
     if (!("score_tolerant" in x)) tolOk.set(k, false);
     if (seen.has(dk)) continue;
@@ -1354,26 +1365,39 @@ const sideKey = (src, bench) => `${src}/side_${bench}`;
 const sideJobs = () => !DSIDE || !SRC.listed ? [] : SRC.list.filter(on).flatMap(s => Object.entries(s.sides || {}).map(([bench, f]) => ({s, bench, f})))
   .filter(j => !SIDE[sideKey(j.s.name, j.bench)] && !FAILED[sideKey(j.s.name, j.bench)]);
 const sideReady = () => !DSIDE || (SRC.listed && !sideJobs().length);
-async function ensureSide() {  // 排行 and a method's page ask; every switched-on folder's side files, 4 at a time
-  if (SIDE_BUSY || !DSIDE || !SRC.listed) return;
-  const jobs = sideJobs();
-  if (!jobs.length) return;
-  SIDE_BUSY = true;
-  const gen = SRC.gen;
-  await pool(jobs, 4, async j => {
+// the side files, 4 at a time over one queue: asked for by load() once the answers are in and by every page that needs them (ensureSide is
+// idempotent, a file is queued once); each file that lands, or fails, redraws, so the progress and the 排行 follow it
+const SIDEQ = new Set(), sideQueue = [];
+let SIDE_RUN = 0;
+function ensureSide() {
+  if (!DSIDE || !SRC.listed) return;
+  for (const j of sideJobs()) {
     const key = sideKey(j.s.name, j.bench);
-    try { const m = parseSide(await fetchText(`results/${j.s.name}/${j.f}`)); if (gen === SRC.gen) SIDE[key] = m; }
-    catch (e) { if (gen === SRC.gen) { FAILED[key] = e.message; j.s.err = e.message; } }
-  });
-  SIDE_BUSY = false;
-  SGEN++;
-  refresh();
+    if (SIDEQ.has(key)) continue;
+    SIDEQ.add(key); sideQueue.push({...j, key, gen: SRC.gen});
+  }
+  while (SIDE_RUN < 4 && sideQueue.length) { SIDE_RUN++; sideWorker(); }
+}
+async function sideWorker() {
+  try {
+    while (sideQueue.length) {
+      const j = sideQueue.shift();
+      try { const m = parseSide(await fetchText(srcPath(j.s, j.f))); if (j.gen === SRC.gen) SIDE[j.key] = m; }
+      catch (e) { if (j.gen === SRC.gen) { FAILED[j.key] = e.message; j.s.err = e.message; } }
+      if (j.gen !== SRC.gen) continue;
+      SIDEQ.delete(j.key);
+      SGEN++;
+      refresh();
+    }
+  } finally { SIDE_RUN--; }
 }
 function reload() {  // settings changed: list the sources again
   for (const k of Object.keys(INT)) delete INT[k];
   for (const o of [RAW, ARMS_OF, FAILED, SIDE]) for (const k of Object.keys(o)) delete o[k];
   SGEN++;
-  SRC.listed = false; SRC.list = []; SRC.unknown.clear();
+  SRC.gen++;  // what the old listing still has in flight is dropped when it lands
+  LOADING.clear(); SIDEQ.clear(); sideQueue.length = 0;
+  SRC.listed = false; SRC.listing = false; SRC.list = []; SRC.unknown.clear();
   if (DATA) for (const d of Object.keys(DATA.data)) assemble(d);
   if (!DATA || DATA_FROM !== dataFrom()) return loadData();
   load();
@@ -1395,7 +1419,7 @@ function assemble(dim) {
       const r = d.rows[x.rid];
       // a line on a row an audit retracted (a 護欄's, a dim's): dropped, not stale; the others are counted per source
       if (!r) { if (!(d.guard ? GRET : DRET).has(x.rid)) stale[s.name] = (stale[s.name] || 0) + 1; continue; }
-      const k = `${x.rid}|${x.m}|${x.a}|${x.seed}|${x.turn}|${x.text}`;
+      const k = `${x.rid}|${x.m}|${x.a}|${x.seed}|${x.turn}|${x.dk}`;
       if (seen.has(k)) continue;
       x.cls = x.cr == null && !d.guard && (r.rjp || x.rjn) ? "REJUDGE" : x.cls0;  // si stays -1: a null credit is never in the split bar
       if (x.rjn) r.rjp = true;
@@ -1410,26 +1434,53 @@ function assemble(dim) {
     if (r.side === "kit") d.nkit += r.ans.length; else d.nans += r.ans.length;
   }
 }
-let rq = 0, dirty = new Set(), AGEN = 0;  // AGEN: counts assemble() runs, for what is cached over the answers
-function refresh(dim) {  // re-render what shows the changed dim, once per frame
+let rq = 0, rt = 0, dirty = new Set(), AGEN = 0;  // AGEN: counts assemble() runs, for what is cached over the answers
+// re-render what shows the changed dim, once per frame. The frame can fail to come (a background tab, a phone that switched apps, an
+// embedded webview never calls requestAnimationFrame), and a page that waits for loads would then stay as it was: a timer, 100 ms after the
+// first call, runs the same flush when the frame has not, and whichever runs first cancels the other
+function refresh(dim) {
   dirty.add(dim || "*");
   if (rq) return;
-  rq = requestAnimationFrame(() => {
-    rq = 0;
-    const ds = dirty; dirty = new Set();
-    renderProgress();
-    if (!DATA) shell();
-    else if (!st.dim) overview();
-    else if (ds.has("*") || ds.has(st.dim)) {
-      if (st.item && !st.selMode) initSel();
-      render();
-      if (st.item) keepRow();  // the rows above it grew as the answers came in
-    }
-    if (SM.has($("#sheet-src"))) settings(true);
-  });
+  rq = 1;
+  rt = setTimeout(flush, 100);
+  try { rq = requestAnimationFrame(flush) || 1; } catch (e) {}
 }
+function flush() {
+  if (!rq) return;
+  try { cancelAnimationFrame(rq); } catch (e) {}
+  clearTimeout(rt);
+  rq = 0;
+  const ds = dirty; dirty = new Set();
+  renderProgress();
+  if (!DATA) shell();
+  else if (!st.dim) overview();
+  else if (ds.has("*") || ds.has(st.dim)) {
+    if (st.item && !st.selMode) initSel();
+    render();
+    if (st.item) keepRow();  // the rows above it grew as the answers came in
+  }
+  if (SM.has($("#sheet-src"))) settings(true);
+}
+// everything 排行 waits on, [done, total]: each switched-on source's answer files, side files, meta.json, guard_meta.json (with its regrade
+// file) and g_*.json cards, a failed read done like any other; it is complete exactly when methodsReady() and sideReady() hold
+function loadStat() {
+  let n = 0, N = 0;
+  if (!SRC.listed) return [0, 0];
+  const add = ok => { N++; if (ok) n++; };
+  for (const s of SRC.list) {
+    if (!on(s)) continue;
+    for (const dim of Object.keys(s.dims)) add(!!(RAW[`${s.name}/${dim}`] || FAILED[`${s.name}/${dim}`]));
+    if (DSIDE) for (const b of Object.keys(s.sides || {})) add(!!(SIDE[sideKey(s.name, b)] || FAILED[sideKey(s.name, b)]));
+    if (s.hasMeta) add(!!s.metaDone);
+    if (s.hasGM) add(!!s.gmDone);
+    if (s.comps.length) add(!!s.compDone);
+  }
+  return [n, N];
+}
+const loading = () => { const [n, N] = loadStat(); return n < N; };
 function renderProgress() {
-  $("#prog").textContent = SRC.listed && SRC.n < SRC.N ? `載入中 ${SRC.n} / ${SRC.N}` : (!SRC.listed && !SRC.error ? "載入中…" : "");
+  const [pn, pN] = loadStat();
+  $("#prog").textContent = SRC.listed && pn < pN ? `載入中 ${pn} / ${pN}` : (!SRC.listed && !SRC.error ? "載入中…" : "");
   // stale lines (rows the data file does not have): from a source exported on other rows (its sets_sha256 is not the data file's) the
   // export is the older one; otherwise the data file is
   const bySrc = {};
@@ -1464,10 +1515,11 @@ function parseHash() {
   return parseHash1(h);
 }
 function parseHash1(h) {
-  if (!h) return {};
-  if (h === RANK) return {rank: true};
+  if (!h) return {rank: true};  // a bare address is the default page: 排行
+  if (h === RANK) return {rank: true};  // an alias of the default
+  if (h === DIMS) return {dims: true};  // the catalog overview
   if (h === METHODS) return {rank: true};  // the retired 方法 tab: route() puts #rank in the address
-  if (h.startsWith(METHODS + "/")) {  // #methods/<id>[/<dim>/<model>[/<item>]]: the card, its 回答 for a dim and model, an item of it open in the sheet
+  if (h.startsWith(METHODS + "/")) {  // #methods/<id>[/<dim>/<model>[/<item>]]: the card, the sheet on the first row of its arm's order for a dim and model, an item of it open in the sheet
     const p = h.slice(METHODS.length + 1).split("/");
     return {methods: true, mpage: p[0], adim: p[1], am: p[2], aiid: p[3]};
   }
@@ -1482,11 +1534,11 @@ function parseHash1(h) {
 let LV = null, CUR = null;
 const SCROLL = {}, LISTSCROLL = {};  // window scroll per page, list pane scroll per list, for going back up
 // the sheet: the route of the page under it, whether that page is the history entry before it (close = Back)
-const SHEET = {base: null, back: false, closing: false, shown: null};
+const SHEET = {base: null, back: false, closing: false, shown: null, via: null};  // via: a link to a card's dim opened the sheet: whether the page it came from is the entry before (close = Back)
 const COMPACT = window.matchMedia("(max-width: 759px)"), compact = () => COMPACT.matches;
 const SUMSLUG = "summary";  // never a group slug's clash: this wins
-const METHODS = "methods", RANK = "rank";  // #rank, the other tab; #methods/<id> the method cards below it (a bare #methods is #rank); never a format or an item id
-const TOPHASH = {fmt: "", rank: RANK};  // a primary tab's route
+const METHODS = "methods", RANK = "rank", DIMS = "dims";  // the default page is 排行 (a bare address, # and #rank); #dims, the other tab (the catalog overview); #methods/<id> the method cards below it (a bare #methods is #rank); never a format or an item id
+const TOPHASH = {fmt: DIMS, rank: RANK};  // a primary tab's route
 const levelNow = () => !st.dim ? (st.mpage ? 1 : 0) : compact() && st.view !== "list" ? 2 : 1;
 const listId = () => st.dim ? "T:" + st.dim : null;
 function baseHash() {  // the page on screen (under the sheet when one is open), as a route
@@ -1503,7 +1555,7 @@ function route() {
   if (decodeURIComponent(location.hash.slice(1)) === METHODS) {  // the retired 方法 tab's list: the 排行 tab
     try { history.replaceState(history.state, "", location.pathname + location.search + "#" + RANK); } catch (e) { location.hash = RANK; }
   }
-  const {dim, slug, iid, methods, mpage, rank, adim, am, aiid} = parseHash();
+  const {dim, slug, iid, methods, mpage, rank, dims, adim, am, aiid} = parseHash();
   if (/\?m=[\w-]*$/.test(location.hash)) {  // an older link's model: off the address
     try { history.replaceState(history.state, "", location.pathname + location.search + location.hash.replace(/\?m=[\w-]*$/, "")); } catch (e) {}
   }
@@ -1512,17 +1564,20 @@ function route() {
   CUR = location.hash.length > 1 ? location.hash : "#";
   SHEET.closing = false;
   if (!dim || !DATA.data[dim]) {
-    st.top = rank || methods ? "rank" : "fmt";  // a method's card sits under 排行
-    if ((mpage || null) !== st.mpage) { st.aopen = new Set(); st.amore = new Set(); st.amSet = false; st.am = null; }  // another card: its 回答 start over
-    st.mpage = mpage || null; st.cdim = st.citem = st.ascroll = null;
+    st.top = dims ? "fmt" : "rank";  // 排行 is the default (also an unknown address); a method's card sits under it
+    if ((mpage || null) !== st.mpage) st.am = null;  // another card
+    st.mpage = mpage || null; st.cdim = st.citem = null;
+    const wasGo = st.cgo; st.cgo = null;
     if (st.mpage && adim && DATA.data[adim]) {
-      if (MODELS.includes(am)) { st.am = am; st.amSet = true; }
-      st.aopen.add(adim);
-      if (aiid && DATA.data[adim].items[aiid]) st.citem = aiid, st.cdim = adim; else st.ascroll = adim;
+      st.am = MODELS.includes(am) ? am : MODELS[0];
+      if (aiid && DATA.data[adim].items[aiid]) st.citem = aiid, st.cdim = adim;
+      else st.cgo = {dim: adim, m: st.am, back: wasGo && wasGo.dim === adim && wasGo.m === st.am ? wasGo.back : was.lv !== null};  // a link to a (dim, model): the first row, once the data is in
     }
+    if (st.cgo && methodsReady()) cgoGo(true);
     if (st.citem) {  // an item of the card open in the sheet: the page under it is the card
-      const base = baseHash();
-      if (!was.item || base !== was.base) SHEET.back = !was.item && was.lv !== null && base === was.base;
+      const base = baseHash(), via = SHEET.via;
+      SHEET.via = null;
+      if (!was.item || base !== was.base) SHEET.back = via != null ? via : !was.item && was.lv !== null && base === was.base;
       SHEET.base = base;
     }
     goOverview();
@@ -1559,7 +1614,6 @@ function route() {
     reveal(pane);
   }
   if (was.lv !== null) window.scrollTo(0, back ? (SCROLL[base] || 0) : moved ? 0 : window.scrollY);
-  if (st.ascroll) ascrollTo(st.ascroll);  // a link into a card's 回答: the dim opened and in view (kept until the reader scrolls: the card is drawn again as side and intervention come in)
   if (dir) slide(dir, Math.min(LV, was.lv));
   else if (moved && st.dim && list === was.list && !compact()) fade($("#page"));  // another row selected: the detail swaps
   else if (moved && !st.dim && was.lv === 0 && LV === 0) fade($("#ovbody"));  // 維度 ↔ 方法: a view of the same level, not a level
@@ -1601,7 +1655,7 @@ function relayout() {
   measure();
 }
 COMPACT.addEventListener("change", relayout);
-function siblings() {  // the items beside the current one: its group's, or its reference list's; the filtered ones if it is among them; opened from a method card's 回答: that list, as shown
+function siblings() {  // the items beside the current one: its group's, or its reference list's; the filtered ones if it is among them; opened from a method card (a link to its dim and model): the arm's rows in ansBuckets' order
   if (st.mpage && cardArmNow()) { const l = ansBuckets(cardArmNow(), D.dim, st.am || MODELS[0]).list; if (l.includes(st.item)) return l; }
   const g = D.groupOf[st.item], kit = D.refOf[st.item]?.kit;
   const all = g ? g.items : D.refs.filter(x => !x.kit === !kit).map(x => x.iid), vis = all.filter(matches);
@@ -1613,7 +1667,7 @@ function step(dir) {  // previous / next item, wrapping at the ends
   if (its.length > 1) location.replace("#" + ihref(its[(i + dir + its.length) % its.length]));
 }
 const ihref = iid => st.mpage ? ansHref(st.mpage, D.dim, st.am || MODELS[0], iid).slice(1) : D?.guard ? `${st.dim}:${iid}` : iid;  // an item's route (a 護欄's is qualified by the guard)
-const rowOf = iid => iid && document.querySelector(`#page .irow[data-iid="${CSS.escape(iid)}"], #tpl .rrow[data-iid="${CSS.escape(iid)}"], #mpg .irow[data-iid="${CSS.escape(iid)}"][data-adim="${CSS.escape(D?.dim || "")}"]`);
+const rowOf = iid => iid && document.querySelector(`#page .irow[data-iid="${CSS.escape(iid)}"], #tpl .rrow[data-iid="${CSS.escape(iid)}"]`);
 function keepRow(start) {  // the open item's row in view behind the scrim, moving the page no more than needed (start: at the top)
   const row = rowOf(st.item);
   if (!row || !row.offsetParent) return;
@@ -1761,7 +1815,7 @@ function renderBar() {
       ? `<select id="dimsel" class="sel" aria-label="切換方法" title="切換方法" lang="en" data-kind="method">${list.map(c => `<option value="${esc(c.id)}"${c.id === st.mpage ? " selected" : ""}>${esc(c.id)}</option>`).join("")}</select>`
       : `<span class="t1" lang="en">${esc(st.mpage)}</span>`;
     up = [RANK, "排行"];
-  } else if (!st.dim) ttl = `<a class="brand" href="#" lang="en">Pack${IDX?.meta?.version ? ` <span>${esc(IDX.meta.version)}</span>` : ""}</a>`;
+  } else if (!st.dim) ttl = `<a class="brand" href="#" lang="en" title="排行">Pack${IDX?.meta?.version ? ` <span>${esc(IDX.meta.version)}</span>` : ""}</a>`;
   else if (compact() && st.view !== "list") {
     ttl = `<span class="t1" lang="${langOf(st.dim)}">${esc(label(st.dim))}</span>`;
     up = [st.dim, "模板清單"];
@@ -1770,7 +1824,7 @@ function renderBar() {
     const opt = d => `<option value="${esc(d.dim)}"${d.dim === st.dim ? " selected" : ""} lang="${langOf(d.dim)}">${esc(label(d.dim))}</option>`;
     ttl = `<select id="dimsel" class="sel" aria-label="切換維度" title="切換維度" lang="${langOf(st.dim)}"><optgroup label="不誠實維度" lang="zh-Hant">${IDX.dims.map(opt).join("")}</optgroup>${
       IDX.guards.length ? `<optgroup label="護欄維度" lang="zh-Hant">${IDX.guards.map(opt).join("")}</optgroup>` : ""}</select>`;
-    up = ["", "總覽"];
+    up = [DIMS, "總覽"];
   }
   const t = $("#ttl");
   if (t.dataset.h !== ttl) {
@@ -1874,7 +1928,7 @@ function overview() {
   const M = IDX.meta, srcs = SRC.list.filter(on).map(s => s.name), top = st.top;
   const nans = IDX.dims.reduce((s, d) => s + (DATA.data[d.dim].nans || 0), 0), nkit = IDX.dims.reduce((s, d) => s + (DATA.data[d.dim].nkit || 0), 0);
   const gans = IDX.guards.reduce((s, d) => s + (DATA.data[d.dim].nans || 0), 0);
-  const answers = !SRC.listed ? "回答尚未載入" : `${fmt(nans)} 則 NCHC 回答${nkit || gans ? `（另有${nkit ? ` kit ${fmt(nkit)} 則` : ""}${nkit && gans ? "、" : ""}${gans ? `護欄 ${fmt(gans)} 則` : ""}）` : ""}${SRC.n < SRC.N ? "（載入中）" : ""}`;
+  const answers = !SRC.listed ? "回答尚未載入" : `${fmt(nans)} 則 NCHC 回答${nkit || gans ? `（另有${nkit ? ` kit ${fmt(nkit)} 則` : ""}${nkit && gans ? "、" : ""}${gans ? `護欄 ${fmt(gans)} 則` : ""}）` : ""}${loading() ? "（載入中）" : ""}`;
   // the landing level has two views of the same answers under the primary tabs (renderBar): 維度, the matrix (raw credit), and 排行,
   // the ranking and the heatmap (complete runs only); a method's card is one level below 排行
   if (!$("#ov")) $("#main").innerHTML = `<div class="ov" id="ov"><div id="ovbody"></div><p class="foot small muted" id="ovfoot"></p></div>`;
@@ -1900,7 +1954,7 @@ function overview() {
 }
 // the calibration arms (the data file's arm_roles: few-shot, honesty_sft), in the roles' order; the tick colours follow this order
 const calArms = () => Object.entries(IDX.meta.arm_roles || {}).filter(([, r]) => r.role === "calibration").map(([a]) => a);
-// the rows an overview number is over: a dim's counted test pressure rows, a 護欄's member core test rows of the model (the same as a card's 回答)
+// the rows an overview number is over: a dim's counted test pressure rows, a 護欄's member core test rows of the model (the same as a card's rows)
 function popTest(Dd, m) { Dd.tp ||= {}; return Dd.tp[m] ||= Dd.guard ? Dd.prows.filter(r => isMember(r, MKEY[m])) : Dd.crows.filter(isTest); }
 // one overview cell: unsteered's credit on those rows (the number), a 0-1 track under it filled to the number with a tick for each calibration arm
 // that has answers (no numbers on it; their credits and the row and answer counts are in the tooltip)
@@ -2329,7 +2383,7 @@ function gcells(by, ids) {  // rid -> seed -> [scores]: the seed key exists when
   for (const rid of ids) {
     const seen = new Set();
     for (const x of by.get(rid) || []) {
-      const k = `${x.seed}|${x.turn}|${x.text}`;
+      const k = `${x.seed}|${x.turn}|${x.dk}`;
       if (GSCREEN.has(x.run) || seen.has(k)) continue;
       seen.add(k);
       if (!out.has(rid)) out.set(rid, new Map());
@@ -2956,7 +3010,7 @@ function heatCells(c, dim, f) {  // one model: the td; 三模型: the td of thre
 }
 const cmpCell = (c, dim) => heatCells(c, dim, heatD);
 const gcmpCell = (c, dim) => heatCells(c, dim, heatG);
-// unsteered's cell: the catalog overview's number and bar (ovCell's rows), linked to its card's 回答
+// unsteered's cell: the catalog overview's number and bar (ovCell's rows), linked to its card's rows
 const baseCell = (dim, m) => { const Dd = DATA.data[dim], rows = popTest(Dd, m); return crCell(dim, Dd.prows, m, BASE, {pop: () => rows, split: true}); };
 function baseTd(dim) {
   const cell = m => { const l = ansLink(BASE, m, dim), inner = baseCell(dim, m); return one() ? `<a class="cl" href="${l.href}" ${l.attrs}>${inner}</a>` : `<a class="sc" href="${l.href}" ${l.attrs}>${inner}</a>`; };
@@ -3025,10 +3079,12 @@ function rankPage() {
     ${dropped.length ? fold("_dropped", `未量測 · ${dropped.length}`, dropped.map(([a, r]) => `<p class="mdrop"><b lang="en">${esc(a)}</b><span class="ph">未量測</span><span>${esc(r.note || "依決定不量測")}</span></p>`).join("")) : ""}`;
 }
 // ---------- a method's card (#methods/<id>), one level below 排行 ----------
-// Top to bottom: the leaderboard row (the model switch of 排行), 介入 (what the method changed), 診斷 (the numbers the card has always shown),
-// 回答 (the answers of one model, per dimension, bucketed by verdict). #methods/<id>/<dim>/<model> opens a dim's 回答, and
-// #methods/<id>/<dim>/<model>/<item> an item of it in the sheet, which then steps through the same list.
-// unsteered has a card too (the reference): no S, no Δ, no 診斷 (only the muted null of an unsteered submission), and no regression order in its 回答.
+// Top to bottom: the leaderboard row (the model switch of 排行), 介入 (what the method changed), 診斷 (the numbers the card has always shown).
+// The answers are read in the item sheet over the card: #methods/<id>/<dim>/<model>/<item> opens an item, and the sheet steps through that
+// arm's rows for the dim and model in ansBuckets' order (worst verdict first, in a bucket the regressions vs unsteered first, then credit
+// ascending); #methods/<id>/<dim>/<model> (every link to a (arm, dim, model)) opens the sheet on the first row of that order, once the data is in
+// (cgoGo): the address is replaced by the first row's, or by the card's when the arm has no row there.
+// unsteered has a card too (the reference): no S, no Δ, no 診斷 (only the muted null of an unsteered submission), and no regression order in its rows.
 const BASEC = {id: BASE, arm: BASE, base: true};
 const cardOf = id => id === BASE ? (ARMS.includes(BASE) ? BASEC : null) : cards().find(x => x.id === id) || null;
 const cardArmNow = () => st.mpage ? (st.mpage === BASE ? BASE : cards().find(x => x.id === st.mpage)?.arm || "") : "";
@@ -3036,16 +3092,21 @@ const cardArmNow = () => st.mpage ? (st.mpage === BASE ? BASE : cards().find(x =
 const selMeth = () => st.mpage && cardArmNow() !== BASE ? cardArmNow() : "";
 const selRef = () => BASE;
 const ansHref = (id, dim, m, iid) => `#${METHODS}/${encodeURIComponent(id)}/${encodeURIComponent(dim)}/${m}${iid ? "/" + encodeURIComponent(iid) : ""}`;
-const ansLink = (id, m, dim) => ({href: ansHref(id, dim, m), attrs: ""});
-// the 回答 model: the one picked in the section (or by a link), else the model of the leaderboard row, else the model with the lowest Δ
-function ansModel(c) {
-  if (st.amSet && MODELS.includes(st.am)) return st.am;
-  if (one()) return one();
-  if (c.base) return MODELS[0];
-  const ok = MODELS.filter(m => okOn(c, m));
-  return ok.length ? ok.reduce((a, b) => c.per[b].head.delta < c.per[a].head.delta ? b : a) : MODELS.find(m => !c.per[m].notRun) || MODELS[0];
+const ansLink = (id, m, dim) => ({href: ansHref(id, dim, m), attrs: ""});  // (arm, dim, model): the sheet on the arm's first row there, over the card
+// resolve a pending link to a card's (dim, model) into the first row of the arm's order (the card's address, when the arm has no row there). inline (in route):
+// the address is replaced and the route goes on as the item's; else (the data came in later) the address is replaced and route runs again
+function cgoGo(inline) {
+  const g = st.cgo, c = g && cardOf(st.mpage);
+  st.cgo = null;
+  if (!c) return false;
+  const first = ansBuckets(c.arm, g.dim, g.m).list[0], to = first ? ansHref(st.mpage, g.dim, g.m, first) : `#${METHODS}/${encodeURIComponent(st.mpage)}`;
+  SHEET.via = first ? g.back : null;
+  if (inline) {
+    try { history.replaceState(history.state, "", location.pathname + location.search + to); CUR = to; if (first) { st.citem = first; st.cdim = g.dim; } return true; } catch (e) {}
+  }
+  location.replace(to);
+  return true;
 }
-
 // ---- the leaderboard row, repeated ----
 function cardHead(c) {
   const m = one(), seg = `<div class="cmphead"><h2 class="mgh">排行的數字${m ? ` · ${m}` : ""}</h2>${modelSeg()}</div>`;
@@ -3155,18 +3216,11 @@ function interventionHTML(c) {  // a later pass extends the fallback; the sectio
 }
 const diagSec = c => `<details class="fold csec" data-cfold="diag"${st.mshut.has("diag") ? "" : " open"}><summary class="csum">診斷</summary>${cardHTML2(c, "diag")}</details>`;
 
-// ---- 回答: one model's answers per dimension, bucketed by verdict ----
+// ---- the order of an arm's rows for a dim and model: the item sheet steps through it (and a link to the dim opens its first) ----
 // A row (an item's primary row, test only: the counted rows of a dim, the member core rows of a 護欄 for this model) goes into the bucket of its
 // worst answer among this arm's seeds (lowest credit, ties by class order); an answer without a credit never decides a bucket, a row without one is
 // 不計分. In a bucket: the rows this arm made worse than unsteered first (the credit on the seeds both have), then the rest, credit ascending.
 const EPS = 1e-9;
-// the arms with lines of this model on the rows: unsteered first, then the calibration arms, then the methods (a card's answer rows show them as a strip)
-function armsOn(rows, m) {
-  const rk = a => a === BASE ? 0 : roleOf(a) === "calibration" ? 1 : 2;
-  return ARMS.filter(a => rows.some(r => seedsOf(r, m, a).size)).map((a, i) => [a, i]).sort((x, y) => rk(x[0]) - rk(y[0]) || x[1] - y[1]).map(x => x[0]);
-}
-// an arm that is not a complete method for this model yet (a preview, or a dropped one): muted in the strip
-const previewArm = (a, m) => a !== BASE && methodsReady() && !cards().some(c => c.arm === a && c.per[m].ok);
 const ABK = ["DISHONEST", "NO_ANSWER", "DECLINES", "HONEST"];  // least honest first
 const NOSC = "_ns";
 const bOrd = (a, b, gd) => gd ? gorder(a, b) : (ABK.includes(a) ? ABK.indexOf(a) : 9) - (ABK.includes(b) ? ABK.indexOf(b) : 9);
@@ -3204,101 +3258,34 @@ function ansBuckets(arm, dim, m) {
   const slot = e => Dd.slotOf[e.iid] || e.iid;
   const cmp = (x, y) => (y.reg - x.reg) || (x.reg ? y.gap - x.gap : 0) || ((x.a ?? 9) - (y.a ?? 9)) || slot(x).localeCompare(slot(y));
   const buckets = [...by.keys()].sort((x, y) => x === NOSC ? 1 : y === NOSC ? -1 : bOrd(x, y, gd)).map(k => { const its = by.get(k).sort(cmp); return {key: k, items: its, reg: its.filter(e => e.reg).length}; });
-  const rows = items.map(e => e.r), cs = items.map(e => e.a).filter(v => v != null);
-  const val = {dim, Dd, gd, m, arm, n: items.length, buckets, list: buckets.flatMap(b => b.items.map(e => e.iid)), rows, arms: armsOn(rows, m), mean: cs.length ? avg(cs) : null};
+  const val = {n: items.length, buckets, list: buckets.flatMap(b => b.items.map(e => e.iid))};
   ANSMEMO.set(key, val);
   return val;
 }
-const bInfo = k => k === NOSC ? ["不計分", "o x", ""] : info(k);
-function ansRowHTML(e, v, id) {
-  const {r, iid} = e, g = v.Dd.groupOf[iid], slot = v.Dd.slotOf[iid] || iid, held = !!r.extra?.template_holdout, unit = v.gd ? "分數" : "得分";
-  const split = `<span class="chip test" lang="en">test${held ? " · 保留模板" : ""}</span>`;
-  const strip = v.arms.filter(a => a !== v.arm).map(a => {
-    const c = poolCr(seedCr(r, v.m, a, v.gd)), pv = previewArm(a, v.m), n = seedsOf(r, v.m, a).size;
-    const tip = `${v.m} · ${a}：${c == null ? "這一列沒有計分的回答" : `${unit} ${cr2(c)}（${n} 個 seed）`}${pv ? "；預覽" : ""}`;
-    return `<span class="ai${pv ? " pv" : ""}" title="${esc(tip)}"><span class="an" lang="en">${esc(a)}</span><span class="av ${c == null ? "none" : band(c)}">${c == null ? "–" : cr2(c)}</span></span>`;
-  }).join("");
-  const xs = ansOf(r, v.m, v.arm, v.gd), seeds = new Set(xs.map(x => x.seed)).size;
-  const atip = `${v.m} · ${v.arm}：這一列${e.a == null ? "沒有計分的回答" : `${unit} ${cr2(e.a)}`}（${seeds} 個 seed）`;
-  const btip = v.arm === BASE ? "" : `${v.m} · ${BASE}：${e.b == null ? "和這個方法沒有共同的 seed" : `${unit} ${cr2(e.b)}（只算和 ${v.arm} 共同的 seed）`}${e.reg ? "；方法比基準差" : ""}`;
-  return `<a class="irow lrow" href="${esc(ansHref(id, v.dim, v.m, iid))}" data-iid="${esc(iid)}" data-adim="${esc(v.dim)}">
-    <div class="lq"><div class="lslot" lang="en" title="${esc(slot)}">${esc(slot)}</div>
-      <div class="lmeta"><span class="ltpl" lang="en">${g ? `${esc(g.title)}${g.names[iid] ? ` · ${esc(g.names[iid])}` : ""}` : ""}</span>${split}${flagChip(flagCount(v.dim, iid))}${r.pend ? `<span class="chip pend" title="${esc(ROW_PEND(r))}">待補</span>` : ""}</div>
-      ${strip ? `<div class="lstrip">${strip}</div>` : ""}</div>
-    <div class="lnum" title="${esc(atip)}">${dotsHTML(xs, r)}<span class="rate ${e.a == null ? "none" : band(Math.round(100 * e.a) / 100)}">${e.a == null ? "–" : cr2(e.a)}</span>${v.arm === BASE ? "" : `<span class="lb${e.reg ? " reg" : ""}" title="${esc(btip)}">基準 ${e.b == null ? "–" : cr2(e.b)}</span>`}</div></a>`;
-}
-function bucketHTML(v, b, id) {
-  const key = [id, v.dim, v.m, b.key].join("|"), cap = 20, all = st.amore.has(key), shown = all ? b.items : b.items.slice(0, cap), ci = bInfo(b.key);
-  const rows = shown.map((e, i) => (b.reg && i === 0 ? `<div class="abs">比${BASE}差 · ${b.reg} 列</div>` : "") + (b.reg && i === b.reg && b.reg < b.items.length ? `<div class="abs">其餘</div>` : "") + ansRowHTML(e, v, id)).join("");
-  return `<div class="abk"><span class="dot ${ci[1]}" title="${esc(ci[0])}"></span><b>${esc(ci[0])}</b>${v.gd && b.key !== NOSC && GKIND[ci[3]] ? `<span class="n">${esc(GKIND[ci[3]][0])}</span>` : ""}<span class="n">${b.items.length} 列</span></div>
-    <div class="itable ltable">${rows}</div>${!all && b.items.length > cap ? `<button type="button" class="btn text" data-amore="${esc(key)}">顯示其餘 ${b.items.length - cap} 列</button>` : ""}`;
-}
-const ansBodyHTML = (c, dim, m) => { const v = ansBuckets(c.arm, dim, m), id = c.id;
-  return v.buckets.map(b => bucketHTML(v, b, id)).join("") + `<p class="ltail small muted">${v.n} 列有 ${m} 的回答（test）</p>`; };
-function adGcell(c, dim, m, v) {  // the arm's raw credit of the model on the dim with its verdict bar (a 護欄: its score): the heatmap's cell; unsteered: the catalog's number
-  if (c.base) { const rows = popTest(v.Dd, m); return crCell(dim, v.Dd.prows, m, BASE, {pop: () => rows, split: true}); }
-  const d = (v.gd ? heatG : heatD)(c, m, dim, false);
-  return `<span title="${esc(d.tip)}">${d.html}</span>`;
-}
-function adimHTML(c, dim, m) {
-  const v = ansBuckets(c.arm, dim, m), gd = v.gd;
-  const nm = `<span class="adn" lang="${langOf(dim)}">${esc(label(dim))}</span>`;
-  if (!v.n) return `<div class="adim off" id="ad-${esc(dim)}"><div class="adsum">${nm}<span class="adg"></span><span class="adb muted small">${m} 沒有 test 回答</span></div></div>`;
-  const dots = v.buckets.map(b => { const ci = bInfo(b.key); return `<span class="abc" title="${esc(`${ci[0]} ${b.items.length} 列${b.reg ? `（其中 ${b.reg} 列比${BASE}差）` : ""}`)}"><span class="dot ${ci[1]}"></span>${b.items.length}</span>`; }).join("");
-  const open = st.aopen.has(dim);
-  return `<details class="adim" id="ad-${esc(dim)}" data-adim="${esc(dim)}"${open ? " open" : ""}><summary class="adsum">${nm}<span class="adg">${adGcell(c, dim, m, v)}</span><span class="adb">${dots}<span class="n">${v.n} 列</span></span></summary><div class="adbody">${open ? ansBodyHTML(c, dim, m) : ""}</div></details>`;
-}
-function answersSec(c) {
-  const m = ansModel(c), seg = `<span class="seg" role="group" aria-label="回答的模型">${MODELS.map(x => `<button type="button" data-am="${x}" aria-pressed="${x === m}">${x}</button>`).join("")}</span>`;
-  return `<section class="csec" aria-label="回答"><div class="cmphead"><h3 class="csh">回答</h3>${seg}</div>
-    <div class="adlist">${IDX.dims.map(({dim}) => adimHTML(c, dim, m)).join("")}</div>
-    ${IDX.guards.length ? `<h4 class="msec gd">護欄</h4><div class="adlist">${IDX.guards.map(({dim}) => adimHTML(c, dim, m)).join("")}</div>` : ""}</section>`;
-}
-function fillBody(d) {
-  const b = d.querySelector(".adbody"), c = cardOf(st.mpage);
-  if (b && c && !b.firstChild) b.innerHTML = ansBodyHTML(c, d.dataset.adim, ansModel(c));
-}
-function ascrollTo(dim) {
-  const el = document.getElementById("ad-" + dim);
-  if (!el) return false;
-  el.scrollIntoView({block: "start"});
-  return true;
-}
-for (const ev of ["wheel", "touchstart", "pointerdown", "keydown"]) addEventListener(ev, () => { st.ascroll = null; }, {passive: true});
-function markCur() {
-  document.querySelectorAll("#mpg .irow[aria-current]").forEach(x => x.removeAttribute("aria-current"));
-  if (st.item && D) rowOf(st.item)?.setAttribute("aria-current", "true");
-}
-
 function cardPage(c) {
-  return c.base ? baseHead() + interventionHTML(c) + nullSec() + answersSec(c) : cardHead(c) + interventionHTML(c) + diagSec(c) + answersSec(c);
+  return c.base ? baseHead() + interventionHTML(c) + nullSec() : cardHead(c) + interventionHTML(c) + diagSec(c);
 }
 function methodPage() {
   if (!$("#mpg")) { $("#main").innerHTML = `<div class="ov" id="mpg"></div>`; LASTP = null; }
   ensureSide();
   const wait = !methodsReady() || !sideReady();
   const c = wait ? null : cardOf(st.mpage);
+  const go = !wait && st.cgo && cgoGo(false);  // a link to a dim and model that came in before the data: on to the first row (the route runs again)
   if (c) ensureInt(c);
-  const html = wait ? `<p class="empty">${waiting()}</p>` : c ? cardPage(c) : `<p class="empty">載入的資料夾裡沒有「<span lang="en">${esc(st.mpage)}</span>」。</p>`;
+  const html = wait || go ? `<p class="empty">${waiting()}</p>` : c ? cardPage(c) : `<p class="empty">載入的資料夾裡沒有「<span lang="en">${esc(st.mpage)}</span>」。</p>`;
   if (st.item) showSheet(); else hideSheet();  // an item of the card is open over it (goOverview set D)
-  if (html === LASTP) { markCur(); return; }
+  if (html === LASTP) return;
   LASTP = html; $("#mpg").innerHTML = html;
   $("#mpg").querySelectorAll("details[data-mfold]").forEach(d => d.ontoggle = () => { if (d.open) st.mopen.add(d.dataset.mfold); else st.mopen.delete(d.dataset.mfold); });
   $("#mpg").querySelectorAll("details[data-cfold]").forEach(d => d.ontoggle = () => { if (d.open) st.mshut.delete(d.dataset.cfold); else st.mshut.add(d.dataset.cfold); });
-  $("#mpg").querySelectorAll("details.adim").forEach(d => d.ontoggle = () => { if (d.open) { st.aopen.add(d.dataset.adim); fillBody(d); } else st.aopen.delete(d.dataset.adim); });
-  markCur();
-  if (st.ascroll) ascrollTo(st.ascroll);
 }
-// the 回答 model, the 介入 model and "show the rest" of a bucket: the card is drawn again (its folds are kept in st)
+// the 介入 model: the card is drawn again (its folds are kept in st)
 $("#main").addEventListener("click", e => {
-  const am = e.target.closest("[data-am]"), im = e.target.closest("[data-im]"), mo = e.target.closest("[data-amore]");
-  if (!(am || im || mo) || !st.mpage || st.dim) return;
-  let sel;
-  if (am) { st.am = am.dataset.am; st.amSet = true; sel = `[data-am="${am.dataset.am}"]`; }
-  else if (im) { st.im = im.dataset.im; sel = `[data-im="${im.dataset.im}"]`; }
-  else st.amore.add(mo.dataset.amore);
+  const im = e.target.closest("[data-im]");
+  if (!im || !st.mpage || st.dim) return;
+  st.im = im.dataset.im;
   LASTP = null; overview();
-  if (sel) $(sel)?.focus({preventScroll: true});
+  $(`[data-im="${im.dataset.im}"]`)?.focus({preventScroll: true});
 });
 // sort headers, the model picker, and the table's rows (a click anywhere on a row opens the method, like the 維度 rows)
 $("#main").addEventListener("click", e => {
@@ -3392,7 +3379,7 @@ const scopeName = () => st.side === "train" ? "train" : st.side === "kit" ? "kit
 const fsumIids = () => (st.side === "kit" ? D.kitgroups : D.guard ? D.allGroups : D.groups).flatMap(visible);
 const fsumRows = () => pressureRows(fsumIids());
 const fcells = rows => `<div class="fcells">${MODELS.map(m => `<div class="fc"><span class="mh">${m}</span>${crCell(D.dim, rows, m, BASE, {big: true, pop: listRows, split: true})}</div>`).join("")}</div>`;
-// 各方法: model x arm, each cell the arm's credit on the format's rows with its verdict bar, linking to that arm's 回答 on its card
+// 各方法: model x arm, each cell the arm's credit on the format's rows with its verdict bar, opening the sheet on that arm's first row, over its card
 function armsFold(rows) {
   const ready_ = methodsReady(), cs = ready_ ? cards() : [], arms = dimArms();
   const head = a => `<th scope="col" lang="en"${a !== BASE && roleOf(a) === "calibration" ? ` title="${esc(`${a}（校準）`)}"` : ""}>${wbr(a)}${a !== BASE && roleOf(a) === "calibration" ? `<span class="ctag">校準</span>` : ""}</th>`;
@@ -3490,7 +3477,8 @@ function renderTemplate() {
 
 // ---------- item sheet content: the context (left, sticky) | the verdict matrix, the verdict filter, the answer cards ----------
 // The grid cells (model x arm: the arm's credit on the row with its verdict bar) choose the answers read below. selMode "default": the first
-// row's (the pressure row's) cells of every arm that answered, for all three models (a card's sheet: the card's arm and unsteered, the card's model); "all": every cell; "custom": the cells in st.sel. The
+// row's (the pressure row's) cells of one arm (a card's sheet: the card's arm, on the card's model; the catalogue's: unsteered, on the three
+// models); "custom": the cells in st.sel, once a grid cell has been toggled (that is how the other arms come in). The
 // verdict chips filter on top: none pressed shows every verdict, pressed ones show only those. Reset on each item and
 // method change.
 function initSel() { st.selMode = "default"; st.sel = []; st.vOn = new Set(); st.exp = new Set(); st.fopen = null; }
@@ -3501,15 +3489,14 @@ const cellAns = (r, m, a) => r.ans.filter(x => x.m === m && x.a === a);
 const ansKey = (r, x) => `${r.id}|${x.m}|${x.a}|${x.seed}|${x.turn}`;
 const wbr = s => esc(s).replace(/([_-])/g, "$1<wbr>");
 const narrowSheet = () => $("#sheet").clientWidth < 1000;
-// the models the default selection reads: the card's 回答 model; from the catalogue all three
+// the models the default selection reads: the card link's model; from the catalogue all three
 const sheetModels = () => st.mpage ? [st.am || MODELS[0]] : MODELS;
-// default: the pressure row's cells, from a card the card's arm and unsteered for its model, from the catalogue unsteered and every arm that
-// answered the row, for all three models; 全部: every row and arm
+// default: the pressure row's cells of one arm: from a card the card's own (unsteered's card: unsteered) on the card's model, from the
+// catalogue unsteered on every model (the row's difficulty); the grid's cells add the other arms
 function selected(rows) {
   if (st.selMode === "custom") return new Set(st.sel);
-  // the catalogue's default: unsteered on every model (the row's difficulty); the grid adds the other arms
-  const all = st.selMode === "all", meth = selMeth(), as = all ? itemArms(rows) : !st.mpage ? [BASE] : meth ? [meth, selRef()] : [BASE];
-  return new Set((all ? rows : rows.slice(0, 1)).flatMap(r => sheetModels().flatMap(m => as.filter(a => cellAns(r, m, a).length).map(a => cellKey(r, m, a)))));
+  const a = selMeth() || BASE;
+  return new Set(rows.slice(0, 1).flatMap(r => sheetModels().filter(m => cellAns(r, m, a).length).map(m => cellKey(r, m, a))));
 }
 // the tag on B's column and cards: 對照 on a method's card, else the baseline's 基準
 const tagOf = a => selMeth() ? (a === selRef() ? "對照" : "") : (a === BASE ? "基準" : "");
@@ -3594,7 +3581,7 @@ function matrixHTML(rows, sel) {
     <thead><tr class="gh"><th></th>${rows.map((r, i) => gs(i, "th") + `<th colspan="${as.length}" scope="colgroup">${condLabel(r, i)}${r.rjp ? ` <span class="chip pend" title="${esc(REJ_TIP)}">待補</span>` : ""}</th>`).join("")}</tr>
     <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${tagOf(a) ? `<span class="bl">${tagOf(a)}</span>` : ""}<span lang="en">${wbr(a)}</span></th>`).join("")).join("")}</tr></thead>
     <tbody>${MODELS.map(m => `<tr><th scope="row">${m}</th>${rows.map((r, i) => gs(i, "td") + as.map(a => cellHTML(r, m, a, i, sel)).join("")).join("")}</tr>`).join("")}</tbody></table></div>
-    <div class="mxact"><button type="button" class="btn outlined" data-sel="all" aria-pressed="${st.selMode === "all"}">全部</button><button type="button" class="btn outlined" data-sel="default" aria-pressed="${st.selMode === "default"}">預設</button><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
+    <div class="mxact"><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
 }
 // ---------- 判定有疑問: the reader's flags on verdicts, for the next judge revision ----------
 // A flag marks one answer whose verdict looks wrong, with the class it should have and a note. Its key is the audit records' key:
@@ -3752,14 +3739,24 @@ $("#sheet-flags-body").addEventListener("click", e => {
   else if (t.dataset.fclear2 != null) { FLAGS = []; FLAGDRAFT.clear(); FCONF = false; flagsSave(); flagsChanged(); }
 });
 
-function cardHTML(r, i, x, first, meth) {
-  const k = ansKey(r, x), open = st.exp.has(k), base = tagOf(x.a);
+// a line's head, shared by the answer card and the no-text row: who (model · arm · condition · seed, turn), the grader's verdict as written, its credit
+function ansMeta(r, i, x, first) {
   const who = `<span lang="en">${esc([x.m, x.a, (i || r.condition !== "pressure") && !D.guard ? r.condition : null, `seed ${x.seed}`].filter(Boolean).join(" · "))}</span>${r.turns > 1 ? ` · 第 ${x.turn - first + 1} 輪` : ""}`;
   // a 護欄 line: the grader's verdict (named, and as written when the name differs), its score or 不計分, the grader's reason under it
   const g = D.guard && GCLS[x.cls], raw = g && x.v != null && String(x.v) !== g[0] ? `<span class="mono" lang="en">${esc(x.v)}</span>` : "";
   const sc = g ? (x.cr != null ? `<span class="cr">分數 ${+x.cr.toFixed(2)}</span>` : `<span class="cr">不計分</span>`) : x.cr != null ? `<span class="cr">得分 ${x.cr}</span>`
     : x.cls === "REJUDGE" ? `<span class="cr muted" title="${esc(REJ_TIP)}">存的判定 ${esc(info(x.cls0)[0])}，等重新評審</span>` : "";
-  const fl = flagHTML(r, x);
+  return {who, raw, sc};
+}
+// an omitted arm's line (lite/ copy: no answer text, no note): verdict, credit and seed, no 判定有疑問 (a verdict cannot be checked without the answer)
+const ntRowHTML = (r, i, x, first) => { const {who, raw, sc} = ansMeta(r, i, x, first); return `<div class="ah">${pill(x.cls)}${raw}${sc}<span class="who">${who}</span></div>`; };
+function ntHTML(items, first) {
+  const arms = [...new Set(items.map(([, , x]) => x.a))];
+  return `<article class="card nt"><p class="ntn">回答未載入：<span lang="en">${esc(arms.join("、"))}</span> 只載入判定和分數。</p>${items.map(([r, i, x]) => ntRowHTML(r, i, x, first.get(r.id))).join("")}</article>`;
+}
+function cardHTML(r, i, x, first, meth) {
+  const k = ansKey(r, x), open = st.exp.has(k), base = tagOf(x.a), {who, raw, sc} = ansMeta(r, i, x, first);
+  const fl = x.nt ? {head: "", form: ""} : flagHTML(r, x);
   return `<article class="card${base ? " base" : x.a === meth ? " meth" : ""}" data-k="${esc(k)}"><div class="ah">${pill(x.cls)}${raw}${sc}<span class="who">${who}</span>${base ? `<span class="chip">${base}</span>` : ""}${x.trunc ? `<span class="chip">達到長度上限</span>` : ""}${fl.head}</div>${fl.form}
     ${x.note ? `<div class="note" lang="en">${esc(x.note)}</div>` : ""}
     <div class="txt${open ? " full" : ""}" lang="en">${esc(x.text) || `<span class="muted" lang="zh-Hant">（空白回答）</span>`}</div>
@@ -3776,12 +3773,13 @@ function answersHTML(rows) {
     st.vOn.size ? `<button type="button" class="btn text" data-vall>清除篩選</button>` : ""}</div>` : "";
   const empty = !as.length ? "" : !picked.length ? "沒有選取的格子。" : "沒有符合的回答。";
   return matrixHTML(rows, sel) + (chips || (as.length ? `<div class="vf"></div>` : ""))
-    + (vis.length ? `<div class="cards">${vis.map(([r, i, x]) => cardHTML(r, i, x, firsts.get(r.id), meth)).join("")}</div>` : empty ? `<p class="nocards">${empty}</p>` : "");
+    + (vis.length ? `<div class="cards">${vis.filter(([, , x]) => !x.nt).map(([r, i, x]) => cardHTML(r, i, x, firsts.get(r.id), meth)).join("")}${vis.some(([, , x]) => x.nt) ? ntHTML(vis.filter(([, , x]) => x.nt), firsts) : ""}</div>` : empty ? `<p class="nocards">${empty}</p>` : "");
 }
 // the long answers folded to 14 lines, the system prompt to 3: the toggle only where the text is cut
 function clampCards(root) {
   root.querySelectorAll(".card").forEach(c => {
     const t = c.querySelector(".txt"), b = c.querySelector(".more");
+    if (!t) return;  // the no-text card of an omitted arm
     if (t.classList.contains("full")) { b.hidden = false; b.textContent = "收合"; b.setAttribute("aria-expanded", "true"); return; }
     const over = t.scrollHeight > t.clientHeight + 2;
     t.classList.toggle("clip", over); b.hidden = !over;
@@ -3807,7 +3805,7 @@ function renderAnswers() {
   const ev = $("#ev");
   if (!ev) return;
   const a = document.activeElement, d = ev.contains(a) ? a.dataset : null;  // the focused control, found again after the re-render
-  const again = !d ? null : d.key ? `.vc[data-key="${CSS.escape(d.key)}"]` : d.cls ? `[data-cls="${CSS.escape(d.cls)}"]` : d.sel ? `[data-sel="${d.sel}"]`
+  const again = !d ? null : d.key ? `.vc[data-key="${CSS.escape(d.key)}"]` : d.cls ? `[data-cls="${CSS.escape(d.cls)}"]`
     : a.matches(".more") ? `.card[data-k="${CSS.escape(a.closest(".card").dataset.k)}"] .more`
     : d.fk ? `[data-fk="${CSS.escape(d.fk)}"]${d.fpick != null ? `[data-fpick="${CSS.escape(d.fpick)}"]` : d.fopen != null ? "[data-fopen]" : d.fdel != null ? "[data-fdel]" : ".fnote"}` : null;
   ev.innerHTML = answersHTML(itemRows());
@@ -3816,7 +3814,7 @@ function renderAnswers() {
     const fk = FOCUSK; FOCUSK = null;
     requestAnimationFrame(() => { const [b, n] = fk.split("#"), c = $("#ev")?.querySelectorAll(`.card[data-k="${CSS.escape(b)}"]`)[+n || 0]; if (c) { c.scrollIntoView({block: "center"}); c.classList.add("hl"); } });
   }
-  if (again) (ev.querySelector(again) || ev.querySelector("[data-sel=default]"))?.focus({preventScroll: true});
+  if (again) ev.querySelector(again)?.focus({preventScroll: true});
 }
 $("#sheet-body").addEventListener("click", e => {
   const t = e.target.closest("button");
@@ -3829,8 +3827,7 @@ $("#sheet-body").addEventListener("click", e => {
     if (s.has(t.dataset.key)) s.delete(t.dataset.key); else s.add(t.dataset.key);
     st.sel = [...s]; st.selMode = "custom";
     renderAnswers();
-  } else if (t.dataset.sel) { st.selMode = t.dataset.sel; st.sel = []; renderAnswers(); }
-  else if (t.dataset.cls) { if (st.vOn.has(t.dataset.cls)) st.vOn.delete(t.dataset.cls); else st.vOn.add(t.dataset.cls); renderAnswers(); }
+  } else if (t.dataset.cls) { if (st.vOn.has(t.dataset.cls)) st.vOn.delete(t.dataset.cls); else st.vOn.add(t.dataset.cls); renderAnswers(); }
   else if (t.matches("[data-vall]")) { st.vOn.clear(); renderAnswers(); $("#ev .vf button")?.focus({preventScroll: true}); }
   else if (t.matches(".card .more")) {
     const c = t.closest(".card"), x = c.querySelector(".txt"), open = !x.classList.contains("full");
@@ -3991,7 +3988,7 @@ document.addEventListener("keydown", e => {
   if (menuOpen()) return menuKey(e);
   if (typing || !dir) return;
   // elsewhere: move the focus through the list the level shows
-  const sel = !st.dim ? (st.mpage ? "#mpg .irow" : st.top === "fmt" ? "#ovbody .mxr" : "#ovbody .rk-a") : st.view === "tpl" ? "#page .irow" : "#tpl .trow, #tpl details.refs[open] .rrow";
+  const sel = !st.dim ? (st.mpage ? "" : st.top === "fmt" ? "#ovbody .mxr" : "#ovbody .rk-a") : st.view === "tpl" ? "#page .irow" : "#tpl .trow, #tpl details.refs[open] .rrow";
   const rows = sel ? [...document.querySelectorAll(sel)].filter(el => el.offsetParent) : [];
   if (!rows.length) return;
   const i = rows.indexOf(document.activeElement);
