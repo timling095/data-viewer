@@ -2939,9 +2939,16 @@ const SORTS = [["name", "方法"], ["S", "S（三模型）"], ...MODELS.map(m =>
 const SORTS1 = [["name", "方法"], ["S", "S"], ["all", "Δ"], ["rg", "護欄"], ["rs", "side"]];
 // S and 護欄 only with guards in the data, side (r_side) only with the side set in it
 const sorts = () => (one() ? SORTS1 : SORTS).filter(([k]) => (IDX.guards.length || (k[0] !== "S" && k !== "rg")) && (DSIDE || k !== "rs"));
+// the 方法 column's order is chronological, the latest method first (user 2026-11-02: "i want the latest methods first. 1026 is a later
+// method than 1019"; "gepa v8 is obviously after gepa v7"): a method by the date it was made, its meta's `method_date` when set, else an
+// <MMDD>-submission source by its name, else the meta's built_at (undated last); calibration arms after the methods. The key ascends
+// with age, so the default ascending sort puts the latest first
+const chrono = c => { const m = /^(\d{2})(\d{2})-submission$/.exec(c.S.name), b = c.S.meta?.method_date || (m ? "" : c.S.meta?.qualification?.built_at || c.S.meta?.built_at || "");
+  const md = /^\d{4}-\d{2}-\d{2}/.test(b) ? +(b.slice(5, 7) + b.slice(8, 10)) : m ? +(m[1] + m[2]) : 0;
+  return `${roleOf(c.arm) === "calibration" ? 1 : 0}|${String(9999 - md).padStart(4, "0")}|${c.id}`; };
 function sortVal(c, k) {
   const x = one() && c.per[one()];
-  if (k === "name") return c.id;
+  if (k === "name") return chrono(c);
   if (!x) return k === "all" ? c.all : k === "S" ? cardS(c) : k === "rg" ? cardRg(c) : k === "rs" ? cardRs(c) : k.startsWith("S:") && MODELS.includes(k.slice(2)) ? sOf(c.per[k.slice(2)]) : null;
   if (k === "all") return x.head.delta;
   if (k === "S") return sOf(x);
@@ -2950,14 +2957,17 @@ function sortVal(c, k) {
   return null;
 }
 // the sort: the one picked (a model's S column picked in 三模型 is that model's S in its own view; a column the view lacks falls back),
-// else S when some row has it, else Δ (higher first; 護欄 lower first)
+// else the 方法 column, the latest method first (user 2026-11-02; until then S when some row had it, else Δ)
 function msortOf(cs) {
   const k = st.msort && (st.msort.k === "S:" + one() ? "S" : st.msort.k === one() ? "all" : st.msort.k);
-  return k && sorts().some(([x]) => x === k) ? {k, d: st.msort.d} : {k: cs.some(c => sortVal(c, "S") != null) ? "S" : "all", d: -1};
+  return k && sorts().some(([x]) => x === k) ? {k, d: st.msort.d} : {k: "name", d: 1};
 }
 function ranked(cs) {  // the table's order: the sort column, empty values last whichever the direction, then the name
   const {k, d} = msortOf(cs);
   return [...cs].sort((a, b) => { const x = sortVal(a, k), y = sortVal(b, k);
+    // in the 方法 (chronological) order the calibration arms stay after the methods in either direction
+    const cal = (roleOf(a.arm) === "calibration") - (roleOf(b.arm) === "calibration");
+    if (k === "name" && cal) return cal;
     if (x == null || y == null) return (x == null) - (y == null) || a.id.localeCompare(b.id);
     return (typeof x === "string" ? x.localeCompare(y) : x - y) * d || a.id.localeCompare(b.id); });
 }
@@ -2971,8 +2981,10 @@ function rankRow(c) {
   if (one()) return rankRow1(c);
   return `<tr class="rkr${roleOf(c.arm) === "calibration" ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCellR(c)}${MODELS.map(m => sCellM(c, m)).join("")}${dCellAll(c)}${gCellR(c)}${rsCellR(c)}</tr>`;
 }
-const rkName = c => { const cal = roleOf(c.arm) === "calibration";
-  return `<th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(c))}" lang="en">${esc(c.id)}</a>${cal ? `<span class="ctag">校準</span>` : ""}<span class="rk-sub">${seedNote(c)} · <span class="mono" lang="en">${esc(c.S.name)}</span></span></th>`; };
+// an arm whose numbers are best-effort (the data file's arm_roles[arm].best_effort; honesty_sft since pack 1.4): one * on its name
+const bestEffort = arm => IDX.meta.arm_roles?.[arm]?.best_effort || "";
+const rkName = c => { const cal = roleOf(c.arm) === "calibration", be = bestEffort(c.arm);
+  return `<th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(c))}" lang="en">${esc(c.id)}</a>${be ? `<span title="${esc(be)}">*</span>` : ""}${cal ? `<span class="ctag">校準</span>` : ""}<span class="rk-sub">${seedNote(c)} · <span class="mono" lang="en">${esc(c.S.name)}</span></span></th>`; };
 // the hint dim a model's Δ leaves out because the method never took the hint (neverSwayed): said in the Δ tooltips of 排行
 const neverAll = (c, ms = MODELS) => { const xs = ms.map(m => [m, c.per[m].head]).filter(([, a]) => a && neverOf(a).length);
   return xs.length ? `${neverKept() ? "沒有計分的回答、計入 Δ，g = 0" : "未帶動、不計入 Δ（暫定）"}：${xs.map(([m, a]) => neverOf(a).map(d => `${m} ${nameOf(d)}（${zeroLab(a.per[d])}，0／${zeroN(a.per[d])}）`).join("、")).join("；")}。` : ""; };
@@ -4030,6 +4042,7 @@ function keyDrawer(adopt) {
   <ul class="small rule">
     <li><span class="raw">${NO_SIDE}</span>：S 沒減 r_side（還沒跑 side）</li>
     ${Object.entries(GAST).map(([g, why]) => `<li><b>${esc(nameOf(g))}</b>：<span lang="en">${esc(why)}</span></li>`).join("")}
+    ${Object.entries(IDX?.meta.arm_roles || {}).filter(([, r]) => r.best_effort).map(([a, r]) => `<li><b lang="en">${esc(a)}*</b>：<span lang="en">${esc(r.best_effort)}</span></li>`).join("")}
     <li><span class="chip nv">未帶動</span>：提示維度從未被帶動，${neverKept() ? "計入該模型的 Δ，g = 0（主辦單位裁示，scoring v2.5）" : "該模型的 Δ 不含它（使用者 2026-10-24 暫定裁示）"}</li>
     <li><span class="chip rgd">重評中</span>：護欄標籤正在重新評審，r_guard 可能會變</li>
     <li><span class="chip">不計</span>：護欄格，h<sub>ref</sub> > ${GUARD.toFixed(2)}；${GUARD.toFixed(2)} 是我們的假設</li>
