@@ -287,6 +287,9 @@ details.refs > summary { list-style: none; display: flex; align-items: center; g
 .gfv .dl { font-weight: 600; color: var(--ink); }
 .gfv .dl.down { color: var(--worse); }
 .mfam { padding: 5px 0 2px; font-weight: 600; }
+.mgrid.m1 { grid-template-columns: minmax(0, 1fr) minmax(104px, 240px); }
+.mdeep { margin-top: 4px; }
+.mfsub { font-size: 12px; font-weight: 600; color: var(--muted); padding: 8px 0 1px; }
 .msub .mlab { padding-left: 16px; }
 .matrix.gd { border-color: color-mix(in srgb, var(--guard) 40%, var(--line)); }
 .matrix.gd .mxh { background: var(--guard-soft); color: var(--guard); border-bottom-color: color-mix(in srgb, var(--guard) 30%, var(--line)); }
@@ -755,6 +758,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   .mxn { grid-column: 1 / -1; }
   .mcard { padding: 10px 12px; }
   .mgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
+  .mgrid.m1 { grid-template-columns: minmax(0, 1fr); }
   .mhead > :first-child { display: none; }
   .mlab { grid-column: 1 / -1; }
   .mrow { padding: 4px 0; }
@@ -934,7 +938,7 @@ function initData(x) {
   GIDS = new Set(IDX.guards.map(g => g.dim)); GMAN = x.guard_manifest || {}; GSCREEN = new Set(IDX.meta.guard_screen_runs || []);
   GPEND = x.guard_pending || {}; GRET = new Set(x.guard_retracted || []);  // guard pack v2: rows waiting for a baseline run; retracted ids
   DSIDE = x.side?.benches?.length ? {benches: x.side.benches, testSet: Object.fromEntries(Object.entries(x.side.test || {}).map(([b, v]) => [b, new Set(v)])),
-    heldSet: Object.fromEntries(Object.entries(x.side.held || {}).map(([b, v]) => [b, new Set(v)]))} : null;
+    heldSet: Object.fromEntries(Object.entries(x.side.held || {}).map(([b, v]) => [b, new Set(v)])), category: x.side.category || {}} : null;
   DRET = new Set(x.dim_retracted || []);  // pack 1.2: the dims' rows the 2026-10-19 audit retracted (an older export still has lines on them)
   GKIND = x.guard_verdicts?.kinds || {}; GVR = (x.guard_verdicts?.rules || []).map(([re, l, k, gs]) => [new RegExp(re), l, k, gs]);
   POOLED = new Set(IDX.dims.filter(d => d.pool === "answers").map(d => d.dim)); UNCOUNTED = new Set(x.uncounted || []); MC = null;
@@ -2755,8 +2759,11 @@ function missFold(card) {  // the missing cells: one list when every model's is 
   const capped = per.some(([m]) => card.per[m].capped) ? `<p class="small muted">匯出紀錄只列出前 50 筆。</p>` : "";
   return `<details class="fold mfold" data-mfold="${esc(`${card.S.name}|${card.arm}|miss`)}"${st.mopen.has(`${card.S.name}|${card.arm}|miss`) ? " open" : ""}><summary>缺的部分</summary>${body}${capped}</details>`;
 }
+// the models a card shows: the picked model alone (its card is about that model: every grid one column), else the three
+const CMS = () => one() ? [one()] : MODELS;
+const m1 = () => one() ? " m1" : "";
 function cardHTML2(card, page) {  // page: the method page's detail (the title is the app bar's; 各維度 open, not a fold)
-  const {S, arm, per} = card, ms = MODELS.map(m => per[m]), q = S.meta?.qualification;
+  const {S, arm, per} = card, ms = CMS().map(m => per[m]), q = S.meta?.qualification;
   const label = q?.label && q.label !== S.name ? q.label : "";
   const refs = [...new Set(ms.map(c => c.ref))], seeds = [...new Set(ms.filter(c => c.ok).map(c => c.seeds.join("、")))];
   const pc = S.meta?.pack_commit ? `pack ${String(S.meta.pack_commit).slice(0, 7)}（僅供參考）` : "";
@@ -2770,9 +2777,9 @@ function cardHTML2(card, page) {  // page: the method page's detail (the title i
   const allS = !IDX.guards.length ? "" : `<span class="mh">S ${kind === "with" ? "" : `<span class="small">${kind === "without" ? NO_SIDE : "side 依模型而異"}</span>`}</span>${sAll != null ? `<span class="rate big ${tone(sAll) === "up" ? "hi" : tone(sAll) === "down" ? "lo" : "zero"}" title="${esc(`三模型 S ${sgn(sAll, 3)}${kind === "with" ? "" : `（${NO_SIDE}）`}。${ciList(card, "S")}`)}">${sgn(sAll)}</span>`
     : `<span class="small muted" title="${esc("S 不算：" + MODELS.map(m => [m, sWhy(per[m])]).filter(([, w]) => w).map(([m, w]) => `${m} ${w}`).join("；"))}">${ms.some(c => c.notRun) ? "三個模型都完整才算" : sPend(ms) ? `護欄不完整（${gNames(sPend(ms))} 待補）` : ms.some(c => sideEval(c).state === "partial") ? "side 不完整，S 先不算" : "兩部分都完整才算"}</span>`}`;
   const head = `<header class="mc-head"><div class="mc-t">${page ? "" : `<h3 lang="en">${esc(arm)}</h3>`}<span class="mc-src"${pc || q?.description ? ` title="${esc([q?.description, pc].filter(Boolean).join(" · "))}"` : ""}>${src}</span>${
-    notes.map(n => `<span class="mc-note">${esc(n)}</span>`).join("")}</div>${page === "diag" ? "" : `<div class="mc-all"><span class="mh">三模型 Δ</span>${all}${allS}</div>`}</header>`;
-  const grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}"><span class="mlab">${lab}</span>${cells}</div>`;
-  const colhead = `<div class="mgrid mhead" aria-hidden="true"><span></span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>`;
+    notes.map(n => `<span class="mc-note">${esc(n)}</span>`).join("")}</div>${page === "diag" || one() ? "" : `<div class="mc-all"><span class="mh">三模型 Δ</span>${all}${allS}</div>`}</header>`;
+  const grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}${m1()}"><span class="mlab">${lab}</span>${cells}</div>`;
+  const colhead = `<div class="mgrid mhead${m1()}" aria-hidden="true"><span></span>${CMS().map(m => `<span>${m}</span>`).join("")}</div>`;
   const headline = IDX.guards.length ? grid("Δ", ms.map(headCell).join(""), " mhl mhl1")
       + grid(`S${kind === "with" ? "" : `<span class="sub">${kind === "without" ? NO_SIDE : "side 依模型而異"}</span>`}`, ms.map(sCell).join(""), " mhl")
     : grid("Δ", ms.map(headCell).join(""), " mhl");
@@ -2797,7 +2804,7 @@ function sCell(c) {  // a model's S, or – with the part that is missing
 // the method page's 護欄 section: per guard and model r with u → v under it, r_guard per model, the kit sanity line (muted)
 function guardSec(card, colhead) {
   if (!IDX.guards.length) return "";
-  const ms = MODELS.map(m => card.per[m]), ges = ms.map(guardEval), grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}"><span class="mlab">${lab}</span>${cells}</div>`;
+  const ms = CMS().map(m => card.per[m]), ges = ms.map(guardEval), grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}${m1()}"><span class="mlab">${lab}</span>${cells}</div>`;
   const h = `<h4 class="msec gd">護欄</h4>`;
   if (ges.every(g => g.none)) return `${h}<p class="small muted">載入的資料夾裡沒有這個方法的護欄回答。</p>`;
   const cell = (ge, c, e, dim, kit) => {
@@ -2813,7 +2820,9 @@ function guardSec(card, colhead) {
   const famCell = (ge, c, f) => { const v = famReg(ge, f);
     if (v == null) return `<span class="mcell muted" title="${esc(`${famName(f)} · ${c.m}：沒有護欄回答`)}">–</span>`;
     return `<span class="mcell" title="${esc(`${famName(f)} · ${c.m}：退步 ${r3(v)}（${f.guards.length > 1 ? "各護欄 r 的平均" : "就是這個護欄的 r"}）`)}"><span class="dnum"><span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span></span></span>`; };
-  const rows = FAMS().map(f => grid(`<span lang="${famLang(f)}" title="${esc(famTip(f))}">${esc(famName(f))}</span>`, ges.map((ge, i) => famCell(ge, ms[i], f)).join(""), " mfam")
+  // visible: one row per family (the leaderboard's guard dimensions) and r_guard; each guard's rows, the kit lines and the regrade in 各護欄
+  const rows = FAMS().map(f => grid(`<span lang="${famLang(f)}" title="${esc(famTip(f))}">${esc(famName(f))}</span>`, ges.map((ge, i) => famCell(ge, ms[i], f)).join(""), " mfam")).join("");
+  const grows = FAMS().map(f => `<div class="mfsub" lang="${famLang(f)}">${esc(famName(f))}</div>`
     + f.guards.map(dim => grid(`<span lang="${langOf(dim)}">${esc(label(dim))}</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim], dim)).join(""), " mdim msub")).join("")).join("");
   const cost = costOf(card.arm);
   const rg = grid(`r_guard${cost != null ? `<span class="sub" title="${esc(COST_TIP)}">排行榜 ${cost.toFixed(3)}</span>` : ""}`, ges.map((ge, i) => {
@@ -2825,7 +2834,8 @@ function guardSec(card, colhead) {
     const n = ges.find(ge => ge.per?.[dim]?.kit)?.per[dim].kit.rows;
     return grid(`kit 對照 · <span lang="${langOf(dim)}">${esc(label(dim))}</span><span class="sub">已含在上面</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim]?.kit, dim, true)).join(""), " mkit");
   }).join("");
-  return h + colhead + rows + rg + kits + regradeRows(card, ms, ges, grid);
+  const fk = `${card.S.name}|${card.arm}|guards`;
+  return h + colhead + rows + rg + `<details class="fold mfold mdeep" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各護欄</summary>${colhead}${grows}${kits}${regradeRows(card, ms, ges, grid)}</details>`;
 }
 // The regrade diagnostic under the guards (muted rows): the regraded guard's r, r_guard and S with it. Shown only where the page has a value;
 // when the card's g_<arm>.json carries r_guard_regrade / S_regrade they must agree with the page within CI_TOL, else a warning (card null and
@@ -2860,8 +2870,8 @@ function regradeRows(card, ms, ges, grid) {
 // (muted: reported beside, never subtracted, no interval); a method with no side lines gets one quiet line
 function sideSec(card, colhead) {
   if (!DSIDE) return "";
-  const ms = MODELS.map(m => card.per[m]), sds = ms.map(sideEval), N = DSIDE.benches.length;
-  const grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}"><span class="mlab">${lab}</span>${cells}</div>`;
+  const ms = CMS().map(m => card.per[m]), sds = ms.map(sideEval), N = DSIDE.benches.length;
+  const grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}${m1()}"><span class="mlab">${lab}</span>${cells}</div>`;
   const h = `<h4 class="msec gd">side</h4>`;
   if (sds.every(d => d.state === "none")) return `<h4 class="msec gd">side</h4><p class="small muted">${ms.every(c => c.notRun) ? NOT_RUN : "還沒跑 side；S 不含 side，r_side 不是 0。"}</p>`;
   const held = b => DSIDE.heldSet[b]?.size && DSIDE.heldSet[b].size === DSIDE.testSet[b]?.size;
@@ -2873,8 +2883,14 @@ function sideSec(card, colhead) {
     const tip = `${b} · ${c.m}：u（${BASE}）${r3(e.u)}、v（${c.arm}）${r3(e.v)}、r ${r3(e.r)}；${e.n} 題，seed：方法 ${e.seeds.join("、")}、${BASE} ${e.rseeds.join("、")}${ho}；方法的回答來自 ${sd.src}，${BASE} 來自 ${c.ref}`;
     return `<span class="mcell" title="${esc(tip)}"><span class="dnum"><span class="lnum dl ${+e.r.toFixed(3) > 0 ? "down" : ""}">${r3(e.r)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`;
   };
-  const rows = DSIDE.benches.map(b => grid(`<span lang="en">${esc(b)}</span>${held(b) ? `<span class="ctag" title="${esc("整個 bench 保留（test only）")}">保留</span>` : ""}`,
-    sds.map((sd, i) => cell(sd, ms[i], b)).join(""), " mdim")).join("");
+  // visible: one row per category of the side set (its manifest's `category`, user 2026-11-02) and r_side; the benches, held-out and the
+  // tolerant reading in 各 bench. A category's number is the card's r_side_categories (score.py), shown when the card passes the gate and it
+  // is the mean of the page's per-bench r over the category's benches present (CI_TOL); else –
+  const benchRow = b => grid(`<span lang="en">${esc(b)}</span>${held(b) ? `<span class="ctag" title="${esc("整個 bench 保留（test only）")}">保留</span>` : ""}`,
+    sds.map((sd, i) => cell(sd, ms[i], b)).join(""), " mdim msub");
+  const brows = SCATS().map(k => `<div class="mfsub" lang="en">${esc(k.replaceAll("_", " "))}</div>` + DSIDE.benches.filter(b => scat(b) === k).map(benchRow).join("")).join("");
+  const rows = SCATS().map(k => grid(`<span lang="en">${esc(k.replaceAll("_", " "))}</span><span class="sub">${DSIDE.benches.filter(b => scat(b) === k).length} 個 bench</span>`,
+    sds.map((sd, i) => catCell(card, ms[i], sd, k)).join(""), " mfam")).join("");
   const rs = grid("r_side", sds.map((sd, i) => {
     if (sd.state === "none") return `<span class="mcell muted" title="${esc(`${ms[i].m}：${ms[i].notRun ? NOT_RUN : "side 未執行"}`)}">–</span>`;
     if (sd.rs == null) return `<span class="mcell muted" title="${esc(rsText(ms[i].m, sd))}">–</span>`;
@@ -2885,7 +2901,21 @@ function sideSec(card, colhead) {
     if (sd.state === "none" || sd.rho == null) return `<span class="mcell muted">–</span>`;
     return `<span class="mcell" title="${esc(`${ms[i].m}：保留 r_side ${r3(sd.rho)}（${sd.hpresent.length} 個 bench）`)}"><span class="dnum"><span class="lnum dl">${r3(sd.rho)}</span><span class="raw">${sd.hpresent.length} 個 bench</span></span></span>`;
   }).join(""), " mkit");
-  return h + colhead + rows + rs + ho + tolerantRows(card, ms, sds, grid);
+  const fk = `${card.S.name}|${card.arm}|side`;
+  return h + colhead + rows + rs + `<details class="fold mfold mdeep" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各 bench</summary>${colhead}${brows}${ho}${tolerantRows(card, ms, sds, grid)}</details>`;
+}
+// the side set's categories in the manifest's order of first appearance; a bench's category (itself without one)
+const scat = b => DSIDE.category?.[b] || b;
+const SCATS = () => [...new Set(DSIDE.benches.map(scat))];
+function catCell(card, c, sd, k) {
+  const who = `${k.replaceAll("_", " ")} · ${c.m}`;
+  if (sd.state === "none") return `<span class="mcell muted" title="${esc(`${c.m}：${c.notRun ? NOT_RUN : "side 未執行"}`)}">–</span>`;
+  const bs = DSIDE.benches.filter(b => scat(b) === k && sd.cells[b]?.n), mean = bs.length ? avg(bs.map(b => sd.cells[b].r)) : null;
+  const G = card.comp, fv = G?.ok ? G.doc.models?.[MKEY[c.m]]?.r_side_categories?.[k] ?? null : null;
+  const why = !G ? `沒有 g_${card.arm}.json` : !G.ok ? `${G.file} ${G.why}` : fv == null ? `${G.file} 還沒有 r_side_categories` : mean == null ? "沒有兩邊都有的題目"
+    : Math.abs(fv - mean) > CI_TOL ? `${G.file} 的 ${r3(fv)} 和頁面各 bench 的平均 ${r3(mean)} 不同` : "";
+  if (why) return `<span class="mcell muted" title="${esc(`${who}：${why}`)}">–</span>`;
+  return `<span class="mcell" title="${esc(`${who}：退步 ${r3(fv)}（${bs.map(b => `${b} ${r3(sd.cells[b].r)}`).join("、")}）`)}"><span class="dnum"><span class="lnum dl ${+fv.toFixed(3) > 0 ? "down" : ""}">${r3(fv)}</span></span></span>`;
 }
 // The tolerant side reading (diagnostic, user 2026-10-24; SCORING.md "Tolerant side reading"): r_side from each line's `score_tolerant` with
 // the same pairing, and S with it in place of the strict r_side (S + 3·(r_side − r_side_tolerant), a point estimate, no interval). Shown only
