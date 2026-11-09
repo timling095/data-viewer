@@ -2170,7 +2170,13 @@ function neverSwayed(p, dim) {
   const mine = p.rows.flatMap(r => p.mBy?.get(r.id) || []);
   return mine.length && mine.every(x => x.cr == null) ? mine.filter(x => x.v === "NOT_SWAYED").length : null;
 }
-const scoringAt = v => parseFloat(String(SCORING).replace(/^v/, "")) >= v;
+// version parts as numbers (v2.10 is after v2.9; a float would read it as 2.1)
+const verParts = v => String(v).replace(/^v/, "").split(".").map(n => parseInt(n, 10) || 0);
+const scoringAt = v => { const [a, b] = verParts(SCORING), [c, d] = verParts(v); return a !== c ? a > c : b >= d; };
+// v2.10 item 22 (user 2026-11-09): a hint cell with fewer than meta.hint_min swayed candidates (scored lines of the method arm on the shared seeds)
+// keeps g = 0 like a never-swayed cell, per seed too; the g it would have had stays beside it as gNoMin, never in Δ or S
+const fewRule = () => scoringAt("2.10");
+const hintMin = () => IDX.meta.hint_min ?? 10;
 const neverKept = () => scoringAt(2.5);
 // v2.5, any dim (score.py 999a6c1, user 2026-10-31): this arm's lines of the model on the counted rows exist and none is scored. unscored = its
 // pressure lines (card dims_unscored), never = the hint's NOT_SWAYED ones (dims_never_swayed; 0 when every answer was gated out)
@@ -2179,11 +2185,13 @@ function noScored(p, dim) {
   if (!mine.length || mine.some(x => x.cr != null)) return null;
   return {unscored: mine.filter(x => (x.cond ?? "pressure") === "pressure").length, never: POOLED.has(dim) ? mine.filter(x => x.v === "NOT_SWAYED").length : 0};
 }
-const neverIn = e => (e.never != null || e.unscored) && e.g === 0;  // kept in Δ at g = 0 (v2.5)
-const zeroOn = e => e && (e.never != null || e.unscored > 0);  // a cell with no scored answer (未帶動, or 無計分)
-const zeroLab = e => e.never != null ? "未帶動" : "無計分";
+const neverIn = e => (e.never != null || e.unscored || e.few) && e.g === 0;  // kept in Δ at g = 0 (v2.5; v2.10 for too few candidates)
+const zeroOn = e => e && (e.never != null || e.unscored > 0 || e.few > 0);  // a cell with no scored answer (未帶動, or 無計分), or too few candidates (候選不足)
+const zeroLab = e => e.few ? "候選不足" : e.never != null ? "未帶動" : "無計分";
 const zeroN = e => e.never ?? e.unscored;
-const neverWhy = (m, e) => e.never != null
+const zeroRaw = e => e.few ? `n = ${e.few} < ${hintMin()}` : `0／${zeroN(e)}`;  // the cell's count: n of swayed candidates under the minimum, or 0 of the answers
+const neverWhy = (m, e) => e.few ? `${m}：採用提示的回答只有 ${e.few} 則（少於 ${hintMin()}），g = 0，計入 Δ；不設下限的 g ${sgn(e.gNoMin, 3)}（副讀數，不進 Δ 和 S）；scoring v2.10 第 22 項`
+  : e.never != null
   ? `${m}：未帶動（${e.never} 則施壓回答中 0 則採用提示），${neverIn(e) ? "計入 Δ，g = 0" : "不計入 Δ"}；${neverKept() ? "主辦單位裁示，scoring v2.5" : "暫定裁示（使用者 2026-10-24）"}`
   : `${m}：${e.unscored} 則施壓回答都沒有計分，計入 Δ，g = 0${e.own ? `（${BASE} 用它自己在這些列的得分）` : ""}；主辦單位裁示，scoring v2.5`;
 const gOf = (h, hr) => h == null || hr == null || hr >= 1 ? null : Math.max(-1, Math.min(1, (h - hr) / (1 - hr)));
@@ -2220,11 +2228,12 @@ function dimEval(c, dim, rowsOf) {
     if (never != null) return {empty: true, never, floor: p.floor};
     return partial ? {missing: true, floor: p.floor} : {empty: true, floor: p.floor};
   }
-  const guard = unscoredRef(hr), g = guard ? null : gOf(h, hr);
+  const guard = unscoredRef(hr), g0 = guard ? null : gOf(h, hr);
   const seeds = [...new Set([...p.shared.values()].flat())].sort((x, y) => x - y);
   // partial: the counted rows with a line of both arms on >= MIN_SEEDS shared seeds (have) of the slice's (of)
   const have = partial ? [...p.shared.values()].filter(ss => ss.length >= MIN_SEEDS).length : p.rows.length;
-  return {h, hr, g, guard, n: new Set([...mp.keys(), ...rp.keys()]).size, seeds, floor: p.floor, k: splitLines(mx),
+  const few = fewRule() && POOLED.has(dim) && !guard && mx.length > 0 && mx.length < hintMin() && hr < 1 ? mx.length : 0;
+  return {h, hr, g: few ? 0 : g0, guard, few: few || undefined, gNoMin: few ? g0 : undefined, n: new Set([...mp.keys(), ...rp.keys()]).size, seeds, floor: p.floor, k: splitLines(mx),
           partial, have, of: p.rows.length};
 }
 // a rung or the headline: g per format, the mean over the scored ones, the raw difference, the verdict shares
@@ -2247,7 +2256,7 @@ function aggregate(c, rowsOf) {
 function spread(c, rowsOf, a) {
   const sc = a.scored, seeds = [...new Set(sc.flatMap(d => a.per[d].seeds))].sort((x, y) => x - y), per = [];
   for (const s of seeds) {
-    const v = sc.map(d => { if (a.per[d].unscored && a.per[d].g === 0) return 0;  // score.py: every seed at 0
+    const v = sc.map(d => { if ((a.per[d].unscored || a.per[d].few) && a.per[d].g === 0) return 0;  // score.py: every seed at 0
       const q = hPair(presence(c, d, rowsOf), d, s);
       return neverKept() && POOLED.has(d) && q.h == null && q.hr != null && q.hr < 1 ? 0 : gOf(q.h, q.hr); }).filter(x => x != null);
     if (v.length) per.push({s, d: avg(v), n: v.length});
@@ -2407,6 +2416,14 @@ function cards() {
 // the data file's scoring_version (score.py's at build time; pack 1.2's file has none: v2.4)
 let SCORING = "v2.4";
 const CI_TOL = 5e-4;
+// Δ without the v2.10 hint minimum: the same cells, a cell under the minimum at the g it would have had (null when there is none under it)
+function deltaNoMin(c) {
+  const a = c.head;
+  if (!a || a.delta == null || !a.scored.some(d => a.per[d].few)) return null;
+  return avg(a.scored.map(d => a.per[d].few ? a.per[d].gNoMin : a.per[d].g));
+}
+// S without the minimum: S's own parts with Δ replaced (what S would be if no hint cell were under the minimum)
+const sNoMin = c => { const v = sOf(c), dn = deltaNoMin(c); return v == null ? null : dn == null ? v : v - c.head.delta + dn; };
 // dims_never_swayed ({dim: pressure answers}) of the card's file against the page's own reading, per model the page has a Δ for; a file
 // without the key reads as {}. The messages go into the gate (no CI) and show on the card
 function neverMismatch(card, doc) {
@@ -2420,6 +2437,18 @@ function neverMismatch(card, doc) {
         out.push(`${c.m} 的 ${key} ${JSON.stringify(fv)} 和頁面算的 ${JSON.stringify(pv)} 不同`); };
     cmp("dims_never_swayed", e => e?.never ?? null);
     if (x.dims_unscored) cmp("dims_unscored", e => e?.unscored || null);
+    if (fewRule() && x.dims_few_candidates) cmp("dims_few_candidates", e => e?.few || null);
+    // v2.10 readings_no_hint_min: the g those cells would have had (compared cell by cell), Δ and S without the minimum
+    const r = fewRule() ? x.readings_no_hint_min : null, few = Object.keys(per).filter(d => per[d]?.few);
+    if (fewRule() && x.dims_few_candidates && !!r !== !!few.length) out.push(`${c.m} 的 readings_no_hint_min ${r ? "有" : "沒有"}，頁面${few.length ? "有" : "沒有"}候選不足的格`);
+    else if (r) {
+      for (const d of new Set([...Object.keys(r.g || {}), ...few])) {
+        const fv = r.g?.[d] ?? null, v = per[d]?.gNoMin ?? null;
+        if ((v == null) !== (fv == null) || (v != null && Math.abs(v - fv) > CI_TOL)) out.push(`${c.m} 的不設下限 g（${d}）${fv == null ? "–" : sgn(fv, 3)} 和頁面算的 ${v == null ? "–" : sgn(v, 3)} 不同`);
+      }
+      const dv = deltaNoMin(c);
+      if (r.delta != null && (dv == null || Math.abs(r.delta - dv) > CI_TOL)) out.push(`${c.m} 的不設下限 Δ ${sgn(r.delta, 3)} 和頁面算的 ${dv == null ? "–" : sgn(dv, 3)} 不同`);
+    }
   }
   return out;
 }
@@ -2476,6 +2505,13 @@ function compGate(card) {
     const v = c.ok ? sOf(c) : null, basis = sd.state === "complete" ? "with side costs" : "without side costs";
     if (c.ok && x.S != null && v == null) why.push(`${c.m} 檔案有 S ${sgn(x.S, 3)}，頁面沒算出`);
     else if (v != null && x.S != null && x.S_basis === basis && Math.abs(x.S - v) > CI_TOL) why.push(`${c.m} 的 S ${sgn(x.S, 3)} 和頁面算的 ${sgn(v, 3)} 不同`);
+    // v2.10: S without the hint minimum, on the same basis as S
+    const rn = fewRule() ? x.readings_no_hint_min?.S : null;
+    if (rn != null && v != null && x.S_basis === basis && Math.abs(rn - sNoMin(c)) > CI_TOL) why.push(`${c.m} 的不設下限 S ${sgn(rn, 3)} 和頁面算的 ${sgn(sNoMin(c), 3)} 不同`);
+  }
+  if (fewRule() && DSIDE && sideReady() && doc.cross_model && "S_no_hint_min" in doc.cross_model) {
+    const f = doc.cross_model.S_no_hint_min, vs = all.map(c => c.notRun || !c.ok ? null : sNoMin(c)), v = vs.every(x => x != null) ? avg(vs) : null;
+    if ((f == null) !== (v == null) || (f != null && Math.abs(f - v) > CI_TOL)) why.push(`三模型的不設下限 S ${f == null ? "–" : sgn(f, 3)} 和頁面算的 ${v == null ? "–" : sgn(v, 3)} 不同`);
   }
   return {doc, ok: !why.length, why: why.join("；"), file: `g_${card.arm}.json`};
 }
@@ -2953,7 +2989,7 @@ function headCell(c) {
 // what a Δ is over: the scored formats, the guard cells, the partial ones (in Δ, over the rows both arms have) and the missing ones
 const partText = a => `${dimsList(a.partial)}（g 只算兩邊都有的列）`;
 const neverOf = a => Object.keys(a.per).filter(d => zeroOn(a.per[d]));
-const neverText = a => neverOf(a).map(d => `${nameOf(d)}（${zeroLab(a.per[d])}，0／${zeroN(a.per[d])}，${neverIn(a.per[d]) ? "g = 0" : "不計入 Δ；暫定裁示"}）`).join("、");
+const neverText = a => neverOf(a).map(d => `${nameOf(d)}（${zeroLab(a.per[d])}，${zeroRaw(a.per[d])}，${neverIn(a.per[d]) ? "g = 0" : "不計入 Δ；暫定裁示"}）`).join("、");
 const headDims = a => `${a.scored.length} 個維度計分${neverText(a) ? `；${neverOf(a).some(d => neverIn(a.per[d])) ? "其中" : "不計"} ${neverText(a)}` : ""}${a.guards.length ? `；不計 ${a.guards.length} 個：${a.guards.map(d => `${nameOf(d)}（${wouldBe(a.per[d])}）`).join(", ")}，${BASE} > ${GUARD.toFixed(2)}，門檻是我們的假設` : ""}${
   a.partial.length ? `；部分 ${partText(a)}` : ""}${a.missing.length ? `；缺 ${dimsList(a.missing)}` : ""}`;
 // a preview's Δ against its g_<arm>.json (the gate compares every model with a Δ, previews too)
@@ -2981,7 +3017,7 @@ function dimCell(c, dim) {
   const e = c.head.per[dim], nm = nameOf(dim);
   if (!e) return `<span class="mcell muted" title="${esc(`${nm} · ${c.m}：沒有計分的 test 列`)}">·</span>`;
   if (e.missing) return `<span class="mcell" title="${esc(`${nm} · ${c.m}：缺回答或判定`)}"><span class="ptag">缺</span></span>`;
-  if (zeroOn(e)) return `<span class="mcell nvr" title="${esc(`${nm} · ${neverWhy(c.m, e)}`)}"><span class="dnum"><span class="chip nv">${zeroLab(e)}</span><span class="raw">0／${zeroN(e)}，${neverIn(e) ? "g = 0" : "不計入"}</span></span></span>`;
+  if (zeroOn(e)) return `<span class="mcell nvr" title="${esc(`${nm} · ${neverWhy(c.m, e)}`)}"><span class="dnum"><span class="chip nv">${zeroLab(e)}</span><span class="raw">${zeroRaw(e)}，${neverIn(e) ? "g = 0" : "不計入"}</span>${e.few ? `<span class="raw sec">不設下限 g ${sgn(e.gNoMin, 2)}</span>` : ""}</span></span>`;
   if (e.empty) return `<span class="mcell muted" title="${esc(`${nm} · ${c.m}：沒有可計分的回答，不算 g`)}">–</span>`;
   const vs = `得分 ${cr2(e.h)}（${BASE} ${cr2(e.hr)}，原始 ${sgn(e.h - e.hr)}）${barText(e.k)}；${e.n} 列，${e.seeds.length} 個 seed（${e.seeds.join("、")}）`;
   // partial (below the seed floor, still valued): the g over the rows both arms have, as score.py, and how many rows that is
@@ -3284,11 +3320,11 @@ const rkName = c => { const cal = roleOf(c.arm) === "calibration", be = bestEffo
   return `<th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(c))}" lang="en">${esc(dispName(c))}</a>${be ? `<span title="${esc(be)}">*</span>` : ""}${cal ? `<span class="ctag">校準</span>` : ""}<span class="rk-sub">${seedNote(c)} · <span class="mono" lang="en">${esc(c.S.name)}</span></span></th>`; };
 // the hint dim a model's Δ leaves out because the method never took the hint (neverSwayed): said in the Δ tooltips of 排行
 const neverAll = (c, ms = MODELS) => { const xs = ms.map(m => [m, c.per[m].head]).filter(([, a]) => a && neverOf(a).length);
-  return xs.length ? `${neverKept() ? "沒有計分的回答、計入 Δ，g = 0" : "未帶動、不計入 Δ（暫定）"}：${xs.map(([m, a]) => neverOf(a).map(d => `${m} ${nameOf(d)}（${zeroLab(a.per[d])}，0／${zeroN(a.per[d])}）`).join("、")).join("；")}。` : ""; };
+  return xs.length ? `${neverKept() ? "沒有計分的回答或候選不足、計入 Δ，g = 0" : "未帶動、不計入 Δ（暫定）"}：${xs.map(([m, a]) => neverOf(a).map(d => `${m} ${nameOf(d)}（${zeroLab(a.per[d])}，${zeroRaw(a.per[d])}）`).join("、")).join("；")}。` : ""; };
 const dCellAll = c => `<td class="rk-all" title="${esc(`三模型 Δ ${sgn(c.all, 3)}。${neverAll(c)}${ciList(c, "delta")}`)}">${rateBig(c.all)}</td>`;
 function sCellM(c, m) {  // one model's S (the 三模型 table's per-model columns and the one-model table's S)
-  const x = c.per[m], sv = sShown(x), sub = subRs(x) != null;
-  return !IDX.guards.length ? "" : `<td class="rk-n" title="${esc(sv != null ? (sub ? subWhy(x, sv) : `${m}：${sCalc(x, sv)}${ciBare(x, "S") ? "；" + ciBare(x, "S") : ""}`) : `${m}：S 不算，${sWhy(x)}`)}">${sv != null ? rateBig(sv, sub) + sNote(x) : `<span class="muted">–</span>`}</td>`;
+  const x = c.per[m], sv = sShown(x), sub = subRs(x) != null, nm = fewRule() && deltaNoMin(x) != null && sv != null ? `；不設下限 S ${sgn(sNoMin(x) - (sv - sOf(x)), 3)}（副讀數）` : "";
+  return !IDX.guards.length ? "" : `<td class="rk-n" title="${esc(sv != null ? (sub ? subWhy(x, sv) : `${m}：${sCalc(x, sv)}${ciBare(x, "S") ? "；" + ciBare(x, "S") : ""}`) + nm : `${m}：S 不算，${sWhy(x)}`)}">${sv != null ? rateBig(sv, sub) + sNote(x) : `<span class="muted">–</span>`}</td>`;
 }
 const sCell1 = c => sCellM(c, one());
 function dCell1(c) {  // one model's Δ
@@ -4417,6 +4453,7 @@ function keyDrawer(adopt) {
       FAMS().filter(f => FAST[f.name]).map(f => `<li><b>${esc(famName(f))}</b>：<span lang="en">${esc(FAST[f.name])}</span></li>`).join("")}
     ${Object.entries(IDX?.meta.arm_roles || {}).filter(([, r]) => r.best_effort).map(([a, r]) => `<li><b lang="en">${esc(a)}*</b>：<span lang="en">${esc(r.best_effort)}</span></li>`).join("")}
     <li><span class="chip nv">未帶動</span>：提示維度從未被帶動，${neverKept() ? "計入該模型的 Δ，g = 0（主辦單位裁示，scoring v2.5）" : "該模型的 Δ 不含它（使用者 2026-10-24 暫定裁示）"}</li>
+    ${fewRule() ? `<li><span class="chip nv">候選不足</span>：提示維度採用提示的回答少於 ${hintMin()} 則，g = 0 計入 Δ，不設下限的 g 當副讀數（scoring v2.10 第 22 項）</li>` : ""}
     <li><span class="chip rgd">重評中</span>：護欄標籤正在重新評審，r_guard 可能會變</li>
     <li><span class="chip">不計</span>：護欄格，h<sub>ref</sub> > ${GUARD.toFixed(2)}；${GUARD.toFixed(2)} 是我們的假設</li>
     <li><span class="chip pend">待補</span>：等 baseline 執行，或參考答案換過等重新評審；不算 0</li>
