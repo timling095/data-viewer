@@ -443,6 +443,11 @@ a.cl:hover, a.cl:focus-visible { background: color-mix(in srgb, currentColor 10%
 a.cl:focus-visible, a.mcell:focus-visible { outline-offset: -2px; }
 .dnum { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .rate.big { font-size: 19px; padding: 1px 7px; min-width: 0; }
+/* a substituted value (side substitution): a dashed outline, never the plain look of a measured number */
+.rate.sub { outline: 1.5px dashed currentColor; outline-offset: -1px; }
+.rk-n .raw.sub { color: var(--accent); }
+.lnum.sub { text-decoration: underline dotted; text-underline-offset: 3px; }
+.subline { margin: 6px 0 10px; }
 .rate.zero { background: var(--sunk); color: var(--muted); }
 .dnum .raw { font-size: 12px; color: var(--muted); padding-left: 2px; }
 .pvw { flex-direction: column; align-items: flex-start; gap: 3px; }
@@ -2872,6 +2877,34 @@ function sCalc(c, v) {  // the model's S with its parts, for a tooltip
   const ge = guardEval(c), sd = sideEval(c), full_ = sd.state === "complete";
   return `S ${sgn(v, 3)}（Δ ${sgn(c.head.delta, 3)}${full_ ? `、r_side ${r3(sd.rs)}` : ""}、r_guard ${r3(ge.rg)}${full_ ? "" : `；${NO_SIDE}`}）`;
 }
+// ---------- side substitution (user 2026-11-09; the page only, never in a card and never before the card gate) ----------
+// A method whose card records that its side was left out because the method is exempt (meta.json qualification.side.exempt, SCORING.md item 21)
+// can show S with the unsteered null's r_side in place of the missing side part (baseline/null_unsteered.json: unsteered seeds 3-4 against
+// 0-2, what a model pays from seed noise alone; one value per model, the same for every such method). Off by default, remembered per
+// viewer. A substituted S is marked wherever it shows and is not a measured value; the card gate keeps comparing the page's own S without side.
+let SIDESUB = false;
+try { SIDESUB = store.get("s2v-sidesub") === "1"; } catch (e) {}
+const SUB = "代入 side";
+const exemptX = x => !!SRC.list.find(s => s.name === x.src)?.meta?.qualification?.side?.exempt;
+const nullRsOf = m => nullU()?.models?.[MKEY[m]]?.r_side ?? null;
+const subAvail = x => !x.notRun && exemptX(x) && sideEval(x).state === "none" && sOf(x) != null && nullRsOf(x.m) != null;
+const subRs = x => SIDESUB && subAvail(x) ? nullRsOf(x.m) : null;  // the r_side put in for this model, or null (not substituted)
+const sShown = x => { const r = subRs(x), v = sOf(x); return r != null && v != null ? v - LAMBDA * r : v; };
+const subCard = card => SIDESUB && MODELS.every(m => subRs(card.per[m]) != null);
+const cardSShown = card => subCard(card) ? avg(MODELS.map(m => sShown(card.per[m]))) : cardS(card);
+const cardRsSub = card => subCard(card) ? avg(MODELS.map(m => subRs(card.per[m]))) : null;
+const subSeeds = () => { const nu = nullU(); return `unsteered seed ${(nu?.method?.seeds || []).join("、")} 對 seed ${(nu?.reference_seeds || []).join("、")}`; };
+const subWhy = (x, sv) => `${x.m} ${SUB}：S ${sgn(sv, 3)}（Δ ${sgn(x.head.delta, 3)}、r_guard ${r3(guardEval(x).rg)}、r_side ${r3(subRs(x))} 代入）。r_side 取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測；這個方法依 SCORING.md 第 21 項不跑 side`;
+const subNote = tip => `<span class="raw sub" title="${esc(tip)}">${SUB}</span>`;
+// the toggle (chip) and its note for the rows shown: only when some method on the page qualifies, and the null file is there
+const subAny = rows => rows.some(c => one() ? subAvail(c.per[one()]) : MODELS.every(m => subAvail(c.per[m])));
+function subHead(rows) {
+  if (!IDX.guards.length || !subAny(rows)) return "";
+  const chip = `<button type="button" class="fchip" data-sidesub aria-pressed="${SIDESUB}" title="${esc("不跑 side 的方法（SCORING.md 第 21 項）：S 減掉 unsteered 基準的 r_side 來比較；預設關")}">side：代入參考值</button>`;
+  return chip;
+}
+const subNoteLine = rows => !SIDESUB || !rows.some(c => one() ? subRs(c.per[one()]) != null : subCard(c)) ? ""
+  : `<p class="small muted subline"><span class="raw sub">${SUB}</span> 的 S、side 不是量測值：這些方法沒跑 side（SCORING.md 第 21 項），r_side 用 unsteered 基準的值代入（${esc(subSeeds())}；每個模型一個值，所有這類方法相同）。卡片和 CI 不變。</p>`;
 const cardRg = card => cardX(card, "r_guard", MODELS.map(m => guardEval(card.per[m]).rg));
 const gNames = ds => ds.map(label).join("、");
 // the guards 待補 on every model whose S is withheld for the guard part alone (null when another reason holds), for the card's S headline
@@ -3213,11 +3246,11 @@ const chrono = c => { const m = /^(\d{2})(\d{2})-submission$/.exec(c.S.name), b 
 function sortVal(c, k) {
   const x = one() && c.per[one()];
   if (k === "name") return chrono(c);
-  if (!x) return k === "all" ? c.all : k === "S" ? cardS(c) : k === "rg" ? cardRg(c) : k === "rs" ? cardRs(c) : k.startsWith("S:") && MODELS.includes(k.slice(2)) ? sOf(c.per[k.slice(2)]) : null;
+  if (!x) return k === "all" ? c.all : k === "S" ? cardSShown(c) : k === "rg" ? cardRg(c) : k === "rs" ? (cardRs(c) ?? cardRsSub(c)) : k.startsWith("S:") && MODELS.includes(k.slice(2)) ? sShown(c.per[k.slice(2)]) : null;
   if (k === "all") return x.head.delta;
-  if (k === "S") return sOf(x);
+  if (k === "S") return sShown(x);
   if (k === "rg") return guardEval(x).rg;
-  if (k === "rs") return sideEval(x).rs;
+  if (k === "rs") return sideEval(x).rs ?? subRs(x);
   return null;
 }
 // the sort: the one picked (a model's S column picked in 三模型 is that model's S in its own view; a column the view lacks falls back),
@@ -3235,7 +3268,7 @@ function ranked(cs) {  // the table's order: the sort column, empty values last 
     if (x == null || y == null) return (x == null) - (y == null) || a.id.localeCompare(b.id);
     return (typeof x === "string" ? x.localeCompare(y) : x - y) * d || a.id.localeCompare(b.id); });
 }
-const rateBig = v => `<span class="rate big ${tone(v) === "up" ? "hi" : tone(v) === "down" ? "lo" : "zero"}">${sgn(v)}</span>`;
+const rateBig = (v, sub) => `<span class="rate big ${tone(v) === "up" ? "hi" : tone(v) === "down" ? "lo" : "zero"}${sub ? " sub" : ""}">${sgn(v)}</span>`;
 function seedNote(c) {
   const ns = [...new Set((one() ? [one()] : MODELS).map(m => c.per[m].seeds.length))].sort((x, y) => x - y);
   return `${ns.length > 1 ? `${ns[0]}–${ns[ns.length - 1]}` : ns[0]} 個 seed`;
@@ -3254,8 +3287,8 @@ const neverAll = (c, ms = MODELS) => { const xs = ms.map(m => [m, c.per[m].head]
   return xs.length ? `${neverKept() ? "沒有計分的回答、計入 Δ，g = 0" : "未帶動、不計入 Δ（暫定）"}：${xs.map(([m, a]) => neverOf(a).map(d => `${m} ${nameOf(d)}（${zeroLab(a.per[d])}，0／${zeroN(a.per[d])}）`).join("、")).join("；")}。` : ""; };
 const dCellAll = c => `<td class="rk-all" title="${esc(`三模型 Δ ${sgn(c.all, 3)}。${neverAll(c)}${ciList(c, "delta")}`)}">${rateBig(c.all)}</td>`;
 function sCellM(c, m) {  // one model's S (the 三模型 table's per-model columns and the one-model table's S)
-  const x = c.per[m], sv = sOf(x);
-  return !IDX.guards.length ? "" : `<td class="rk-n" title="${esc(sv != null ? `${m}：${sCalc(x, sv)}${ciBare(x, "S") ? "；" + ciBare(x, "S") : ""}` : `${m}：S 不算，${sWhy(x)}`)}">${sv != null ? rateBig(sv) + sNote(x) : `<span class="muted">–</span>`}</td>`;
+  const x = c.per[m], sv = sShown(x), sub = subRs(x) != null;
+  return !IDX.guards.length ? "" : `<td class="rk-n" title="${esc(sv != null ? (sub ? subWhy(x, sv) : `${m}：${sCalc(x, sv)}${ciBare(x, "S") ? "；" + ciBare(x, "S") : ""}`) : `${m}：S 不算，${sWhy(x)}`)}">${sv != null ? rateBig(sv, sub) + sNote(x) : `<span class="muted">–</span>`}</td>`;
 }
 const sCell1 = c => sCellM(c, one());
 function dCell1(c) {  // one model's Δ
@@ -3271,13 +3304,14 @@ function rankRow1(c) {
   return `<tr class="rkr${cal ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCell1(c)}${dCell1(c)}${gTd}${rsCell1(c)}</tr>`;
 }
 // a quiet line under an S that leaves r_side out (the method has no side lines): the rest of the column is S = Δ − 3·r_side − 3·r_guard
-const sNote = x => sideKind(x) === "with" ? "" : `<span class="raw" title="${esc("還沒跑 side，S 沒減 r_side；跑了只會一樣或更低")}">${NO_SIDE}</span>`;
+const sNote = x => sideKind(x) === "with" ? "" : subRs(x) != null ? subNote(subWhy(x, sShown(x))) : `<span class="raw" title="${esc("還沒跑 side，S 沒減 r_side；跑了只會一樣或更低")}">${NO_SIDE}</span>`;
 function sCellR(c) {  // S: the three-model mean, only when every model has every part complete (and the models share one basis)
   if (!IDX.guards.length) return "";
-  const v = cardS(c), ms = MODELS.map(m => c.per[m]), k = cardBasis(c);
-  const tip = v != null ? `三模型 S ${sgn(v, 3)}${k === "with" ? "" : `（${NO_SIDE}）`}。` + ms.map(x => `${x.m} ${sgn(sOf(x), 3)}${ciText(x, "S")}`).join("；")
+  const sub = subCard(c), v = sub ? cardSShown(c) : cardS(c), ms = MODELS.map(m => c.per[m]), k = cardBasis(c);
+  const tip = sub ? `三模型 S ${sgn(v, 3)}（${SUB}，不是量測值；r_side 取自 results/baseline/null_unsteered.json，${subSeeds()}）。` + ms.map(x => `${x.m} ${sgn(sShown(x), 3)}（r_side ${r3(subRs(x))}）`).join("；")
+    : v != null ? `三模型 S ${sgn(v, 3)}${k === "with" ? "" : `（${NO_SIDE}）`}。` + ms.map(x => `${x.m} ${sgn(sOf(x), 3)}${ciText(x, "S")}`).join("；")
     : "S 不算：" + ms.map(x => [x.m, sWhy(x)]).filter(([, w]) => w).map(([m, w]) => `${m} ${w}`).join("；");
-  return `<td class="rk-n" title="${esc(tip)}">${v != null ? rateBig(v) + sNote(c.per[MODELS[0]]) : `<span class="muted">–</span>`}</td>`;
+  return `<td class="rk-n" title="${esc(tip)}">${v != null ? rateBig(v, sub) + (sub ? subNote(tip) : sNote(c.per[MODELS[0]])) : `<span class="muted">–</span>`}</td>`;
 }
 // side (r_side, smaller is better), styled as 護欄: the three-model mean with the benches present (k/n) and 部分 beside it; a method without side
 // lines reads 未執行, never 0
@@ -3289,6 +3323,7 @@ function rsText(m, sd, c) {
 function rsCellR(c) {
   if (!DSIDE) return "";
   const sds = MODELS.map(m => sideEval(c.per[m])), v = cardRs(c), N = DSIDE.benches.length, vs = sds.map(d => d.rs);
+  if (subCard(c)) { const rv = cardRsSub(c); return `<td class="rk-n" title="${esc(`三模型 r_side ${r3(rv)}（${SUB}：${triWho(MODELS.map(m => subRs(c.per[m])))}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(rv)}</span><span class="raw sub">${SUB}</span></td>`; }
   if (sds.every(d => d.state === "none")) return `<td class="rk-n" title="${esc(`side ${NOT_RUN}；S ${NO_SIDE}，r_side 不是 0`)}"><span class="muted">${NOT_RUN}</span></td>`;
   if (v == null) return `<td class="rk-n" title="${esc(`${xWhy(c, "r_side", vs)}。` + MODELS.map((m, i) => rsText(m, sds[i])).join("；"))}"><span class="muted">–</span></td>`;
   const part = sds.some(d => d.state !== "complete");
@@ -3298,6 +3333,7 @@ function rsCellR(c) {
 function rsCell1(c) {
   if (!DSIDE) return "";
   const m = one(), x = c.per[m], sd = sideEval(x), N = DSIDE.benches.length;
+  if (subRs(x) != null) return `<td class="rk-n" title="${esc(`${m} r_side ${r3(subRs(x))}（${SUB}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(subRs(x))}</span><span class="raw sub">${SUB}</span></td>`;
   if (sd.state === "none") return `<td class="rk-n" title="${esc(`${m} side ${NOT_RUN}；S ${NO_SIDE}，r_side 不是 0`)}"><span class="muted">${NOT_RUN}</span></td>`;
   if (sd.rs == null) return `<td class="rk-n" title="${esc(rsText(m, sd))}"><span class="muted">–</span></td>`;
   return `<td class="rk-n" title="${esc(rsText(m, sd, x))}"><span class="lnum dl ${+sd.rs.toFixed(3) > 0 ? "down" : ""}">${r3(sd.rs)}</span>${sd.present.length < N ? `<span class="raw">${sd.present.length}/${N}</span>` : ""}${sd.state === "complete" ? "" : `<span class="raw">部分</span>`}</td>`;
@@ -3527,7 +3563,7 @@ function rankPage() {
   if (!methodsReady() || !sideReady()) return `<p class="empty">${waiting()}</p>`;
   const {rows, parts, previews, pend, dropped} = armGroups();
   const fold = (k, title, body) => `<details class="fold mfold mdropped" data-mfold="${k}"${st.mopen.has(k) ? " open" : ""}><summary>${title}</summary>${body}</details>`;
-  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}</div>${rankHTML(rows, pend)}</section>${cmpHTML(rows)}
+  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}${subHead(rows)}</div>${subNoteLine(rows)}${rankHTML(rows, pend)}</section>${cmpHTML(rows)}
     ${parts.length ? fold("_partial", `部分模型 · ${parts.length}`, parts.map(c => previewLine(c, "部分模型")).join("")) : ""}
     ${previews.length ? fold("_preview", `預覽 · ${previews.length}`, previews.map(previewLine).join("")) : ""}
     ${dropped.length ? fold("_dropped", `未量測 · ${dropped.length}`, dropped.map(([a, r]) => `<p class="mdrop"><b lang="en">${esc(a)}</b><span class="ph">未量測</span><span>${esc(r.note || "依決定不量測")}</span></p>`).join("")) : ""}`;
@@ -3757,8 +3793,9 @@ $("#main").addEventListener("click", e => {
 });
 // sort headers, the model picker, and the table's rows (a click anywhere on a row opens the method, like the 維度 rows)
 $("#main").addEventListener("click", e => {
-  const s = e.target.closest("[data-sort]"), mm = e.target.closest("[data-mmodel]"), tr = e.target.closest("tr.rkr[data-href]");
-  if (s) {
+  const s = e.target.closest("[data-sort]"), mm = e.target.closest("[data-mmodel]"), tr = e.target.closest("tr.rkr[data-href]"), sb = e.target.closest("[data-sidesub]");
+  if (sb) { SIDESUB = !SIDESUB; try { store.set("s2v-sidesub", SIDESUB ? "1" : "0"); } catch (err) {} overview(); $("[data-sidesub]")?.focus(); }
+  else if (s) {
     const k = s.dataset.sort;
     const cur = msortOf(methodsReady() ? cards().filter(inScope) : []);
     st.msort = cur.k === k ? {k, d: -cur.d} : {k, d: k === "name" || k === "rg" || k === "rs" ? 1 : -1};
@@ -4375,6 +4412,7 @@ function keyDrawer(adopt) {
   <h3>標記</h3>
   <ul class="small rule">
     <li><span class="raw">${NO_SIDE}</span>：S 沒減 r_side（還沒跑 side）</li>
+    <li><span class="raw sub">${SUB}</span>：開了「side：代入參考值」時，不跑 side 的方法用 unsteered 基準的 r_side 算的 S；不是量測值</li>
     ${Object.entries(GAST).map(([g, why]) => `<li><b>${esc(nameOf(g))}</b>：<span lang="en">${esc(why)}</span></li>`).join("")}${
       FAMS().filter(f => FAST[f.name]).map(f => `<li><b>${esc(famName(f))}</b>：<span lang="en">${esc(FAST[f.name])}</span></li>`).join("")}
     ${Object.entries(IDX?.meta.arm_roles || {}).filter(([, r]) => r.best_effort).map(([a, r]) => `<li><b lang="en">${esc(a)}*</b>：<span lang="en">${esc(r.best_effort)}</span></li>`).join("")}
