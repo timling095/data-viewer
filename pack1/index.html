@@ -448,6 +448,10 @@ a.cl:focus-visible, a.mcell:focus-visible { outline-offset: -2px; }
 .rk-n .raw.sub { color: var(--accent); }
 .lnum.sub { text-decoration: underline dotted; text-underline-offset: 3px; }
 .subline { margin: 6px 0 10px; }
+/* a ranking row of a folder that is not loaded: the card's numbers, quieter than the page's own */
+tr.numrow .rate { opacity: .85; }
+tr.numrow .rk-sub .ilink { font-size: 12px; }
+p.lazy { margin: 8px 0 0; }
 .rate.zero { background: var(--sunk); color: var(--muted); }
 .dnum .raw { font-size: 12px; color: var(--muted); padding-left: 2px; }
 .pvw { flex-direction: column; align-items: flex-start; gap: 3px; }
@@ -1099,8 +1103,10 @@ const pressureRows = iids => iids.map(i => D.rows[D.items[i][0]]);
 // local: the page is served next to results/ (a checkout and python3 -m http.server); github: the contents API with a token
 // gen: the epoch of the listing and the data file (loadData and reload() start a new one; what an older epoch still has in flight is dropped
 // when it lands); a source switched on or off (load()) keeps it, so nothing in flight is thrown away. listing: the first listing is running
-const SRC = { mode: null, listed: false, listing: false, list: [], error: null, off: new Set(), unknown: new Set(), gen: 0 };
-try { SRC.off = new Set(JSON.parse(store.get("s2v-off") || "[]")); } catch (e) {}
+const SRC = { mode: null, listed: false, listing: false, list: [], error: null, user: new Map(), unknown: new Set(), gen: 0 };
+// what the viewer chose to load (s2v-src: {folder: true|false}, over the data file's defaults; the older s2v-off list is not read)
+try { SRC.user = new Map(Object.entries(JSON.parse(store.get("s2v-src") || "{}"))); } catch (e) {}
+const saveSrc = () => store.set("s2v-src", JSON.stringify(Object.fromEntries(SRC.user)));
 let GH = {...GITHUB};
 try { GH = {...GITHUB, ...JSON.parse(store.get("s2v-gh") || "{}")}; } catch (e) {}
 // only ever in memory and in localStorage (「在這台裝置記住 token」 ticked, the default) or sessionStorage (unticked);
@@ -1118,7 +1124,11 @@ const RAW = {}, ARMS_OF = {}, FAILED = {}, STALE = {};
 // the loads, for what is cached over them
 const SIDE = {};
 let SGEN = 0;
-const on = s => !SRC.off.has(s.name);
+// what loads on start (user 2026-11-10: the page was slow): the reference folder and the data file's meta.viewer_default; a file without it loads all.
+// A folder in meta.numbers_only shows its card's numbers without its answers (numCards); the rest are archived. 資料來源 switches any of them.
+const SRC_BASE = "baseline";
+const dfltOn = n => { const d = IDX?.meta?.viewer_default; return !Array.isArray(d) || n === SRC_BASE || d.includes(n); };
+const on = s => SRC.user.has(s.name) ? SRC.user.get(s.name) : dfltOn(s.name);
 
 class LoadError extends Error { constructor(msg, kind) { super(msg); this.kind = kind; } }
 function ghURL(sub) {
@@ -2371,7 +2381,7 @@ function missText(c) {  // the preview's summary: formats missing per seed, comp
   return [...out, ...c.reasons].join("、") || "不完整";
 }
 function cards() {
-  const key = [SRC.gen, Object.keys(RAW).length, Object.keys(FAILED).length, SRC.list.filter(s => s.metaDone).length, SRC.list.filter(s => s.compDone).length, SRC.list.filter(s => s.gmDone).length, SGEN, [...SRC.off].join()].join("|");
+  const key = [SRC.gen, Object.keys(RAW).length, Object.keys(FAILED).length, SRC.list.filter(s => s.metaDone).length, SRC.list.filter(s => s.compDone).length, SRC.list.filter(s => s.gmDone).length, SGEN, [...SRC.user].join()].join("|");
   if (MC && MC.key === key) return MC.cards;
   const out = [];
   for (const S of SRC.list.filter(on)) {
@@ -3280,6 +3290,7 @@ const chrono = c => { const m = /^(\d{2})(\d{2})-submission$/.exec(c.S.name), b 
   const md = /^\d{4}-\d{2}-\d{2}/.test(b) ? +(b.slice(5, 7) + b.slice(8, 10)) : m ? +(m[1] + m[2]) : 0;
   return `${roleOf(c.arm) === "calibration" ? 1 : 0}|${String(9999 - md).padStart(4, "0")}|${c.id}`; };
 function sortVal(c, k) {
+  if (c.numbers) return numSort(c, k);
   const x = one() && c.per[one()];
   if (k === "name") return chrono(c);
   if (!x) return k === "all" ? c.all : k === "S" ? cardSShown(c) : k === "rg" ? cardRg(c) : k === "rs" ? (cardRs(c) ?? cardRsSub(c)) : k.startsWith("S:") && MODELS.includes(k.slice(2)) ? sShown(c.per[k.slice(2)]) : null;
@@ -3311,6 +3322,7 @@ function seedNote(c) {
 }
 // the cells of a ranking row (排行, and the card's top row); the rest of what a run has (原始, the 已見 / 保留 / kit ladder, 排行榜 cost) is on its page
 function rankRow(c) {
+  if (c.numbers) return numRow(c);
   if (one()) return rankRow1(c);
   return `<tr class="rkr${roleOf(c.arm) === "calibration" ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCellR(c)}${MODELS.map(m => sCellM(c, m)).join("")}${dCellAll(c)}${gCellR(c)}${rsCellR(c)}</tr>`;
 }
@@ -3585,10 +3597,62 @@ function previewLine(c, tag = "預覽") {
 }
 // the arms by where they stand under the model switch: ranked (complete on the scope, in the table's order), 部分模型 (complete where run),
 // 預覽 (incomplete), the pending calibration arms and the 未量測 (dropped by decision)
+// ---------- a folder not loaded (meta.numbers_only): its card's numbers, not the page's own ----------
+// The published composite (g_<arm>.json, score.py g --publish) has S, Δ, r_guard and r_side per model and across the models; 排行 shows those for a
+// folder whose answers are not loaded, marked 卡片數字, with a button that loads the answers (then the page computes and checks its own). Only when the
+// card is about this page's scoring version and rows; else the cells are empty and the tooltip says why. No heatmap column: it needs the answers.
+function numCards() {
+  const nm = IDX.meta.numbers_only || [], have = cards(), out = [];
+  for (const S of SRC.list) {
+    if (on(S) || !nm.includes(S.name) || !S.metaDone || !S.compDone) continue;
+    for (const [arm, doc] of Object.entries(S.comp || {})) {
+      if (roleOf(arm) === "dropped" || hiddenArm(arm)) continue;
+      out.push({numbers: true, S, arm, doc, per: {}, id: have.some(c => c.arm === arm) || out.some(c => c.arm === arm) ? `${arm}@${S.name}` : arm});
+    }
+  }
+  return out;
+}
+const numWhy = c => c.doc.scoring_version !== SCORING ? `卡片是 scoring ${c.doc.scoring_version ?? "未標"}，頁面是 ${SCORING}` : !IDX.meta.sets_sha256 || c.doc.sets_sha256 !== IDX.meta.sets_sha256 ? "卡片的題目版本和頁面的不同" : "";
+const numX = (c, k) => numWhy(c) ? null : one() ? c.doc.models?.[MKEY[one()]]?.[k] ?? null : c.doc.cross_model?.[k] ?? null;
+const numM = (c, m, k) => numWhy(c) ? null : c.doc.models?.[MKEY[m]]?.[k] ?? null;
+const numName = c => c.id.includes("@") ? `${armName(c.arm)}@${c.S.name}` : armName(c.arm);
+function numSort(c, k) {
+  if (k === "name") return chrono(c);
+  return k === "S" ? numX(c, "S") : k === "all" ? numX(c, "delta") : k === "rg" ? numX(c, "r_guard") : k === "rs" ? numX(c, "r_side") : k.startsWith("S:") ? numM(c, k.slice(2), "S") : null;
+}
+function numCell(c, k) {
+  const why = numWhy(c), file = `g_${c.arm}.json`, src = `卡片數字（${file}），頁面沒有重算；載入逐題回答後由頁面算並對照`;
+  const td = (html, tip) => `<td class="rk-n numc" title="${esc(`${tip}。${src}`)}">${html}</td>`, none = tip => td(`<span class="muted">–</span>`, why ? `沒有：${why}` : tip);
+  const sCell = (v, basis, who) => v == null ? none(`${who} 沒有 S`) : td(rateBig(v) + (basis && basis !== "with side costs" ? `<span class="raw">${NO_SIDE}</span>` : ""), `${who} S ${sgn(v, 3)}`);
+  const m1 = one(), mm = m1 ? m1 : null;
+  if (k === "S") return m1 ? sCell(numX(c, "S"), numX(c, "S_basis"), m1) : sCell(numX(c, "S"), MODELS.map(m => numM(c, m, "S_basis")).find(Boolean), "三模型");
+  if (k.startsWith("S:")) return sCell(numM(c, k.slice(2), "S"), numM(c, k.slice(2), "S_basis"), k.slice(2));
+  if (k === "all") { const v = numX(c, "delta"); return v == null ? none("沒有 Δ") : td(rateBig(v), `${m1 || "三模型"} Δ ${sgn(v, 3)}`); }
+  if (k === "rg") { const v = numX(c, "r_guard"); return v == null ? none("沒有 r_guard") : td(`<span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span>`, `${m1 || "三模型"} r_guard ${r3(v)}`); }
+  if (k === "rs") { const v = numX(c, "r_side"); return why ? none("") : v == null ? td(`<span class="muted">${NOT_RUN}</span>`, `${m1 || "三模型"} side ${NOT_RUN}`) : td(`<span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span>`, `${m1 || "三模型"} r_side ${r3(v)}`); }
+  return "<td></td>";
+}
+function numRow(c) {
+  const name = `<th scope="row" class="rk-m"><span class="rk-a" lang="en">${esc(numName(c))}</span><span class="ctag" title="${esc("這一列是卡片的數字（score.py g --publish），逐題回答沒有載入")}">卡片數字</span><span class="rk-sub"><span class="mono" lang="en">${esc(c.S.name)}</span> · <button type="button" class="ilink" data-loadsrc="${esc(c.S.name)}">載入逐題回答</button></span></th>`;
+  return `<tr class="rkr numrow${roleOf(c.arm) === "calibration" ? " cal" : ""}">${name}${sorts().slice(1).map(([k]) => numCell(c, k)).join("")}</tr>`;
+}
+// a method page for a method whose folder is not loaded (an older link): which folder holds it, and the way to load it
+function unloadedPage(id) {
+  const arm = id.split("@")[0], src = id.includes("@") ? id.split("@")[1] : null;
+  const S = SRC.list.find(s => !on(s) && (src ? s.name === src : s.comp?.[arm] || s.meta?.qualification?.arms?.some(x => x?.arm === arm)));
+  return S ? `<p class="empty">這個方法（<span lang="en">${esc(arm)}</span>）的逐題回答沒有載入（<span class="mono" lang="en">${esc(S.name)}</span>，為了載入速度）。<button type="button" class="ilink" data-loadsrc="${esc(S.name)}">載入逐題回答</button></p>` : "";
+}
+// the line under the table about what is not loaded (the archived folders: neither shown nor loaded until 資料來源 switches them on)
+function lazyNote() {
+  const nm = IDX.meta.numbers_only || [], arch = SRC.list.filter(s => !on(s) && !nm.includes(s.name) && (s.hasMeta || s.comps.length) && Object.keys(s.dims).length);
+  return arch.length ? `<p class="small muted lazy">封存的方法沒有載入（載入比較快）：<span class="mono" lang="en">${arch.map(s => esc(s.name)).join("、")}</span>。<button type="button" class="ilink" data-src>資料來源</button>勾選就會載入。</p>` : "";
+}
+// a calibration arm whose folder is archived is not waiting for results
+const archivedArm = a => SRC.list.some(s => !on(s) && s.meta?.qualification?.arms?.some(x => x?.arm === a));
 function armGroups() {
   const cs = cards(), roles = Object.entries(IDX.meta.arm_roles || {});
-  return {rows: ranked(cs.filter(inScope)), parts: cs.filter(c => !inScope(c) && partialModels(c)), previews: cs.filter(c => !inScope(c) && !partialModels(c) && !notRunHere(c)),
-    pend: roles.filter(([a, r]) => r.role === "calibration" && !cs.some(c => c.arm === a)).map(([a]) => a), dropped: roles.filter(([, r]) => r.role === "dropped")};
+  return {rows: ranked([...cs.filter(inScope), ...numCards()]), parts: cs.filter(c => !inScope(c) && partialModels(c)), previews: cs.filter(c => !inScope(c) && !partialModels(c) && !notRunHere(c)),
+    pend: roles.filter(([a, r]) => r.role === "calibration" && !cs.some(c => c.arm === a) && !archivedArm(a)).map(([a]) => a), dropped: roles.filter(([, r]) => r.role === "dropped")};
 }
 const modelSeg = () => `<span class="seg" role="group" aria-label="模型">${MPICK.map(([v, t]) => `<button type="button" data-mmodel="${v}" aria-pressed="${st.mmodel === v}">${t}</button>`).join("")}</span>`;
 // the 排行 tab: the model switch, the ranking (unsteered a 基準 row at the bottom), the heatmap (各維度 + 護欄) under it, then the folded
@@ -3599,7 +3663,7 @@ function rankPage() {
   if (!methodsReady() || !sideReady()) return `<p class="empty">${waiting()}</p>`;
   const {rows, parts, previews, pend, dropped} = armGroups();
   const fold = (k, title, body) => `<details class="fold mfold mdropped" data-mfold="${k}"${st.mopen.has(k) ? " open" : ""}><summary>${title}</summary>${body}</details>`;
-  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}${subHead(rows)}</div>${subNoteLine(rows)}${rankHTML(rows, pend)}</section>${cmpHTML(rows)}
+  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}${subHead(rows)}</div>${subNoteLine(rows)}${rankHTML(rows, pend)}${lazyNote()}</section>${cmpHTML(rows.filter(c => !c.numbers))}
     ${parts.length ? fold("_partial", `部分模型 · ${parts.length}`, parts.map(c => previewLine(c, "部分模型")).join("")) : ""}
     ${previews.length ? fold("_preview", `預覽 · ${previews.length}`, previews.map(previewLine).join("")) : ""}
     ${dropped.length ? fold("_dropped", `未量測 · ${dropped.length}`, dropped.map(([a, r]) => `<p class="mdrop"><b lang="en">${esc(a)}</b><span class="ph">未量測</span><span>${esc(r.note || "依決定不量測")}</span></p>`).join("")) : ""}`;
@@ -3803,7 +3867,7 @@ function methodPage() {
   const c = wait ? null : cardOf(st.mpage);
   const go = !wait && st.cgo && cgoGo(false);  // a link to a dim and model that came in before the data: on to the first row (the route runs again)
   if (c) ensureInt(c);
-  const html = wait || go ? `<p class="empty">${waiting()}</p>` : c ? cardPage(c) : `<p class="empty">載入的資料夾裡沒有「<span lang="en">${esc(st.mpage)}</span>」。</p>`;
+  const html = wait || go ? `<p class="empty">${waiting()}</p>` : c ? cardPage(c) : unloadedPage(st.mpage) || `<p class="empty">載入的資料夾裡沒有「<span lang="en">${esc(st.mpage)}</span>」。</p>`;
   if (st.item) showSheet(); else hideSheet();  // an item of the card is open over it (goOverview set D)
   if (html === LASTP) return;
   LASTP = html; $("#mpg").innerHTML = html;
@@ -3829,8 +3893,10 @@ $("#main").addEventListener("click", e => {
 });
 // sort headers, the model picker, and the table's rows (a click anywhere on a row opens the method, like the 維度 rows)
 $("#main").addEventListener("click", e => {
-  const s = e.target.closest("[data-sort]"), mm = e.target.closest("[data-mmodel]"), tr = e.target.closest("tr.rkr[data-href]"), sb = e.target.closest("[data-sidesub]");
-  if (sb) { SIDESUB = !SIDESUB; try { store.set("s2v-sidesub", SIDESUB ? "1" : "0"); } catch (err) {} overview(); $("[data-sidesub]")?.focus(); }
+  const s = e.target.closest("[data-sort]"), mm = e.target.closest("[data-mmodel]"), tr = e.target.closest("tr.rkr[data-href]"), sb = e.target.closest("[data-sidesub]"), ls = e.target.closest("[data-loadsrc]");
+  if (ls) { SRC.user.set(ls.dataset.loadsrc, true); saveSrc(); load(); st.top === "rank" && !st.mpage ? overview() : route(); }
+  else if (e.target.closest("p.lazy [data-src]")) settings();
+  else if (sb) { SIDESUB = !SIDESUB; try { store.set("s2v-sidesub", SIDESUB ? "1" : "0"); } catch (err) {} overview(); $("[data-sidesub]")?.focus(); }
   else if (s) {
     const k = s.dataset.sort;
     const cur = msortOf(methodsReady() ? cards().filter(inScope) : []);
@@ -3907,7 +3973,7 @@ const modelCells = rows => MODELS.map(m => crCell(D.dim, rows, m, BASE, {pop: li
 // leaderboard's, as sorted now) once the cards are in, else the loading order
 function dimArms() {
   const rows = Object.values(D.rows), has = ARMS.filter(a => a !== BASE && MODELS.some(m => rows.some(r => seedsOf(r, m, a).size)));
-  const pos = methodsReady() ? armGroups().rows.map(c => c.arm) : [];
+  const pos = methodsReady() ? armGroups().rows.filter(c => !c.numbers).map(c => c.arm) : [];
   const rk = a => roleOf(a) === "calibration" ? 0 : 1, at = a => pos.includes(a) ? pos.indexOf(a) : Infinity;
   return [BASE, ...has.sort((x, y) => rk(x) - rk(y) || at(x) - at(y) || ARMS.indexOf(x) - ARMS.indexOf(y))];
 }
@@ -4482,7 +4548,7 @@ function settings(update, adopt) {
     const dims = Object.keys(s.dims), got = dims.filter(d => RAW[`${s.name}/${d}`]).length;
     const ng = dims.filter(isGuard).length;
     const nsd = Object.keys(s.sides || {}).length;
-    const status = !on(s) ? "已關閉" : got < dims.length && !s.err ? `載入中 ${got} / ${dims.length}` : `${dims.length - ng} 個維度${ng ? `、${ng} 個護欄` : ""}${nsd ? `、side ${nsd} 個 bench` : ""}`;
+    const status = !on(s) ? ((IDX?.meta?.numbers_only || []).includes(s.name) ? "只顯示卡片數字（打勾載入逐題回答）" : "沒有載入（封存；打勾載入）") : got < dims.length && !s.err ? `載入中 ${got} / ${dims.length}` : `${dims.length - ng} 個維度${ng ? `、${ng} 個護欄` : ""}${nsd ? `、side ${nsd} 個 bench` : ""}`;
     return `<label class="srcrow"><input type="checkbox" data-src="${esc(s.name)}"${on(s) ? " checked" : ""}><b class="mono" lang="en">${esc(s.name)}</b>
       <span class="sub">${n != null ? `${fmt(n)} 則回答 · ` : ""}${built ? `${esc(built)} 匯出 · ` : ""}${status}${miss ? ` · 缺 ${miss} 個判定檔（標為無判定）` : ""}</span>
       ${s.err ? `<span class="sub" style="color:var(--dishonest)">${esc(s.err)}</span>` : ""}</label>`;
@@ -4506,8 +4572,8 @@ function settings(update, adopt) {
   const d = $("#sheet-src");
   for (const [k, v] of Object.entries(typed)) if ($(`#gh-${k}`)) $(`#gh-${k}`).value = v;
   d.querySelectorAll("input[data-src]").forEach(b => b.onchange = () => {
-    if (b.checked) SRC.off.delete(b.dataset.src); else SRC.off.add(b.dataset.src);
-    store.set("s2v-off", JSON.stringify([...SRC.off]));
+    SRC.user.set(b.dataset.src, b.checked);
+    saveSrc();
     load();
   });
   $("#gh-save").onclick = () => {
