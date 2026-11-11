@@ -2945,7 +2945,7 @@ const rsSubOrMeas = x => subRs(x) ?? measRs(x);
 const subCard = card => SIDESUB && MODELS.some(m => subRs(card.per[m]) != null) && MODELS.every(m => rsSubOrMeas(card.per[m]) != null);
 const cardSShown = card => subCard(card) ? avg(MODELS.map(m => sShown(card.per[m]))) : cardS(card);
 const cardRsSub = card => subCard(card) ? avg(MODELS.map(m => rsSubOrMeas(card.per[m]))) : null;
-const subSeeds = () => { const nu = nullU(); return `unsteered seed ${(nu?.method?.seeds || []).join("、")} 對 seed ${(nu?.reference_seeds || []).join("、")}`; };
+const subSeeds = () => { const nu = nullU(); return `unsteered seed ${(nu?.method?.side_seeds || nu?.method?.seeds || []).join("、")} 對 seed ${(nu?.reference_seeds || []).join("、")}`; };  // r_side: the side run's seeds
 const subWhy = (x, sv) => `${x.m} ${SUB}：S ${sgn(sv, 3)}（Δ ${sgn(x.head.delta, 3)}、r_guard ${r3(guardEval(x).rg)}、r_side ${r3(subRs(x))} 代入）。r_side 取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測；這個方法依 SCORING.md 第 21 項不跑 side`;
 const subNote = tip => `<span class="raw sub" title="${esc(tip)}">${SUB}</span>`;
 // the toggle (chip) and its note for the rows shown: only when some method on the page qualifies, and the null file is there
@@ -3428,7 +3428,7 @@ function nullCell(nu, k) {  // one cell of the 基準 row, by the column's sort 
 const baseRow = () => {
   const nu = nullU(), ks = sorts().map(([k]) => k);
   return `<tr class="rkr cal base" data-href="${esc(mhref(BASEC))}"><th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(BASEC))}" lang="en">${BASE}</a><span class="ctag">基準</span>${
-    nu ? `<span class="rk-sub">未干預估計 · seed 3–4 對 0–2</span>` : ""}</th>${ks.slice(1).map(k => nu ? nullCell(nu, k) : "<td></td>").join("")}</tr>`;
+    nu ? `<span class="rk-sub">未干預估計 · seed ${(nu.method?.seeds || [3, 4]).join("–").replace(/^(\d)–.*–(\d)$/, "$1–$2")} 對 0–2${nu.method?.side_seeds && nu.method.side_seeds.join() !== (nu.method.seeds || []).join() ? `（side seed ${nu.method.side_seeds.join("–")}）` : ""}</span>` : ""}</th>${ks.slice(1).map(k => nu ? nullCell(nu, k) : "<td></td>").join("")}</tr>`;
 };
 function pendRow(a, cols = sorts().length) {
   return `<tr class="rkr pend cal"><th scope="row" class="rk-m"><b lang="en">${esc(a)}</b><span class="ctag">校準</span><span class="rk-sub">${esc(IDX.meta.arm_roles[a].pending || "結果還沒進 results/")}</span></th>${"<td></td>".repeat(cols - 1)}</tr>`;
@@ -3737,7 +3737,7 @@ function nullSec() {
   const benches = [...new Set(xs.flatMap(x => Object.keys(x?.side_benches || {})))];
   const heldout = grid(`r_side（保留）`, xs.map((x, i) => cell(x?.r_side_heldout ?? null, r3, () => `${MODELS[i]} r_side（保留）${r3(x.r_side_heldout)}`)).join(""));
   return `<details class="fold csec" data-cfold="null"${st.mshut.has("null") ? "" : " open"}><summary class="csum">未干預估計</summary>
-    <p class="small muted">兩個新的 unsteered seed（3、4）當作方法對 seed 0–2 算；顯示的是已發布的數字，頁面無法重算。</p>${colhead}
+    <p class="small muted">新的 unsteered seed（${(nu.method?.seeds || [3, 4]).join("、")}${nu.method?.side_seeds && nu.method.side_seeds.join() !== (nu.method.seeds || []).join() ? `；side 用 seed ${nu.method.side_seeds.join("、")}` : ""}）當作方法對 seed 0–2 算；顯示的是已發布的數字，頁面無法重算。</p>${colhead}
     ${dims.length ? `<h4 class="msec">各維度 g</h4>${dims.map(d => row(d, x => x.dims?.[d]?.g ?? null, v => sgn(v),
       (m, x) => `${nameOf(d)} · ${m}：g ${sgn(x.dims[d].g, 3)}（得分 ${cr2(x.dims[d].h)}，${BASE} ${cr2(x.dims[d].h_ref)}；${x.dims[d].n_rows} 列）`)).join("")}` : ""}
     ${guards.length ? `<h4 class="msec">護欄</h4>${guards.map(d => row(d, x => x.guards?.[d] ?? null, r3, (m, x) => `${label(d)} · ${m}：${r3(x.guards[d])}`)).join("")}` : ""}
