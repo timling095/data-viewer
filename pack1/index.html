@@ -2520,7 +2520,7 @@ function compGate(card) {
     if (rn != null && v != null && x.S_basis === basis && Math.abs(rn - sNoMin(c)) > CI_TOL) why.push(`${c.m} 的不設下限 S ${sgn(rn, 3)} 和頁面算的 ${sgn(sNoMin(c), 3)} 不同`);
   }
   if (fewRule() && DSIDE && sideReady() && doc.cross_model && "S_no_hint_min" in doc.cross_model) {
-    const f = doc.cross_model.S_no_hint_min, vs = all.map(c => c.notRun || !c.ok ? null : sNoMin(c)), v = vs.every(x => x != null) ? avg(vs) : null;
+    const f = doc.cross_model.S_no_hint_min, vs = all.map(c => c.notRun || !c.ok ? null : sNoMin(c)), v = vs.every(x => x != null) && cardBasis(card) ? avg(vs) : null;  // score.py: withheld when the models' side bases differ
     if ((f == null) !== (v == null) || (f != null && Math.abs(f - v) > CI_TOL)) why.push(`三模型的不設下限 S ${f == null ? "–" : sgn(f, 3)} 和頁面算的 ${v == null ? "–" : sgn(v, 3)} 不同`);
   }
   return {doc, ok: !why.length, why: why.join("；"), file: `g_${card.arm}.json`};
@@ -2938,9 +2938,13 @@ const nullRsOf = m => nullU()?.models?.[MKEY[m]]?.r_side ?? null;
 const subAvail = x => !x.notRun && exemptX(x) && sideEval(x).state === "none" && sOf(x) != null && nullRsOf(x.m) != null;
 const subRs = x => SIDESUB && subAvail(x) ? nullRsOf(x.m) : null;  // the r_side put in for this model, or null (not substituted)
 const sShown = x => { const r = subRs(x), v = sOf(x); return r != null && v != null ? v - LAMBDA * r : v; };
-const subCard = card => SIDESUB && MODELS.every(m => subRs(card.per[m]) != null);
+// a model with a measured side part counts as is beside substituted ones (user 2026-11-11: the 11/09 card has Qwen's measured side, Gemma and
+// Granite exempt); at least one model must be substituted, and every model must have S with side (measured or substituted)
+const measRs = x => sideEval(x).state === "complete" && sOf(x) != null ? sideEval(x).rs : null;
+const rsSubOrMeas = x => subRs(x) ?? measRs(x);
+const subCard = card => SIDESUB && MODELS.some(m => subRs(card.per[m]) != null) && MODELS.every(m => rsSubOrMeas(card.per[m]) != null);
 const cardSShown = card => subCard(card) ? avg(MODELS.map(m => sShown(card.per[m]))) : cardS(card);
-const cardRsSub = card => subCard(card) ? avg(MODELS.map(m => subRs(card.per[m]))) : null;
+const cardRsSub = card => subCard(card) ? avg(MODELS.map(m => rsSubOrMeas(card.per[m]))) : null;
 const subSeeds = () => { const nu = nullU(); return `unsteered seed ${(nu?.method?.seeds || []).join("、")} 對 seed ${(nu?.reference_seeds || []).join("、")}`; };
 const subWhy = (x, sv) => `${x.m} ${SUB}：S ${sgn(sv, 3)}（Δ ${sgn(x.head.delta, 3)}、r_guard ${r3(guardEval(x).rg)}、r_side ${r3(subRs(x))} 代入）。r_side 取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測；這個方法依 SCORING.md 第 21 項不跑 side`;
 const subNote = tip => `<span class="raw sub" title="${esc(tip)}">${SUB}</span>`;
@@ -3358,7 +3362,7 @@ const sNote = x => sideKind(x) === "with" ? "" : subRs(x) != null ? subNote(subW
 function sCellR(c) {  // S: the three-model mean, only when every model has every part complete (and the models share one basis)
   if (!IDX.guards.length) return "";
   const sub = subCard(c), v = sub ? cardSShown(c) : cardS(c), ms = MODELS.map(m => c.per[m]), k = cardBasis(c);
-  const tip = sub ? `三模型 S ${sgn(v, 3)}（${SUB}，不是量測值；r_side 取自 results/baseline/null_unsteered.json，${subSeeds()}）。` + ms.map(x => `${x.m} ${sgn(sShown(x), 3)}（r_side ${r3(subRs(x))}）`).join("；")
+  const tip = sub ? `三模型 S ${sgn(v, 3)}（${SUB}，不是量測值；r_side 取自 results/baseline/null_unsteered.json，${subSeeds()}）。` + ms.map(x => `${x.m} ${sgn(sShown(x), 3)}（r_side ${subRs(x) != null ? `${r3(subRs(x))} 代入` : `${r3(measRs(x))} 量測`}）`).join("；")
     : v != null ? `三模型 S ${sgn(v, 3)}${k === "with" ? "" : `（${NO_SIDE}）`}。` + ms.map(x => `${x.m} ${sgn(sOf(x), 3)}${ciText(x, "S")}`).join("；")
     : "S 不算：" + ms.map(x => [x.m, sWhy(x)]).filter(([, w]) => w).map(([m, w]) => `${m} ${w}`).join("；");
   return `<td class="rk-n" title="${esc(tip)}">${v != null ? rateBig(v, sub) + (sub ? subNote(tip) : sNote(c.per[MODELS[0]])) : `<span class="muted">–</span>`}</td>`;
@@ -3373,7 +3377,7 @@ function rsText(m, sd, c) {
 function rsCellR(c) {
   if (!DSIDE) return "";
   const sds = MODELS.map(m => sideEval(c.per[m])), v = cardRs(c), N = DSIDE.benches.length, vs = sds.map(d => d.rs);
-  if (subCard(c)) { const rv = cardRsSub(c); return `<td class="rk-n" title="${esc(`三模型 r_side ${r3(rv)}（${SUB}：${triWho(MODELS.map(m => subRs(c.per[m])))}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(rv)}</span><span class="raw sub">${SUB}</span></td>`; }
+  if (subCard(c)) { const rv = cardRsSub(c); return `<td class="rk-n" title="${esc(`三模型 r_side ${r3(rv)}（${SUB}：${triWho(MODELS.map(m => subRs(c.per[m])))}；量測：${triWho(MODELS.map(m => subRs(c.per[m]) == null ? measRs(c.per[m]) : null))}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(rv)}</span><span class="raw sub">${SUB}</span></td>`; }
   if (sds.every(d => d.state === "none")) return `<td class="rk-n" title="${esc(`side ${NOT_RUN}；S ${NO_SIDE}，r_side 不是 0`)}"><span class="muted">${NOT_RUN}</span></td>`;
   if (v == null) return `<td class="rk-n" title="${esc(`${xWhy(c, "r_side", vs)}。` + MODELS.map((m, i) => rsText(m, sds[i])).join("；"))}"><span class="muted">–</span></td>`;
   const part = sds.some(d => d.state !== "complete");
