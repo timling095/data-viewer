@@ -2852,6 +2852,8 @@ function sideCompute(c) {
     tcells[b] = sidePair(tm, tr, ids);
     if (hid.length) theld[b] = sidePair(tm, tr, hid);
   }
+  // score.py: a model with no method side line at all has not run the side part (user 2026-11-11), not run, never partial
+  if (!DSIDE.benches.some(b => SIDE[sideKey(ms, b)]?.has(`${c.m}|${c.arm}`))) return {state: "none"};
   const present = DSIDE.benches.filter(b => cells[b]?.n), hpresent = DSIDE.benches.filter(b => held[b]?.n);
   // score.py: r_side_tolerant is NaN (null) unless tolerant holds, something is present and every present bench has a tolerant pair; the
   // held-out one is the mean over the strict held-out benches, NaN when one of them has no tolerant pair
