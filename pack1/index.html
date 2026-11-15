@@ -161,6 +161,8 @@ details.refs > summary { list-style: none; display: flex; align-items: center; g
 .acts { display: flex; gap: 8px; align-items: center; }
 #more { display: none; }
 .prog { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pbar { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; pointer-events: none; }
+.pbar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
 
 /* primary tabs (Material, in Paper): the overview level's two views, full width under the app bar, the first label on the
    brand's edge; the selected tab's label in the accent with a 3px indicator under it; ← → move the focus, Enter opens */
@@ -259,6 +261,13 @@ details.refs > summary { list-style: none; display: flex; align-items: center; g
 .mxh { font-size: 12px; color: var(--muted); padding-top: 5px; padding-bottom: 4px; border-bottom: 1px solid var(--line); background: var(--sunk); }
 .mxr { padding-top: 6px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
 .mxr:last-child { border-bottom: 0; }
+.mxr.nl:hover { background: none; }
+.otab { display: grid; gap: 4px; margin: 8px 0 12px; }
+.ogrid { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(var(--nm, 3), minmax(0, 1fr)); gap: 0 12px; align-items: baseline; font-variant-numeric: tabular-nums; }
+.ogm { font-size: 12px; color: var(--muted); }
+.olab { min-width: 0; overflow-wrap: anywhere; }
+.olab .sub { display: block; font-size: 12px; color: var(--muted); }
+.osep { font-size: 12px; color: var(--muted); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
 /* list rows: one treatment for every selectable row (the overview's formats, 維度總覽 and the templates, the kit
    templates, the 參照列 rows, a template's items): a link, opened by a click or Enter (j / k move the focus along
    the list); hover and keyboard focus lay the --sunk tint (the focus ring inside the row, never clipped by its pane);
@@ -454,7 +463,9 @@ a.cl:focus-visible, a.mcell:focus-visible { outline-offset: -2px; }
 .rk-n .raw.sub { color: var(--accent); }
 .rk-n .beside { display: block; margin-top: 2px; }
 .rk-n .raw.org { font-style: italic; }
-.lnum.sub { text-decoration: underline dotted; text-underline-offset: 3px; }
+.lnum.sub { outline: 1.5px dashed currentColor; outline-offset: 1px; border-radius: 4px; padding: 0 4px; }
+.subbox { display: inline-block; width: 1.6em; height: 1em; border: 1.5px dashed currentColor; border-radius: 3px; vertical-align: -0.15em; margin-right: 2px; }
+sup.est { font-size: 10.5px; color: var(--muted); margin-left: 2px; font-style: italic; cursor: help; }
 .subline { margin: 6px 0 10px; }
 /* a ranking row of a folder that is not loaded: the card's numbers, quieter than the page's own */
 tr.numrow .rate { opacity: .85; }
@@ -476,6 +487,16 @@ p.lazy .chk { display: inline-flex; gap: 6px; align-items: center; cursor: point
 .ptag { font-size: 11px; border: 1px dashed var(--faint); color: var(--muted); border-radius: 4px; padding: 0 5px; line-height: 16px; white-space: nowrap; }
 .mfold { margin-top: 8px; }
 .mdim { padding: 1px 0; }
+/* the method card's 各維度 rows: one fixed height, a hairline between rows, the 不計 mark inline beside the number */
+.mdr { height: 32px; padding: 0; border-bottom: 1px solid var(--line); }
+.mdr .mcell { flex-wrap: nowrap; }
+.mdr .dnum { flex-direction: row; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.mdr .num { gap: 2px; } .mdr .num .cv { flex-direction: row; align-items: baseline; gap: 6px; flex-wrap: nowrap; }
+.mdr .chip { font-size: 11px; line-height: 16px; padding: 0 5px; }
+.mdr .raw { white-space: nowrap; }
+.mdr:not(.m1) .raw { display: none; }
+.mgrid.m1.mo { grid-template-columns: minmax(0, 1fr) minmax(104px, 160px) minmax(150px, 240px) 56px; }
+.mo .mcell .raw.nm { font-size: 11.5px; }
 .mlist { margin: 2px 0 8px; padding-left: 20px; font-size: 12.5px; }
 .mc-warn { font-size: 12.5px; color: var(--muted); background: var(--sunk); border-radius: 6px; padding: 6px 10px; margin: 10px 0 0; }
 
@@ -815,7 +836,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   .mxn { grid-column: 1 / -1; }
   .mcard { padding: 10px 12px; }
   .mgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
-  .mgrid.m1 { grid-template-columns: minmax(0, 1fr); }
+  .mgrid.m1, .mgrid.m1.mo { grid-template-columns: minmax(0, 1fr); }
   .mhead > :first-child { display: none; }
   .mlab { grid-column: 1 / -1; }
   .mrow { padding: 4px 0; }
@@ -846,6 +867,7 @@ main { overflow-x: clip; }  /* the slide never widens the page */
   <div class="ttl" id="ttl"></div>
   <div class="spacer"></div>
   <span class="prog" id="prog" aria-live="polite"></span>
+  <div class="pbar" id="pbar" role="progressbar" aria-label="載入進度" aria-valuemin="0" aria-valuemax="100" hidden><i></i></div>
   <button type="button" class="ibtn" id="more" aria-label="更多" title="更多" aria-haspopup="menu" aria-expanded="false" aria-controls="acts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></button>
   <div class="acts" id="acts" aria-label="更多">
     <button type="button" class="btn outlined" id="flagbtn">待複查</button>
@@ -973,7 +995,7 @@ const fmt = n => n.toLocaleString("en-US");
 const shorten = (s, n) => s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s;
 // a guard score.py marks * (meta.guard_asterisks: its local figure does not reproduce the leaderboard's) carries the * wherever it is named
 let GAST = {}, FAST = {};  // FAST: the families score.py marks * (meta.family_asterisks, v2.6: a family with no local guard)
-const nameOf = dim => dim.replaceAll("_", " ") + (GAST[dim] ? "*" : "");
+const nameOf = dim => dim.replace(/^org_/, "").replaceAll("_", " ") + (GAST[dim] ? "*" : "");
 
 // rows, items, groups, judges: read from DATA_FILE at startup (loadData, below); answers: read from results/ below
 let DATA = null, IDX = null, D = null, ARMS = [];
@@ -992,7 +1014,7 @@ const st = { top: "rank", mpage: null, msort: null, mmodel: "all", dim: null, gk
   open: new Set(), mopen: new Set(), gopen: new Set(), afold: false,
   am: null, cgo: null, mshut: new Set(), im: MODELS[0], cdim: null, citem: null };
 function initData(x) {
-  DATA = x; IDX = {meta: x.meta || {}, dims: x.dims || [], guards: x.guards || []}; SCORING = IDX.meta.scoring_version || "v2.4"; GAST = IDX.meta.guard_asterisks || {}; FAST = IDX.meta.family_asterisks || {};
+  DATA = x; IDX = {meta: x.meta || {}, dims: x.dims || [], guards: x.guards || [], org: x.organism || []}; SCORING = IDX.meta.scoring_version || "v2.4"; GAST = IDX.meta.guard_asterisks || {}; FAST = IDX.meta.family_asterisks || {};
   GIDS = new Set(IDX.guards.map(g => g.dim)); GMAN = x.guard_manifest || {}; GSCREEN = new Set(IDX.meta.guard_screen_runs || []);
   GPEND = x.guard_pending || {}; GRET = new Set(x.guard_retracted || []);  // guard pack v2: rows waiting for a baseline run; retracted ids
   DSIDE = x.side?.benches?.length ? {benches: x.side.benches, testSet: Object.fromEntries(Object.entries(x.side.test || {}).map(([b, v]) => [b, new Set(v)])),
@@ -1220,7 +1242,11 @@ async function loadLite(name, has) {
     const j = JSON.parse(await fetchText(`results/${name}/lite/lite.json`));
     if (!j || typeof j.omitted !== "object" || !j.omitted) return null;
     const omitted = new Map(Object.entries(j.omitted).map(([f, a]) => [f, new Set(Array.isArray(a) ? a : [])]));
-    return {omitted, arms: new Set([...omitted].filter(([f]) => !f.startsWith("side_")).flatMap(([, a]) => [...a]))};
+    // text: "full" (or {arm: "full"}): those arms' text is in the full file beside lite/, fetched in the background once the numbers are in
+    // (the user 2026-11-14: numbers and the dimension view first, the generations in the background, submissions first)
+    const tf = a => j.text === "full" || (j.text && typeof j.text === "object" && j.text[a] === "full");
+    const arms = new Set([...omitted].filter(([f]) => !f.startsWith("side_")).flatMap(([, a]) => [...a]));
+    return {omitted, arms: new Set([...arms].filter(a => !tf(a))), bg: new Set([...arms].filter(tf))};
   } catch (e) { return null; }
 }
 const srcPath = (s, f) => s.lite?.omitted.get(f)?.size ? `results/${s.name}/lite/${f}` : `results/${s.name}/${f}`;
@@ -1318,6 +1344,89 @@ function parseAnswers(text, gd) {
 const REJ_NOTE = /^reference replaced \d{4}-\d{2}-\d{2}; the stored verdict predates it/;
 const rejRows = () => new Set(SRC.list.filter(on).flatMap(s => s.meta?.rejudge_pending?.rows || []));
 const REJ_TIP = "參考答案在 2026-10-19 稽核時換過，等重新評審；沒有分數，不算 0";
+// the load order (the user 2026-11-14: submissions first): the reference folder, then the data file's viewer_default in its order (the
+// submissions lead it), then the rest; a folder whose answers someone is waiting for (an answer sheet open on it) jumps the text queue
+const BUMP = new Set();
+const srcRank = n => BUMP.has(n) ? -1 : n === SRC_BASE ? 0 : (i => i < 0 ? 999 : i + 1)((IDX?.meta?.viewer_default || []).indexOf(n));
+// the background text: "<source>/<dim>" -> job, for files read from lite/ whose arms have text: full; TEXTN counts the ones read this load
+const TEXTQ = new Map();
+let TEXTN = 0, TEXTRUN = false;
+const textPending = (src, a) => [...TEXTQ.values()].some(j => j.s.name === src && (!a || j.s.lite?.bg?.has(a)));
+async function textLoad(gen) {
+  if (TEXTRUN) return;
+  TEXTRUN = true;
+  try {
+    await Promise.all(Array.from({length: 2}, async () => {
+      while (TEXTQ.size && gen === SRC.gen) {
+        const j = [...TEXTQ.values()].sort((a, b) => srcRank(a.s.name) - srcRank(b.s.name))[0];
+        TEXTQ.delete(j.key);
+        try { const xs = parseAnswers(await fetchText(`results/${j.s.name}/${j.f}`), isGuard(j.dim)); if (gen !== SRC.gen) return;
+          for (const x of xs) { x.src = j.s.name; if (x.p2) x.p2.src = j.s.name; } RAW[j.key] = xs; ARMS_OF[j.key] = new Set(xs.map(x => x.a)); assemble(j.dim); }
+        catch (e) { console.error(e); }  // the verdicts stay; only the text is missing
+        TEXTN++;
+        refresh(j.dim);
+      }
+    }));
+  } finally { TEXTRUN = false; if (gen === SRC.gen) refresh(); }
+}
+// ---------- the organism eval (organizers C133, provisional; the user 2026-11-14: "worth a place in the dimensions view") ----------
+// Each folder's org_factual_holdout file, read on its own (a measurement folder's guard files never: their lines are arm `unsteered` on the
+// real model keys). ORGL: source -> lines {rid, m, a, seed, cr, gated, ref}. g_org as organism_eval's export check and score.py's g_pair_h:
+// gated rows; per row the seeds where both arms have a credit, the row value the mean over those seeds; h, h_ref the means over the rows
+// with a value on both; g = (h − h_ref)/(1 − h_ref) clipped to [−1, 1], null when h_ref ≥ 1
+const ORGL = {}, ORGF = new Set(), ORGREF = new Set();
+let ORGNUM = false;  // the switched-on folders' and their references' organism lines are in (or failed): the leaderboard can be drawn  // ORGREF: the reference folders named by the method lines
+let ORGRUN = false;
+const orgDim = () => IDX.org?.[0]?.dim || null;
+async function orgLoad(num = false) {  // num: only the lines the numbers need (the reference answers' text is left for orgLoad())
+  const d = orgDim(); if (!d) { ORGNUM = true; return; } if (ORGRUN) return;
+  ORGRUN = true;
+  if (SRC.list.some(s => on(s) && s.dims[d] && !ORGL[s.name])) ORGNUM = false;  // a folder switched on later: the leaderboard waits again
+  try {
+    // the switched-on folders' lines first, then the reference folders they name (the org-* folders are never switched on)
+    const read = async s => {
+      try { const t = await fetchText(srcPath(s, s.dims[d]));
+        ORGL[s.name] = t.split("\n").filter(l => l.trim()).map(l => JSON.parse(l)).map(x => ({rid: x.row_id, m: x.model, a: x.arm, seed: x.seed, cr: x.credit ?? null, gated: !!x.gated, ref: x.reference || null, org: x.organism || ""}));
+        for (const x of ORGL[s.name]) if (x.ref) ORGREF.add(x.ref.split(":")[0]); }
+      catch (e) { ORGF.add(s.name); }
+    };
+    await pool(SRC.list.filter(s => on(s) && s.dims[d] && !ORGL[s.name]), 4, read);
+    await pool(SRC.list.filter(s => ORGREF.has(s.name) && s.dims[d] && !ORGL[s.name]), 2, read);
+    ORGNUM = true; refresh();
+    if (num) return;
+    // the reference folders' answers (with their text) for the organism's dim page; never switched on, so never in another dim
+    await pool(SRC.list.filter(s => ORGREF.has(s.name) && !on(s) && s.dims[d] && !RAW[`${s.name}/${d}`]), 2, async s => {
+      try { const xs = parseAnswers(await fetchText(`results/${s.name}/${s.dims[d]}`), false); for (const x of xs) x.src = s.name; RAW[`${s.name}/${d}`] = xs; }
+      catch (e) { FAILED[`${s.name}/${d}`] = true; }
+    });
+    assemble(d);
+  } finally { ORGRUN = false; refresh(); }
+}
+const orgRows = (src, a, m) => { const by = new Map(); for (const x of ORGL[src] || []) if (x.a === a && MKEY[m] === x.m && x.gated && x.cr != null) { if (!by.has(x.rid)) by.set(x.rid, new Map()); const k = by.get(x.rid); (k.get(x.seed) || k.set(x.seed, []).get(x.seed)).push(x.cr); } return by; };
+function orgG(src, a, m) {  // {g, h, href, n, ref} or null (no lines, or no reference lines loaded)
+  const mine = (ORGL[src] || []).find(x => x.a === a && MKEY[m] === x.m); if (!mine?.ref) return null;
+  const [rs, ra] = mine.ref.split(":"); if (!ORGL[rs]) return {ref: mine.ref, org: mine.org, missing: 1};
+  const A = orgRows(src, a, m), B = orgRows(rs, ra, m), mean = v => v.reduce((p, q) => p + q, 0) / v.length;
+  const pv = [];
+  for (const [rid, sa] of A) { const sb = B.get(rid); if (!sb) continue; const both = [...sa.keys()].filter(k => sb.has(k)); if (!both.length) continue;
+    pv.push([mean(both.map(k => mean(sa.get(k)))), mean(both.map(k => mean(sb.get(k))))]); }
+  if (!pv.length) return {ref: mine.ref, org: mine.org, n: 0, g: null};
+  const h = mean(pv.map(p => p[0])), hr = mean(pv.map(p => p[1]));
+  return {ref: mine.ref, org: mine.org, n: pv.length, h, href: hr, g: hr >= 1 ? null : Math.max(-1, Math.min(1, (h - hr) / (1 - hr)))};
+}
+// the card's g_org beside the page's: ok within 5e-4 (like the other card checks); without the reference lines (the team export leaves the
+// org-* folders out) the card's number, marked as such
+// the organism reference's h per model (the stand-in's unsteered on the gated rows: mean over rows of the seed-mean credit), for the 維度 tab
+const orgRef = m => { const src = Object.keys(ORGL).find(n => (ORGL[n] || []).some(x => x.a === "unsteered" && x.m === MKEY[m] && x.gated)); if (!src) return null;
+  const by = orgRows(src, "unsteered", m), mean = v => v.reduce((p, q) => p + q, 0) / v.length; if (!by.size) return null;
+  return {src, org: (ORGL[src].find(x => x.m === MKEY[m]) || {}).org, h: mean([...by.values()].map(k => mean([...k.values()].map(mean)))), n: by.size}; };
+// no organism dim page yet (its answers would need their own loader, apart from the baseline): the row is not a link
+function orgRow(d) {
+  return `<div class="mxr nl" title="${esc(d.label || IDX.meta.organism_label || "")}"><span class="mxn"><b lang="en">factual holdout</b><span class="cnt">${d.pitems} 題 · g_org</span></span>${
+    MODELS.map(m => { const r = orgRef(m); return `<span data-m="${m}"><span class="sr">${m}</span>${r ? `<span class="num" title="${esc(`${m}：stand-in ${r.org}（${r.src}，unsteered）在 ${r.n} 個 gated 列的 h ${r3(r.h)}；方法的 g_org = (h − h_ref)/(1 − h_ref)`)}"><span class="rate ${bandOf(r.h)}">${cr2(r.h)}</span></span>` : `<span class="muted" title="${esc(ORGL && Object.keys(ORGL).length ? "沒有參照行（團隊匯出不含 results/org-*）" : "載入中")}">–</span>`}</span>`; }).join("")}</div>`;
+}
+const orgCheck = (c, m) => { const o = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133; if (!o || o.g_org == null || o.estimated) return null;
+  const p = c.numbers ? null : orgG(c.S.name, c.arm, m); return {card: o.g_org, page: p?.g ?? null, ok: p?.g == null ? null : Math.abs(p.g - o.g_org) <= 5e-4, p}; };
 async function pool(jobs, k, fn) {  // a job that throws ends that job, never the worker (and so never the jobs behind it)
   let i = 0;
   await Promise.all(Array.from({length: Math.min(k, jobs.length)}, async () => { while (i < jobs.length) { try { await fn(jobs[i++]); } catch (e) { console.error(e); } } }));
@@ -1388,6 +1497,7 @@ async function load() {
     // baseline/null_unsteered.json (results/README.md "Null of an unsteered submission"): a published diagnostic, read on its own; nothing waits on it
     SRC.list.filter(s => s.hasNU && s.name === "baseline").forEach(async s => {
       try { s.nu = JSON.parse(await fetchText(`results/${s.name}/null_unsteered.json`)); } catch (e) {}
+      s.nuDone = true;  // the leaderboard waits on it: the 代入 side S comes from it
       refresh();
     });
     SRC.list.filter(s => s.comps.length).forEach(async s => {
@@ -1400,13 +1510,18 @@ async function load() {
   const first = parseHash().dim;  // the dim on screen first
   const jobs = SRC.list.filter(on).flatMap(s => Object.entries(s.dims).map(([dim, f]) => ({s, dim, f, key: `${s.name}/${dim}`})))
     .filter(j => !RAW[j.key] && !FAILED[j.key] && !LOADING.has(j.key))
-    .sort((a, b) => (a.dim !== first) - (b.dim !== first));
+    .sort((a, b) => srcRank(a.s.name) - srcRank(b.s.name) || (a.dim !== first) - (b.dim !== first));
   for (const j of jobs) LOADING.add(j.key);
   for (const d of Object.keys(DATA.data)) assemble(d);
   refresh();
+  const orgNums = orgLoad(true);  // the organism lines with the verdicts: the leaderboard needs both
   await pool(jobs, 4, async j => {
     try {
-      try { const xs = parseAnswers(await fetchText(srcPath(j.s, j.f)), isGuard(j.dim)); if (gen !== SRC.gen) return; for (const x of xs) { x.src = j.s.name; if (x.p2) x.p2.src = j.s.name; } RAW[j.key] = xs; ARMS_OF[j.key] = new Set(xs.map(x => x.a)); }
+      // the paired guard's dim (meta.feedback_pairs.dim) is scored from the answers' "Rating: N/10" text, which lite/ drops: its full file
+      // is read here, with the numbers, so the leaderboard never shows the pair form computed without its ratings
+      const needText = j.dim === IDX.meta.feedback_pairs?.dim;
+      try { const xs = parseAnswers(await fetchText(needText ? `results/${j.s.name}/${j.f}` : srcPath(j.s, j.f)), isGuard(j.dim)); if (gen !== SRC.gen) return; for (const x of xs) { x.src = j.s.name; if (x.p2) x.p2.src = j.s.name; } RAW[j.key] = xs; ARMS_OF[j.key] = new Set(xs.map(x => x.a));
+        if (!needText && [...(j.s.lite?.omitted.get(j.f) || [])].some(a => j.s.lite.bg?.has(a))) TEXTQ.set(j.key, j); }
       catch (e) { if (gen !== SRC.gen) return; FAILED[j.key] = e.message; j.s.err = e.message; }
       LOADING.delete(j.key);
       assemble(j.dim);
@@ -1415,6 +1530,11 @@ async function load() {
   if (gen !== SRC.gen) return;
   ensureSide();  // the side files follow the answers, whatever page is shown: the leaderboard waits on them
   refresh();  // everything in: what depends on all the dims (the 預覽 arms) is drawn again
+  await orgNums;
+  if (gen !== SRC.gen) return;
+  refresh();
+  textLoad(gen);  // then the answer text, in the background
+  orgLoad();  // and the organism reference answers' text (its dim page only)
 }
 // A guard session regrade (guard_meta.json `regrade`: {file: "regrade_guard_<guard>.jsonl.gz", ...}): lines in the guard lines' shape, read like
 // them (the `score` field; `regrade` is provenance and never read). by: "model|arm" -> row id -> lines; cov: the "guard|model" cells it covers
@@ -1519,7 +1639,7 @@ function assemble(dim) {
   AGEN++;
   for (const r of Object.values(d.rows)) { r.ans = []; r.sx = null; r.sp = null; r.rjp = rej.has(r.id); }
   for (const s of SRC.list) {
-    if (!on(s)) continue;
+    if (!on(s) && !(ORGREF.has(s.name) && orgDim() === dim)) continue;  // the organism's reference (a stand-in's unsteered) shows on its own dim only
     for (const x of RAW[`${s.name}/${dim}`] || []) {
       const r = d.rows[x.rid];
       // a line on a row an audit retracted (a 護欄's, a dim's): dropped, not stale; the others are counted per source
@@ -1579,13 +1699,20 @@ function loadStat() {
     if (s.hasMeta) add(!!s.metaDone);
     if (s.hasGM) add(!!s.gmDone);
     if (s.comps.length) add(!!s.compDone);
+    if (s.hasNU && s.name === "baseline") add(!!s.nuDone);
   }
+  if (orgDim()) add(ORGNUM);  // the organism lines (g_org, the headline S) count among the numbers
   return [n, N];
 }
 const loading = () => { const [n, N] = loadStat(); return n < N; };
+const rankReady = () => !loading() && (!orgDim() || ORGNUM);
 function renderProgress() {
-  const [pn, pN] = loadStat();
-  $("#prog").textContent = SRC.listed && pn < pN ? `載入中 ${pn} / ${pN}` : (!SRC.listed && !SRC.error ? "載入中…" : "");
+  const [pn, pN] = loadStat(), tN = TEXTN + TEXTQ.size, ph1 = SRC.listed && pn < pN, ph2 = !ph1 && SRC.listed && TEXTQ.size > 0;
+  $("#prog").textContent = ph1 ? `載入數字 ${pn} / ${pN}` : ph2 ? `背景載入回答 ${TEXTN} / ${tN}` : (!SRC.listed && !SRC.error ? "載入中…" : "");
+  // the bar under the app bar: the numbers (verdicts, cards, side) first, then the answer text; gone when everything is in
+  const frac = !SRC.listed ? 0 : ph1 ? pn / Math.max(pN, 1) * (tN || TEXTQ.size ? .5 : 1) : ph2 ? .5 + .5 * TEXTN / Math.max(tN, 1) : 1;
+  const bar = $("#pbar"); bar.hidden = !(ph1 || ph2 || (!SRC.listed && !SRC.error)); bar.firstElementChild.style.width = `${Math.round(frac * 1000) / 10}%`;
+  bar.title = $("#prog").textContent; bar.setAttribute("aria-valuenow", String(Math.round(frac * 100)));
   // stale lines (rows the data file does not have): from a source exported on other rows (its sets_sha256 is not the data file's) the
   // export is the older one; otherwise the data file is
   const bySrc = {};
@@ -1635,8 +1762,8 @@ function parseHash1(h) {
   if (c > 0 && isGuard(h.slice(0, c))) return {dim: h.slice(0, c), iid: h.slice(c + 1)};
   const t = h.indexOf("~");
   if (t >= 0) return {dim: h.slice(0, t), slug: h.slice(t + 1)};
-  if (IDX.dims.some(d => d.dim === h) || isGuard(h)) return {dim: h};
-  const pre = h.split("-")[0], d = IDX.dims.find(d => d.prefixes.includes(pre));
+  if (IDX.dims.some(d => d.dim === h) || isGuard(h) || IDX.org?.some(d => d.dim === h)) return {dim: h};
+  const pre = h.split("-")[0], d = [...IDX.dims, ...(IDX.org || [])].find(d => d.prefixes?.includes(pre));
   return d ? {dim: d.dim, iid: h} : {};
 }
 let LV = null, CUR = null;
@@ -1931,7 +2058,8 @@ function renderBar() {
     // the switcher lists both groups, as the overview does
     const opt = d => `<option value="${esc(d.dim)}"${d.dim === st.dim ? " selected" : ""} lang="${langOf(d.dim)}">${esc(label(d.dim))}</option>`;
     ttl = `<select id="dimsel" class="sel" aria-label="切換維度" title="切換維度" lang="${langOf(st.dim)}"><optgroup label="不誠實維度" lang="zh-Hant">${IDX.dims.map(opt).join("")}</optgroup>${
-      IDX.guards.length ? FAMS().filter(f => f.guards.length).map(f => `<optgroup label="${esc(`護欄 · ${famName(f)}`)}" lang="zh-Hant">${f.guards.map(g => opt(IDX.guards.find(x => x.dim === g))).join("")}</optgroup>`).join("") : ""}</select>`;
+      IDX.guards.length ? FAMS().filter(f => f.guards.length).map(f => `<optgroup label="${esc(`護欄 · ${famName(f)}`)}" lang="zh-Hant">${f.guards.map(g => opt(IDX.guards.find(x => x.dim === g))).join("")}</optgroup>`).join("") : ""}${
+      IDX.org?.length ? `<optgroup label="Organism (C133)" lang="en">${IDX.org.map(opt).join("")}</optgroup>` : ""}</select>`;
     up = [DIMS, "總覽"];
   }
   const t = $("#ttl");
@@ -2046,6 +2174,7 @@ function overview() {
     body.innerHTML = top !== "fmt" ? `<div class="mcards" id="mcards"></div>`
       : `<p class="lede" id="ovlede"></p><div class="matrix"><div class="mxh"><span class="mxg">不誠實維度 · ${IDX.dims.length}<span class="mxu">得分</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mx" aria-label="不誠實維度"></nav></div>${
         IDX.guards.length ? `<div class="matrix gd"><div class="mxh"><span class="mxg">護欄維度 · ${FAMS().length}<span class="mxu">${IDX.guards.length} 個護欄 · 分數</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mxg" aria-label="護欄維度"></nav></div>` : ""}${
+        IDX.org?.length ? `<div class="matrix gd org"><div class="mxh"><span class="mxg" lang="en">Organism (C133) · ${IDX.org.length}<span class="mxu">stand-in 參照的得分（provisional）</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mxo" aria-label="Organism"></nav></div>` : ""}${
         DSIDE ? `<div class="matrix sdm"><div class="mxh"><span class="mxg">side · ${SCATS().filter(k => !catApart(k)).length + catsUnmeasured().length}<span class="mxu">${DSIDE.benches.length} 個 bench · 正確率</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><div id="mxs"></div></div>` : ""}`;
   }
   if (top !== "fmt") {
@@ -2059,6 +2188,7 @@ function overview() {
     $("#mx").innerHTML = IDX.dims.map(mxrow).join("");
     if ($("#mxg")) { const gd = Object.fromEntries(IDX.guards.map(g => [g.dim, g]));
       if ($("#mxs")) $("#mxs").innerHTML = mxSide();
+      if ($("#mxo")) $("#mxo").innerHTML = IDX.org.map(orgRow).join("");
       $("#mxg").innerHTML = FAMS().map(f => `<div class="mxf" title="${esc(famTip(f))}"><b lang="${famLang(f)}">${esc(famName(f))}</b>${f.guards.length ? "" : `<span>${guardRule() ? "沒有本地護欄，未量測" : "沒有本地護欄，r_guard 以 0 計入"}</span>`}</div>${f.guards.map(g => mxrow(gd[g])).join("")}`).join(""); }
   }
   $("#ovfoot").innerHTML = `${fmt(M.rows)} 列題目（另有 kit ${fmt(M.kit_rows)} 列${M.guard_rows ? `、護欄 ${fmt(M.guard_rows)} 列` : ""}）、${answers}${srcs.length ? ` · 結果：<span lang="en">${esc(srcs.join(", "))}</span>` : ""} · 題目 pack <span class="mono">${esc(M.commit)}</span>，${esc(M.built)} 建立`;
@@ -2407,7 +2537,7 @@ function qualify(S, arm, m) {
     // score.py --partial-dims old-rows: an arm whose only gap is rows folded in after its run is scored on the rows it has (S noted)
     if (!ok && rStat === "complete") { const pd = dimsPartial(S, arm, m); if (pd) { ok = true; c.partial = pd; c.seeds = inter(qm.seeds?.[arm], rSeeds); } }
     if (ok !== dOk || (ok && !sameSet(c.seeds, dShared)))
-      c.warn.push(`匯出紀錄（meta.json）記為${ok ? "完整" : "不完整"}（共同的完整 seed：${c.seeds.join("、") || "無"}），頁面讀到的回答核對為${dOk ? "完整" : "不完整"}（${dShared.join("、") || "無"}）。數字依匯出紀錄。`);
+      c.warn.push(`匯出紀錄（meta.json）記為${ok ? "完整" : "不完整"}（共同的完整 seed：${c.seeds.join("、") || "無"}），頁面讀到的回答核對為${dOk ? "完整" : "不完整"}${dShared.length ? `（${dShared.join("、")}）` : (x => x ? `（每個 seed 都缺列，例：${x.arm !== arm ? `${x.arm} ` : ""}${nameOf(x.dim)} seed ${x.seed} 缺 ${x.count} 列）` : "（沒有共同的完整 seed）")([...dM.miss, ...dR.miss][0])}。數字依匯出紀錄。`);
   } else {
     c.seeds = dShared; ok = dOk;
     c.miss = [...dM.miss, ...(dR.complete.length >= MIN_SEEDS ? [] : dR.miss)];
@@ -2474,7 +2604,7 @@ function missText(c) {  // the preview's summary: formats missing per seed, comp
   return [...out, ...c.reasons].join("、") || "不完整";
 }
 function cards(rd = HEAD_RD()) {
-  const key = [rd, SRC.gen, Object.keys(RAW).length, Object.keys(FAILED).length, SRC.list.filter(s => s.metaDone).length, SRC.list.filter(s => s.compDone).length, SRC.list.filter(s => s.gmDone).length, SGEN, [...SRC.user].join(), ARCH].join("|");
+  const key = [rd, SRC.gen, Object.keys(RAW).length, Object.keys(FAILED).length, SRC.list.filter(s => s.metaDone).length, SRC.list.filter(s => s.compDone).length, SRC.list.filter(s => s.gmDone).length, SGEN, [...SRC.user].join(), ARCH, TEXTN].join("|");
   if (MC?.[rd]?.key === key) return MC[rd].cards;
   const out = [];
   for (const S of SRC.list.filter(on)) {
@@ -3060,7 +3190,7 @@ const cardSShown = card => subCard(card) ? avg(MODELS.map(m => sShown(card.per[m
 const cardRsSub = card => subCard(card) ? avg(MODELS.map(m => rsSubOrMeas(card.per[m]))) : null;
 const subSeeds = () => { const nu = nullS(); return `unsteered seed ${(nu?.method?.side_seeds || nu?.method?.seeds || []).join("、")} 對 seed ${(nu?.reference_seeds || []).join("、")}`; };  // r_side: the side run's seeds
 const subWhy = (x, sv) => `${x.m} ${SUB}：S ${sgn(sv, 3)}（Δ ${sgn(x.head.delta, 3)}、r_guard ${r3(guardEval(x).rg)}、r_side ${r3(subRs(x))} 代入）。r_side 取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測；這個方法依 SCORING.md 第 21 項不跑 side`;
-const subNote = tip => `<span class="raw sub" title="${esc(tip)}">${SUB}</span>`;
+const subNote = tip => "";  // the dashed box on the number marks it; the tooltip carries the explanation
 // the toggle (chip) and its note for the rows shown: only when some method on the page qualifies, and the null file is there
 const subAny = rows => rows.some(c => !c.numbers && (one() ? subAvail(c.per[one()]) : MODELS.some(m => subAvail(c.per[m])) && MODELS.every(m => subAvail(c.per[m]) || measRs(c.per[m]) != null)));
 function subHead(rows) {
@@ -3068,8 +3198,10 @@ function subHead(rows) {
   const chip = `<button type="button" class="fchip" data-sidesub aria-pressed="${SIDESUB}" title="${esc("不跑 side 的方法（SCORING.md 第 21 項）：S 減掉 unsteered 基準的 r_side 來比較；預設關")}">side：代入參考值</button>`;
   return chip;
 }
+// the base switch: shown when the cards carry the organism headline
+const baseSw = () => !HLAV() ? "" : `<button type="button" class="fchip" data-basesw aria-pressed="${BASEON}" title="${esc("base 分數：不含 organism term 的 pack 2 S（S_base），排名也用它；預設關（排名用含 organism term 的 S）")}">base 分數</button>`;
 const subNoteLine = rows => !SIDESUB || !rows.some(c => !c.numbers && (one() ? subRs(c.per[one()]) != null : subCard(c) || hlSubAll(c) != null)) ? ""
-  : `<p class="small muted subline"><span class="raw sub">${SUB}</span> 的 S、side 不是量測值：這些方法沒跑 side（SCORING.md 第 21 項），r_side 用 unsteered 基準的值代入（${esc(subSeeds())}；每個模型一個值，所有這類方法相同）。卡片和 CI 不變。</p>`;
+  : `<p class="small muted subline"><span class="subbox" aria-hidden="true"></span>虛線框 = ${SUB}，S、side 不是量測值：這些方法沒跑 side（SCORING.md 第 21 項），r_side 用 unsteered 基準的值代入（${esc(subSeeds())}；每個模型一個值，所有這類方法相同）。卡片和 CI 不變。${HL() ? "S 含 organism term（C133，暫定）；est = 估計 g_org。" : ""}</p>`;
 const cardRg = card => cardX(card, "r_guard", MODELS.map(m => guardEval(card.per[m]).rg));
 const gNames = ds => ds.map(label).join("、");
 // the guards 待補 on every model whose S is withheld for the guard part alone (null when another reason holds), for the card's S headline
@@ -3152,7 +3284,7 @@ function dimCell(c, dim) {
   const e = c.head.per[dim], nm = nameOf(dim);
   if (!e) return `<span class="mcell muted" title="${esc(`${nm} · ${c.m}：沒有計分的 test 列`)}">·</span>`;
   if (e.missing) return `<span class="mcell" title="${esc(`${nm} · ${c.m}：缺回答或判定`)}"><span class="ptag">缺</span></span>`;
-  if (zeroOn(e)) return `<span class="mcell nvr" title="${esc(`${nm} · ${neverWhy(c.m, e)}`)}"><span class="dnum"><span class="chip nv">${zeroLab(e)}</span><span class="raw">${zeroRaw(e)}，${neverIn(e) ? "g = 0" : "不計入"}</span>${e.few ? `<span class="raw sec">不設下限 g ${sgn(e.gNoMin, 2)}</span>` : ""}</span></span>`;
+  if (zeroOn(e)) return `<span class="mcell nvr" title="${esc(`${nm} · ${neverWhy(c.m, e)}；${zeroRaw(e)}，${neverIn(e) ? "g = 0" : "不計入"}${e.few ? `；不設下限 g ${sgn(e.gNoMin, 2)}` : ""}`)}"><span class="dnum"><span class="chip nv">${zeroLab(e)}</span></span></span>`;
   if (e.empty) return `<span class="mcell muted" title="${esc(`${nm} · ${c.m}：沒有可計分的回答，不算 g`)}">–</span>`;
   const vs = `得分 ${cr2(e.h)}（${BASE} ${cr2(e.hr)}，原始 ${sgn(e.h - e.hr)}）${barText(e.k)}；${e.n} 列，${e.seeds.length} 個 seed（${e.seeds.join("、")}）`;
   // partial (below the seed floor, still valued): the g over the rows both arms have, as score.py, and how many rows that is
@@ -3196,11 +3328,12 @@ function cardHTML2(card, page) {  // page: the method page's detail (the title i
   const grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}${m1()}"><span class="mlab">${lab}</span>${cells}</div>`;
   const colhead = `<div class="mgrid mhead${m1()}" aria-hidden="true"><span></span>${CMS().map(m => `<span>${m}${linSup(S.name, m)}</span>`).join("")}</div>`;
   const headline = IDX.guards.length ? grid("Δ", ms.map(headCell).join(""), " mhl mhl1")
-      + grid(`S${kind === "with" ? "" : `<span class="sub">${kind === "without" ? NO_SIDE : "side 依模型而異"}</span>`}`, ms.map(sCell).join(""), " mhl")
+      + grid(`${HL() ? `<span title="${esc("排行的 S 含 organism term（S_headline）")}">S（不含 organism）</span>` : "S"}${kind === "with" ? "" : `<span class="sub">${kind === "without" ? NO_SIDE : "side 依模型而異"}</span>`}`, ms.map(sCell).join(""), " mhl")
     : grid("Δ", ms.map(headCell).join(""), " mhl");
   const warn = warns.length ? `<p class="mc-warn">${warns.map(esc).join("<br>")}</p>` : "";
   const fk = `${S.name}|${arm}|dims`;
-  const drows = colhead + IDX.dims.map(({dim}) => grid(`<span lang="en">${esc(nameOf(dim))}</span>`, ms.map(c => dimCell(c, dim)).join(""), " mdim")).join("");
+  const drows = colhead + IDX.dims.map(({dim}) => grid(`<span lang="en">${esc(nameOf(dim))}</span>`, ms.map(c => dimCell(c, dim)).join(""), " mdim mdr")).join("")
+    + (IDX.org?.length && !card.numbers && ms.some(c => orgGval(card, c.m)) ? `<div class="mfsub">Organism（C133，暫定）</div>` + grid(`<span lang="en">factual holdout</span>`, ms.map(c => orgDimCell(card, c)).join(""), " mdim mdr") : "");
   const dims = page ? `<h4 class="msec">各維度${card.any ? "" : " <span>預覽，不計分</span>"}</h4>${drows}`
     : `<details class="fold mfold" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各維度</summary>${drows}</details>`;
   if (!card.any) return `<article class="mcard preview${page ? " page" : ""}">${head}${colhead}${headline}${card.pv ? dims : ""}${guardSec(card, colhead)}${sideSec(card, colhead)}${missFold(card)}${warn}</article>`;
@@ -3217,10 +3350,24 @@ function sCell(c) {  // a model's S, or – with the part that is missing
   return `<span class="mcell" title="${esc(`${c.m}：${sCalc(c, v)}${ciBare(c, "S") ? "；" + ciBare(c, "S") : ""}`)}"><span class="rate big ${t === "up" ? "hi" : t === "down" ? "lo" : "zero"}">${sgn(v)}</span></span>`;
 }
 // the method page's 護欄 section: per guard and model r with u → v under it, r_guard per model, the kit sanity line (muted)
-function guardSec(card, colhead) {
+function guardSec(card, colhead) {  // colhead is reassigned for the two-column layout
   if (!IDX.guards.length) return "";
-  const ms = CMS().map(m => card.per[m]), ges = ms.map(guardEval), grid = (lab, cells, cls = "") => `<div class="mgrid mrow${cls}${m1()}"><span class="mlab">${lab}</span>${cells}</div>`;
-  const h = `<h4 class="msec gd">護欄</h4>`;
+  const ms = CMS().map(m => card.per[m]), ges = ms.map(guardEval);
+  // one model shown and its card carries the organism guards: a second value column (the stand-in's regressions) and the card's pooled figures
+  const OGd = one() && !card.numbers ? hlDoc(card)?.models?.[MKEY[one()]]?.organism_c133 : null, og = OGd?.organism_guards ? OGd : null, OGR = og?.organism_guards.regressions || {};
+  const grid = (lab, cells, cls = "", ex = "<span></span><span></span>") => `<div class="mgrid mrow${cls}${m1()}${og ? " mo" : ""}"><span class="mlab">${lab}</span>${cells}${og ? ex : ""}</div>`;
+  const cardNo = `卡片數字（${cfileOf(card)}），頁面沒有重算`;
+  if (og) colhead = `<div class="mgrid mhead m1 mo" aria-hidden="true"><span></span><span>base</span><span>organism</span><span>合併</span></div>`;
+  const ogg = og?.organism_guards, ogLine = og ? `<p class="small muted">organism：<span lang="en">${esc(ogg.arm ?? "")}</span>（<span class="mono" lang="en">${esc(ogg.source ?? "")}</span>）對 <span lang="en">${esc(ogg.reference ?? "")}</span>，seed ${esc([].concat(ogg.seeds_method ?? []).join("、") || "–")}，${ogg.units_present ?? "–"}/${ogg.units ?? "–"}</p>` : "";
+  const keyFam = key => FAMS().find(f => famKids(f).some(k => k.o === key || k.dim === key) || f.guards.includes(key));
+  const orgGuardCell = (key, who) => { const e = OGR[key]; if (!e) return `<span></span>`;
+    return `<span class="mcell" title="${esc(`${who}organism ${nameOf(key)}：退步 ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）；${cardNo}`)}"><span class="dnum"><span class="lnum dl ${+e.reg.toFixed(3) > 0 ? "down" : ""}">${r3(e.reg)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`; };
+  const orgFamEx = (f, keys) => { const es = keys.filter(k => OGR[k]).map(k => [k, OGR[k]]), pooled = f ? og.r_guard_families_pooled?.[f.name] : null;
+    const worst = es.reduce((a, b) => !a || b[1].reg > a[1].reg ? b : a, null);
+    const oc = !worst ? `<span></span>` : `<span class="mcell" title="${esc(`organism 護欄：${es.map(([k, e]) => `${nameOf(k)} ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）`).join("；")}；${cardNo}`)}"><span class="lnum dl ${+worst[1].reg.toFixed(3) > 0 ? "down" : ""}">${r3(worst[1].reg)}</span>${+worst[1].reg.toFixed(3) > 0 ? `<span class="raw nm" lang="en">${esc(nameOf(worst[0]))}</span>` : ""}</span>`;
+    const pc = pooled == null ? `<span></span>` : `<span class="mcell muted" title="${esc(`${f.name.replaceAll("_", " ")} 合併（基準與 organism 護欄一起）：${r3(pooled)}；${cardNo}`)}">${r3(pooled)}</span>`;
+    return oc + pc; };
+  const h = `<h4 class="msec gd">護欄</h4>${ogLine}`;
   if (ges.every(g => g.none)) return `${h}<p class="small muted">載入的資料夾裡沒有這個方法的護欄回答。</p>`;
   const cell = (ge, c, e, dim, kit) => {
     if (ge.none) return `<span class="mcell muted" title="${esc(`${c.m}：${c.notRun ? NOT_RUN : "沒有護欄回答"}`)}">–</span>`;
@@ -3237,24 +3384,23 @@ function guardSec(card, colhead) {
     if (v == null) return `<span class="mcell muted" title="${esc(`${famName(f)} · ${c.m}：沒有護欄回答`)}">–</span>`;
     return `<span class="mcell" title="${esc(`${famName(f)} · ${c.m}：退步 ${r3(v)}（${(guardRule() ? famParts(ge, f).length : f.guards.length) > 1 ? (guardRule() ? "各官方護欄 r 的平方平均，只顯示" : "各護欄 r 的平均") : "就是這個護欄的 r"}）`)}"><span class="dnum"><span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span></span></span>`; };
   // visible: one row per family (the leaderboard's guard dimensions) and r_guard; each guard's rows, the kit lines and the regrade in 各護欄
-  const rows = FAMS().map(f => grid(`<span lang="${famLang(f)}" title="${esc(famTip(f))}">${esc(famName(f))}</span>`, ges.map((ge, i) => famCell(ge, ms[i], f)).join(""), " mfam")).join("");
+  const rows = FAMS().map(f => grid(`<span lang="${famLang(f)}" title="${esc(famTip(f))}">${esc(famName(f))}</span>`, ges.map((ge, i) => famCell(ge, ms[i], f)).join(""), " mfam", og ? orgFamEx(f, [...new Set(Object.keys(OGR).filter(k => keyFam(k) === f))]) : undefined)).join("")
+    + (og && Object.keys(OGR).some(k => !keyFam(k)) ? grid(`<span>其他</span><span class="sub">organism 護欄，不在家族內</span>`, ges.map(() => `<span class="mcell muted">–</span>`).join(""), " mfam", orgFamEx(null, Object.keys(OGR).filter(k => !keyFam(k)))) : "");
   const grows = FAMS().map(f => `<div class="mfsub" lang="${famLang(f)}">${esc(famName(f))}</div>`
     + famKids(f).map(({o, dim}) => grid(`<span lang="en"${o && GAST[o] ? ` title="${esc(GAST[o])}"` : ""}>${esc(nameOf(o || dim))}</span>`, ges.map((ge, i) => !o ? cell(ge, ms[i], kidE(ge, dim), dim)
-      : ge.none || ge.off?.[o]?.n ? cell(ge, ms[i], ge.off?.[o], dim) : `<span class="mcell muted" title="${esc(`${nameOf(o)} · ${ms[i].m}：${NOT_MEASURED}`)}">未量測</span>`).join(""), " mdim msub")).join("")).join("");
+      : ge.none || ge.off?.[o]?.n ? cell(ge, ms[i], ge.off?.[o], dim) : `<span class="mcell muted" title="${esc(`${nameOf(o)} · ${ms[i].m}：${NOT_MEASURED}`)}">未量測</span>`).join(""), " mdim msub", og ? orgGuardCell(o || dim, "") + "<span></span>" : undefined)).join("")).join("");
   // v2.8: r_guard also holds the dims unsteered already passes, which belong to no family: their count per model here, each dim in 各護欄
   const cellDims = IDX.dims.map(d => d.dim).filter(d => ges.some(ge => ge.cells?.[d] != null));
   const cellTip = (ge, c) => `${c.m}：${cellDims.filter(d => ge.cells?.[d] != null).map(d => `${nameOf(d)} ${r3(ge.cells[d])}`).join("、") || "沒有"}。${CELL_TIP}`;
-  const cellHead = cellDims.length ? grid(`已及格維度<span class="sub">計入 r_guard，不屬於家族</span>`, ges.map((ge, i) => ge.none ? `<span class="mcell muted">–</span>`
-    : `<span class="mcell" title="${esc(cellTip(ge, ms[i]))}"><span class="dnum"><span class="lnum">${cellDims.filter(d => ge.cells?.[d] != null).length} 個</span></span></span>`).join(""), " mfam") : "";
-  const cellRows = cellDims.length ? `<div class="mfsub">已及格維度</div>` + cellDims.map(d => grid(`<span lang="${langOf(d)}">${esc(nameOf(d))}</span>`, ges.map((ge, i) => { const v = ge.cells?.[d];
+  const cellHead = cellDims.map(d => grid(`<span lang="${langOf(d)}">${esc(nameOf(d))}</span><span class="sub">已及格維度</span>`, ges.map((ge, i) => { const v = ge.cells?.[d];
     return v == null ? `<span class="mcell muted" title="${esc(`${nameOf(d)} · ${ms[i].m}：這個模型上不是已及格維度`)}">–</span>`
-      : `<span class="mcell" title="${esc(`${nameOf(d)} · ${ms[i].m}：退步 ${r3(v)}，max(0, h_ref − h)。${CELL_TIP}`)}"><span class="dnum"><span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span></span></span>`; }).join(""), " mdim msub")).join("") : "";
+      : `<span class="mcell" title="${esc(`${nameOf(d)} · ${ms[i].m}：退步 ${r3(v)}，max(0, h_ref − h)。${CELL_TIP}`)}"><span class="dnum"><span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span></span></span>`; }).join(""), " mfam")).join("");
   const cost = costOf(card.arm);
-  const rg = grid(`r_guard${cost != null ? `<span class="sub" title="${esc(COST_TIP)}">排行榜 ${cost.toFixed(3)}</span>` : ""}`, ges.map((ge, i) => {
+  const rg = grid(`r_guard${og ? `<span class="sub">base 欄是 r_guard_base（不含 organism）</span>` : ""}${cost != null ? `<span class="sub" title="${esc(COST_TIP)}">排行榜 ${cost.toFixed(3)}</span>` : ""}`, ges.map((ge, i) => {
     if (ge.none || ge.rg == null) return `<span class="mcell muted" title="${esc(rgText(ms[i].m, ge))}">–</span>`;
     return `<span class="mcell" title="${esc(rgText(ms[i].m, ge, ms[i]))}"><span class="dnum"><span class="rate big ${+ge.rg.toFixed(3) > 0 ? "lo" : "zero"}">${r3(ge.rg)}</span>${regradeTotal(ms[i]) ? rgdChip() : ""}${
       ge.present.length < IDX.guards.length ? `<span class="raw">${ge.present.length}/${IDX.guards.length} 個護欄</span>` : ""}${ge.complete ? "" : `<span class="raw">部分：${ge.have} / ${ge.units} 個單位</span>`}</span></span>`;
-  }).join(""), " mhl");
+  }).join(""), " mhl", og ? `<span></span>${og.r_guard_pooled == null ? "<span></span>" : `<span class="mcell" title="${esc(`r_guard（合併）：基準 ${og.n_terms_base ?? "–"} 項 + organism ${og.n_terms_organism ?? "–"} 項的平方平均（C133，暫定）；${cardNo}`)}"><span class="rate big ${+og.r_guard_pooled.toFixed(3) > 0 ? "lo" : "zero"}">${r3(og.r_guard_pooled)}</span></span>`}` : undefined);
   const kits = IDX.guards.filter(({dim}) => ges.some(ge => ge.per?.[dim]?.kit)).map(({dim}) => {
     const n = ges.find(ge => ge.per?.[dim]?.kit)?.per[dim].kit.rows;
     return grid(`kit 對照 · <span lang="${langOf(dim)}">${esc(label(dim))}</span><span class="sub">已含在上面</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim]?.kit, dim, true)).join(""), " mkit");
@@ -3265,7 +3411,7 @@ function guardSec(card, colhead) {
     return !e?.n ? `<span class="mcell muted" title="${esc(`${nameOf(o)} · ${ms[i].m}：這個模型沒有成對的 reserve 列`)}">–</span>`
       : `<span class="mcell" title="${esc(`${nameOf(o)} · ${ms[i].m}：reserve 列，不計入 r_guard。u（${BASE}）${r3(e.u)}、v（${armName(ms[i].arm)}）${r3(e.v)}、r ${r3(e.r)}；${e.n} 列，seed ${e.seeds.join("、")}（${BASE} ${e.rseeds.join("、")}）`)}"><span class="dnum"><span class="lnum dl ${+e.r.toFixed(3) > 0 ? "down" : ""}">${r3(e.r)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`; }).join(""), " mdim msub")).join("")}</details>` : "";
   const fk = `${card.S.name}|${card.arm}|guards`;
-  return h + colhead + rows + cellHead + rg + reserve + `<details class="fold mfold mdeep" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各護欄</summary>${colhead}${grows}${cellRows}${kits}${regradeRows(card, ms, ges, grid)}</details>`;
+  return h + colhead + rows + cellHead + rg + reserve + `<details class="fold mfold mdeep" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各護欄</summary>${colhead}${grows}${kits}${regradeRows(card, ms, ges, grid)}</details>`;
 }
 // The regrade diagnostic under the guards (muted rows): the regraded guard's r, r_guard and S with it. Shown only where the page has a value;
 // when the card's g_<arm>.json carries r_guard_regrade / S_regrade they must agree with the page within CI_TOL, else a warning (card null and
@@ -3407,7 +3553,10 @@ const SORTS = [["name", "方法"], ["S", "S（三模型）"], ...MODELS.map(m =>
 // one model's columns: its S, its Δ (key "all", so a 三模型 Δ sort carries over) and its r_guard, r_side
 const SORTS1 = [["name", "方法"], ["S", "S"], ["all", "Δ"], ["rg", "護欄"], ["rs", "side"]];
 // S and 護欄 only with guards in the data, side (r_side) only with the side set in it
-const sorts = () => (one() ? SORTS1 : SORTS).filter(([k]) => (IDX.guards.length || (k[0] !== "S" && k !== "rg")) && (DSIDE || k !== "rs"));
+// in headline mode one model\'s table names the headline terms plainly and the base-only ones _base (user 11-15): S · Δ · Δ_base · r_guard · r_guard_base · side
+const SORTS1H = [["name", "方法"], ["S", "S"], ["dorg", "Δ"], ["all", "Δ_base"], ["rgp", "r_guard"], ["rg", "r_guard_base"], ["rs", "side"]];
+const hl1 = () => HL() && !!one();
+const sorts = () => (one() ? (HL() ? SORTS1H : SORTS1) : SORTS).filter(([k]) => (IDX.guards.length || (k[0] !== "S" && k !== "rg")) && (DSIDE || k !== "rs"));
 // the 方法 column's order is chronological, the latest method first (user 2026-11-02: "i want the latest methods first. 1026 is a later
 // method than 1019"; "gepa v8 is obviously after gepa v7"): a method by the date it was made, its meta's `method_date` when set, else an
 // <MMDD>-submission source by its name, else the meta's built_at (undated last); calibration arms after the methods. The key ascends
@@ -3419,7 +3568,9 @@ function sortVal(c, k) {
   if (c.numbers) return numSort(c, k);
   if (HL() && k === "S" && hasHL(c)) return hlV(c);
   if (HL() && k.startsWith("S:") && hlM(c, k.slice(2))) return hlSub(c, k.slice(2)) ?? hlM(c, k.slice(2)).S_headline;
-  if (HL() && (k === "all" || k === "rg") && hlTx(c)) return k === "all" ? hlTx(c).d : hlTx(c).rg;
+  if (hl1() && k === "dorg") return hlT(c, one())?.d ?? null;
+  if (hl1() && k === "rgp") return hlT(c, one())?.rg ?? null;
+  if (HL() && !hl1() && (k === "all" || k === "rg") && hlTx(c)) return k === "all" ? hlTx(c).d : hlTx(c).rg;
   const x = one() && c.per[one()];
   if (k === "name") return chrono(c);
   if (!x) return k === "all" ? c.all : k === "S" ? cardSShown(c) : k === "rg" ? cardRg(c) : k === "rs" ? (cardRs(c) ?? cardRsSub(c)) : k.startsWith("S:") && MODELS.includes(k.slice(2)) ? sShown(c.per[k.slice(2)]) : null;
@@ -3463,7 +3614,7 @@ const linOf = (src, m) => IDX.meta.mask_lineage?.[src]?.[m] || null;
 const linTip = (src, ms) => ms.map(m => [m, linOf(src, m)]).filter(([, e]) => e?.mark).map(([m, e]) => `${m}：${e.mark}；${e.roles.join("；")}${e.probe ? `；probe ${e.probe}` : ""}`).join("\n");
 const linSup = (src, m) => { const t = linTip(src, [m]); return t ? `<span class="lin" title="${esc(t)}">†</span>` : ""; };
 const rkName = c => { const cal = roleOf(c.arm) === "calibration", be = bestEffort(c.arm), lt = linTip(c.S.name, CMS());
-  return `<th scope="row" class="rk-m"><a class="rk-a" href="${esc(mhref(c))}" lang="en"${aliasOf(c.arm)?.[1] ? ` title="${esc(aliasOf(c.arm)[1])}"` : ""}>${esc(aliasOf(c.arm)?.[0] || dispName(c))}</a>${be ? `<span title="${esc(be)}">*</span>` : ""}${lt ? `<span class="lin" title="${esc(lt)}">†</span>` : ""}${cal ? `<span class="ctag">校準</span>` : ""}${aliasOf(c.arm)?.[2] ? `<span class="ctag" lang="en">${esc(aliasOf(c.arm)[2])}</span>` : ""}${rowChip(c)}<span class="rk-sub">${idSub(c)} · ${seedNote(c)}</span></th>`; };
+  return `<th scope="row" class="rk-m" title="${esc(`${aliasOf(c.arm) ? c.id + " · " : ""}${c.S.name} · ${seedNote(c)}`)}"><a class="rk-a" href="${esc(mhref(c))}" lang="en"${aliasOf(c.arm)?.[1] ? ` title="${esc(aliasOf(c.arm)[1])}"` : ""}>${esc(aliasOf(c.arm)?.[0] || dispName(c))}</a>${be ? `<span title="${esc(be)}">*</span>` : ""}${lt ? `<span class="lin" title="${esc(lt)}">†</span>` : ""}${cal ? `<span class="ctag">校準</span>` : ""}${aliasOf(c.arm)?.[2] ? `<span class="ctag" lang="en">${esc(aliasOf(c.arm)[2])}</span>` : ""}${rowChip(c)}</th>`; };
 // the small line under a ranked name: the arm id (c.id, when an alias is shown) and the folder
 const idSub = c => `<span class="mono" lang="en">${aliasOf(c.arm) ? `${esc(c.id)} · ` : ""}${esc(c.S.name)}</span>`;
 // the hint dim a model's Δ leaves out because the method never took the hint (neverSwayed): said in the Δ tooltips of 排行
@@ -3473,6 +3624,7 @@ const dCellAll = c => { const t = hlTAll(c);
   if (t) return `<td class="rk-all" title="${esc(`三模型 headline Δ ${sgn(t.d, 3)}（各模型 delta_combined 的平均，${cfileOf(c)}）：${hlDTip(c, MODELS)}；頁面 vanilla 三模型 Δ ${sgn(c.all, 3)}`)}">${rateBig(t.d)}</td>`;
   return `<td class="rk-all" title="${esc(`三模型 Δ ${sgn(c.all, 3)}。${neverAll(c)}${ciList(c, "delta")}`)}">${rateBig(c.all)}</td>`; };
 function sCellM(c, m) {  // one model's S (the 三模型 table's per-model columns and the one-model table's S)
+  if (hlWait(c)) return hlPh();
   const h = hlM(c, m);
   if (h && IDX.guards.length && hlSub(c, m) != null) { const v = hlSub(c, m), tip = `${m}：S_headline ${sgn(v, 3)}（${hlSubTip(c, [m])}）；卡片 S_headline ${sgn(h.S_headline, 3)}（${h.S_headline_basis}）` + orgTip(h) + rdTip(c);
     return `<td class="rk-n" title="${esc(tip)}">${rateBig(v, true)}${hlTag([h], cfileOf(c))}${subNote(tip)}${partialNote(c.per[m])}</td>`; }
@@ -3494,7 +3646,11 @@ const orgOf = (c, m) => c.comp?.ok ? c.comp.doc?.models?.[MKEY[m]]?.organism_c13
 // agrees with the page's own pack 2 numbers (its gate). Basis "organism measured" reads org, "organism estimated" (g_org = 0, older
 // submissions) org est.; a card with none ("no organism term") is listed under a divider with its vanilla S, never ranked. Vanilla pack 2 S
 // (the page's) and v2.10 S beside it in small type. Without S_headline in any card (an older layout) the page ranks on the vanilla S as before.
-const HL = () => HEAD_RD() === RDP && SRC.list.some(s => Object.values(s.comp2 || {}).some(d => Object.values(d.models || {}).some(x => x && "S_headline_basis" in x)));
+// the leaderboard's base switch (user 11-15): off, S and its terms carry the organism term (S_headline); on, the base score (pack 2 S without it)
+let BASEON = false;
+try { BASEON = store.get("s2v-base") === "1"; } catch (e) {}
+const HL = () => !BASEON && HLAV();
+const HLAV = () => HEAD_RD() === RDP && SRC.list.some(s => Object.values(s.comp2 || {}).some(d => Object.values(d.models || {}).some(x => x && "S_headline_basis" in x)));
 const ORG_LABEL = "lying-organism term on non-reasoning stand-ins (provisional; organizers C133)";
 const hlDoc = c => c.numbers ? (numWhy(c) ? null : c.doc) : c.comp?.ok ? c.comp.doc : null;
 const hlM = (c, m) => { const x = hlDoc(c)?.models?.[MKEY[m]]; return HL() && x?.S_headline != null ? x : null; };
@@ -3518,17 +3674,20 @@ const hlDTip = (c, ms) => ms.map(m => { const t = hlT(c, m); return `${m} Δ ${s
 const hlGTip = (c, ms) => ms.map(m => { const t = hlT(c, m); return `${m} r_guard ${r3(t.rg)}${t.pooled ? "（合併 organism 護欄；vanilla " + r3(t.h.r_guard) + "）" : "（沒有合併值，用 vanilla）"}`; }).join("；");
 // ranked with the headline: the model's S_headline in one model's view; in 三模型 any model's (the cross mean may be null under its completeness
 // gate, shown as – with the card's note, sorted last among the ranked)
-const hasHL = c => one() ? hlV(c) != null : MODELS.some(m => hlM(c, m));
+// a method whose source's cards are not in yet keeps its rank slot (placeholder S), never the "no organism term" divider
+const hlWait = c => HL() && !c.numbers && !!c.S && !c.S.compDone;
+const hlPh = () => `<td class="rk-n" title="${esc("卡片還在載入")}"><span class="muted">…</span></td>`;
+const hasHL = c => hlWait(c) || (one() ? hlV(c) != null : MODELS.some(m => hlM(c, m)));
 // the card's note on a null cross_model.S_headline (dims 2026-11-14: "null with a note"; any S_headline_* text field of cross_model)
 const hlNote = c => { const x = hlDoc(c)?.cross_model || {}; return x.S_headline_note ?? x.S_headline_why ?? Object.entries(x).find(([k, v]) => /^S_headline_/.test(k) && typeof v === "string")?.[1] ?? null; };
 const hlNull = c => { const n = hlNote(c); return `<span class="muted">–</span>${n ? `<span class="raw hln" lang="en" title="${esc(n)}">${esc(n)}</span>` : ""}`; };
 const hlEst = x => !!x?.organism_c133?.estimated;
 const hlTip = x => hlEst(x) ? "estimated g_org = 0 (older submission), no organism guard terms" : ORG_LABEL;
-const hlTag = (xs, file) => `<span class="raw org" lang="en" title="${esc(`${xs.map(x => hlTip(x)).filter((v, i, a) => a.indexOf(v) === i).join("；")}。S_headline，卡片數字（${file}），頁面沒有重算`)}">${xs.some(hlEst) ? "org est." : "org"}</span>`;
+const hlTag = (xs, file) => xs.some(hlEst) ? `<sup class="est" lang="en" title="${esc(`${xs.map(x => hlTip(x)).filter((v, i, a) => a.indexOf(v) === i).join("；")}。S_headline，卡片數字（${file}），頁面沒有重算`)}">est</sup>` : "";
 // a model's organism term for a tooltip (card numbers): g_org (factual holdout), pooled r_guard, S_organism. Pack 2.0's organism term is the
 // plain-fact rows only (the user 2026-11-14, via pack_1): the card's other readings (also, the 0181 dims_test field) are not shown
 const orgTip = x => { const o = x?.organism_c133; if (!o) return "";
-  return `；g_org（factual holdout）${o.g_org == null ? "–" : sgn(o.g_org, 3)}、r_guard 合併 ${o.r_guard_pooled == null ? "–" : r3(o.r_guard_pooled)}、S_organism ${o.S_organism == null ? "–" : sgn(o.S_organism, 3)}`; };
+  return `；g_org（factual holdout）${o.g_org == null ? "–" : sgn(o.g_org, 3)}、r_guard（含 organism）${o.r_guard_pooled == null ? "–" : r3(o.r_guard_pooled)}、S_organism ${o.S_organism == null ? "–" : sgn(o.S_organism, 3)}`; };
 const cfileOf = c => c.numbers ? c.S.cfile?.[`${HEAD_RD()}|${c.arm}`] : c.comp?.file;
 // the other readings of a ranked cell, in its tooltip only (one number per ranked cell; Main 2026-11-14): v2.10 S (the page's), and without a
 // headline the card's C133 block; the card's page lists them all (otherReadings)
@@ -3536,7 +3695,7 @@ function besideM(c, m) {
   const a = altCard(c), out = [];
   if (a) { const y = a.per[m], v = y?.ok ? sShown(y) : null; if (v != null) out.push(`v2.10 S ${sgn(v, 3)}（頁面算；${altGate(a)}）`); }
   const o = HL() ? null : orgOf(c, m);
-  if (o?.S_organism != null) out.push(`${o.label}：S_organism ${sgn(o.S_organism, 3)}（r_guard 合併 ${r3(o.r_guard_pooled)}、Δ ${sgn(o.delta_combined, 3)}；卡片數字，不排名）`);
+  if (o?.S_organism != null) out.push(`${o.label}：S_organism ${sgn(o.S_organism, 3)}（r_guard（含 organism）${r3(o.r_guard_pooled)}、Δ ${sgn(o.delta_combined, 3)}；卡片數字，不排名）`);
   return out.length ? "；" + out.join("；") : "";
 }
 function besideAll(c) {
@@ -3545,7 +3704,7 @@ function besideAll(c) {
 }
 const sCell1 = c => sCellM(c, one());
 function dCell1(c) {  // one model's Δ
-  const m = one(), x = c.per[m], t = hlT(c, m);
+  const m = one(), x = c.per[m], t = hl1() ? null : hlT(c, m);
   if (t) return `<td class="rk-n" title="${esc(`${m} headline Δ ${sgn(t.d, 3)}（delta_combined，${cfileOf(c)}）：${hlDTip(c, [m])}；頁面 vanilla Δ ${sgn(x.head.delta, 3)}`)}">${rateBig(t.d)}</td>`;
   return `<td class="rk-n" title="${esc(`${m} · ${dispName(c)}：Δ ${sgn(x.head.delta, 3)}${ciText(x, "delta")}，原始 ${sgn(x.head.raw, 3)}；${seedsPerDim(x.head)}${neverAll(c, [m]) ? "。" + neverAll(c, [m]) : ""}`)}">${rateBig(x.head.delta)}</td>`;
 }
@@ -3564,18 +3723,22 @@ const rowOK = c => { const r = rowTerms(c); return !r || [r.S, r.d, r.rg, r.rs].
 const rowChip = c => { if (rowOK(c) !== false) return ""; const r = rowTerms(c);
   return `<span class="chip warn" title="${esc(`這一列不加總：S ${sgn(r.S, 3)} ≠ Δ ${sgn(r.d, 3)} − 3×r_guard ${r3(r.rg)} − 3×r_side ${r3(r.rs)} = ${sgn(r.d - LAMBDA * r.rg - LAMBDA * r.rs, 3)}`)}">不加總</span>`; };
 // a row of the one-model ranking: 方法 | S | Δ | 護欄 | side, all that model's
+function dOrgTd(c) { const m = one(), t = hlT(c, m);
+  return t ? `<td class="rk-n" title="${esc(`${m} Δ ${sgn(t.d, 3)}（delta_combined，含 organism；Δ_base 是不含 organism 的 Δ）：${hlDTip(c, [m])}；卡片數字（${cfileOf(c)}），頁面沒有重算`)}">${rateBig(t.d)}</td>` : `<td class="rk-n"><span class="muted">–</span></td>`; }
 function rankRow1(c) {
   const m = one(), x = c.per[m], ge = guardEval(x), cal = roleOf(c.arm) === "calibration", N = IDX.guards.length, t = hlT(c, m);
-  const gTd = !N ? "" : t ? `<td class="rk-n" title="${esc(`${m} headline r_guard ${r3(t.rg)}（${cfileOf(c)}）：${hlGTip(c, [m])}；頁面 vanilla r_guard ${ge.rg == null ? "–" : r3(ge.rg)}`)}"><span class="lnum dl ${+t.rg.toFixed(3) > 0 ? "down" : ""}">${r3(t.rg)}</span></td>` : ge.rg == null ? `<td class="rk-n" title="${esc(rgText(m, ge))}"><span class="muted">–</span></td>`
+  const gP = !N ? "" : t ? `<td class="rk-n" title="${esc(`${m} r_guard ${r3(t.rg)}（含 organism 護欄，${cfileOf(c)}）：${hlGTip(c, [m])}；r_guard_base（頁面算，不含 organism）${ge.rg == null ? "–" : r3(ge.rg)}`)}"><span class="lnum dl ${+t.rg.toFixed(3) > 0 ? "down" : ""}">${r3(t.rg)}</span></td>` : "";
+  const gV = !N ? "" : ge.rg == null ? `<td class="rk-n" title="${esc(rgText(m, ge))}"><span class="muted">–</span></td>`
     : `<td class="rk-n" title="${esc(rgText(m, ge, x))}"><span class="lnum dl ${+ge.rg.toFixed(3) > 0 ? "down" : ""}">${r3(ge.rg)}</span>${regradeTotal(x) ? rgdChip() : ""}${
       ge.present.length < N ? `<span class="raw">${ge.present.length}/${N}</span>` : ""}${ge.complete ? "" : `<span class="raw">部分</span>`}</td>`;
-  return `<tr class="rkr${cal ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCell1(c)}${dCell1(c)}${gTd}${rsCell1(c)}</tr>`;
+  return `<tr class="rkr${cal ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCell1(c)}${hl1() ? dOrgTd(c) + dCell1(c) + (N ? (gP || `<td class="rk-n"><span class="muted">–</span></td>`) + gV : "") : (gP || gV)}${rsCell1(c)}</tr>`;
 }
 // a quiet line under an S that leaves r_side out (the method has no side lines): the rest of the column is S = Δ − 3·r_side − 3·r_guard
 const sNote = x => partialNote(x) + sNote0(x);
 const sNote0 = x => sideKind(x) === "with" ? "" : subRs(x) != null ? subNote(subWhy(x, sShown(x))) : `<span class="raw" title="${esc("還沒跑 side，S 沒減 r_side；跑了只會一樣或更低")}">${NO_SIDE}</span>`;
 function sCellR(c) {  // S: the three-model mean, only when every model has every part complete (and the models share one basis)
   if (!IDX.guards.length) return "";
+  if (hlWait(c)) return hlPh();
   const ha = hlAll(c);
   if (hlSubAll(c) != null) { const v = hlSubAll(c), xs = MODELS.map(m => hlM(c, m)), tip = `三模型 S_headline ${sgn(v, 3)}（${hlSubTip(c, MODELS)}）；卡片三模型 S_headline ${ha == null ? `沒有${hlNote(c) ? `（${hlNote(c)}）` : ""}` : sgn(ha, 3)}` + rdTip(c);
     return `<td class="rk-n" title="${esc(tip)}">${rateBig(v, true)}${hlTag(xs, cfileOf(c))}${subNote(tip)}</td>`; }
@@ -3598,7 +3761,7 @@ function rsText(m, sd, c) {
 function rsCellR(c) {
   if (!DSIDE) return "";
   const sds = MODELS.map(m => sideEval(c.per[m])), v = cardRs(c), N = DSIDE.benches.length, vs = sds.map(d => d.rs);
-  if (subCard(c)) { const rv = cardRsSub(c); return `<td class="rk-n" title="${esc(`三模型 r_side ${r3(rv)}（${SUB}：${triWho(MODELS.map(m => subRs(c.per[m])))}；量測：${triWho(MODELS.map(m => subRs(c.per[m]) == null ? measRs(c.per[m]) : null))}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(rv)}</span><span class="raw sub">${SUB}</span></td>`; }
+  if (subCard(c)) { const rv = cardRsSub(c); return `<td class="rk-n" title="${esc(`三模型 r_side ${r3(rv)}（${SUB}：${triWho(MODELS.map(m => subRs(c.per[m])))}；量測：${triWho(MODELS.map(m => subRs(c.per[m]) == null ? measRs(c.per[m]) : null))}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(rv)}</span></td>`; }
   if (sds.every(d => d.state === "none")) return `<td class="rk-n" title="${esc(`side ${NOT_RUN}；S ${NO_SIDE}，r_side 不是 0`)}"><span class="muted">${NOT_RUN}</span></td>`;
   if (v == null) return `<td class="rk-n" title="${esc(`${xWhy(c, "r_side", vs)}。` + MODELS.map((m, i) => rsText(m, sds[i])).join("；"))}"><span class="muted">–</span></td>`;
   const part = sds.some(d => d.state !== "complete");
@@ -3608,7 +3771,7 @@ function rsCellR(c) {
 function rsCell1(c) {
   if (!DSIDE) return "";
   const m = one(), x = c.per[m], sd = sideEval(x), N = DSIDE.benches.length;
-  if (subRs(x) != null) return `<td class="rk-n" title="${esc(`${m} r_side ${r3(subRs(x))}（${SUB}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(subRs(x))}</span><span class="raw sub">${SUB}</span></td>`;
+  if (subRs(x) != null) return `<td class="rk-n" title="${esc(`${m} r_side ${r3(subRs(x))}（${SUB}）。取自 results/baseline/null_unsteered.json（${subSeeds()}），不是這個方法的量測`)}"><span class="lnum dl sub">${r3(subRs(x))}</span></td>`;
   if (sd.state === "none") return `<td class="rk-n" title="${esc(`${m} side ${NOT_RUN}；S ${NO_SIDE}，r_side 不是 0`)}"><span class="muted">${NOT_RUN}</span></td>`;
   if (sd.rs == null) return `<td class="rk-n" title="${esc(rsText(m, sd))}"><span class="muted">–</span></td>`;
   return `<td class="rk-n" title="${esc(rsText(m, sd, x))}"><span class="lnum dl ${+sd.rs.toFixed(3) > 0 ? "down" : ""}">${r3(sd.rs)}</span>${sd.present.length < N ? `<span class="raw">${sd.present.length}/${N}</span>` : ""}${sd.state === "complete" ? "" : `<span class="raw">部分</span>`}</td>`;
@@ -3774,6 +3937,30 @@ function gcmpFoot(c) {
   const tip = `${dispName(c)}：r_guard ${r3(v)}。` + ms.map(m => rgText(m, guardEval(c.per[m]))).join("；");
   return `<td class="cg" title="${esc(tip)}"><span class="rate big ${+v.toFixed(3) > 0 ? "lo" : "zero"}">${r3(v)}</span>${regradeTotal(c.per[ms[0]]) ? rgdChip() : ""}${part ? `<sup>部分</sup>` : ""}</td>`;
 }
+// the organism eval's row in the heatmap: g_org per model (higher is better, like the dims' g), the page's where the reference lines are
+// loaded, else the card's (organism_c133.g_org) marked 卡片數字; provisional (C133)
+function orgCells(c, d) {
+  return regRow(m => { const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), ck = orgCheck(c, m), card = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133;
+    const num = v => `<span class="dl ${+v.toFixed(3) < 0 ? "down" : ""}">${sgn(v, 3)}</span>`;
+    if (p?.g != null) return regTd(num(p.g) + (ck && !ck.ok ? `<sup title="卡片 ${sgn(ck.card, 3)}">≠卡片</sup>` : ""), `${who}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，參照 ${p.ref} h_ref ${r3(p.href)}，${p.n} 個 gated 列）${ck ? (ck.ok ? "；和卡片一致" : `；卡片 ${sgn(ck.card, 3)}，不一致`) : ""}；provisional（C133）`);
+    if (card?.g_org != null) return regTd(num(card.g_org) + `<sup>${card.estimated ? "估計" : "卡片"}</sup>`, `${who}：卡片數字 g_org ${sgn(card.g_org, 3)}${card.estimated ? "（估計）" : ""}；${p?.missing ? `參照 ${p.ref} 的回答不在載入的來源裡` : "頁面沒有這個方法的 organism 回答"}，沒有重算；provisional（C133）`, true);
+    return regTd("–", `${who}：${p?.missing ? `參照 ${p.ref} 的回答不在載入的來源裡` : "沒有 organism 回答"}`, true); });
+}
+// the organism's g_org for a method and model: the page's where the reference lines are loaded, else the card's (marked); null when neither
+function orgGval(c, m) {
+  const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), o = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133;
+  if (p?.g != null) return {v: p.g, tag: "", page: true, tip: `${who}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，參照 ${p.ref} h_ref ${r3(p.href)}，${p.n} 個 gated 列）；provisional（C133）`};
+  if (o?.g_org != null) return {v: o.g_org, tag: o.estimated ? "估計" : "卡片", page: false, tip: `${who}：g_org ${sgn(o.g_org, 3)}${o.estimated ? "（估計）" : ""}；${p?.missing ? `參照 ${p.ref} 的回答不在載入的來源裡` : "頁面沒有這個方法的 organism 回答"}；provisional（C133）；卡片數字（${cfileOf(c)}），頁面沒有重算`};
+  return null;
+}
+const orgNum = v => `<span class="lnum dl ${+v.toFixed(3) < 0 ? "down" : ""}">${sgn(v, 3)}</span>`;
+function orgDimCell(card, c) {  // the method card's organism row: one model's cell
+  const g = orgGval(card, c.m);
+  if (!g) return `<span class="mcell muted" title="${esc(`factual holdout · ${c.m}：沒有 organism 數字`)}">–</span>`;
+  const body = `<span class="dnum">${orgNum(g.v)}${g.tag ? `<span class="raw">${g.tag}</span>` : ""}</span>`;
+  if (g.page && c.cid) { const go = ansLink(c.cid, c.m, orgDim()); return `<a class="mcell" href="${go.href}" ${go.attrs} title="${esc(g.tip)}">${body}</a>`; }
+  return `<span class="mcell" title="${esc(g.tip)}">${body}</span>`;
+}
 function cmpHTML(cols) {
   if (!cols.length) return "";
   const base = ARMS.includes(BASE), all = base ? [BASEC, ...cols] : cols, nc = all.length + 1;
@@ -3790,14 +3977,19 @@ function cmpHTML(cols) {
   const sCat = k => { const bs = DSIDE.benches.filter(b => scat(b) === k), [open, th] = sTog(k, k, `${bs.length} 個 bench`, `${bs.join("、")}${scoringAt(2.7) ? `；權重 ${catWeight(k)}` : ""}`);
     return `<tr class="gfam">${th}${all.map(c => c.base ? blank : sideCatCells(c, k)).join("")}</tr>${open ? bs.map(sBench).join("") : ""}`; };
   const apartB = DSIDE ? DSIDE.benches.filter(b => catApart(scat(b))) : [];
-  const sApart = () => { const [open, th] = sTog("_apart", "Reported apart", `${apartB.length} 個 bench`, `${apartB.join("、")}：另外報告，不計入 r_side`);
-    return `<tr class="gfam">${th}${all.map(c => c.base ? blank : sideNote(c, "不計入", "另外報告，不計入 r_side；展開看各 bench")).join("")}</tr>${open ? apartB.map(sBench).join("") : ""}`; };
+  const sApart = () => { const [open, th] = sTog("_apart", "Reported apart", `${apartB.length} 個 bench · 不計入 r_side`, `${apartB.join("、")}：另外報告，不計入 r_side`);
+    return `<tr class="gfam">${th}${all.map(c => c.base ? blank : sideNote(c, "", "另外報告，不計入 r_side；展開看各 bench")).join("")}</tr>${open ? apartB.map(sBench).join("") : ""}`; };
   const sUnm = k => `<tr class="gfam"><th scope="row"><span class="gfb gfx"><span lang="en">${esc(k)}</span><span class="cnt">沒有 bench</span></span></th>${all.map(c => c.base ? blank : sideNote(c, "未量測", `${k}：沒有 bench，不計入 r_side`)).join("")}</tr>`;
   const sd = DSIDE && sideReady() && cols.some(c => MODELS.some(m => sideEval(c.per[m]).state !== "none")) ? `<tbody><tr class="gsec sdsec"><th scope="rowgroup" colspan="${nc}">side · ${SCATS().filter(k => !catApart(k)).length + catsUnmeasured().length}<span>退步</span></th></tr>
     ${SCATS().filter(k => !catApart(k)).map(sCat).join("")}${catsUnmeasured().map(sUnm).join("")}${apartB.length ? sApart() : ""}</tbody>
     <tbody class="sum"><tr><th scope="row">r_side <span class="muted small">${st.mmodel === "all" ? "三模型" : st.mmodel}</span></th>${blank}${cols.map(scmpFoot).join("")}</tr></tbody>` : "";
+  const og = IDX.org?.length && cols.some(c => !c.base && MODELS.some(m => (ORGL[c.S?.name] || []).some(x => x.a === c.arm) || hlDoc(c)?.models?.[MKEY[m]]?.organism_c133)) ? `<tbody><tr class="gsec ogsec"><th scope="rowgroup" colspan="${nc}"><span lang="en">Organism (C133)</span> · ${IDX.org.length}<span>g_org · provisional</span></th></tr>
+    ${IDX.org.map(d => `<tr class="gfam"><th scope="row"><span lang="en" title="${esc(d.label || IDX.meta.organism_label || "")}">factual holdout</span></th>${all.map(c => c.base ? blank : orgCells(c, d)).join("")}</tr>`).join("")}</tbody>` : "";
+  const gcellDims = IDX.dims.map(d => d.dim).filter(d => cols.some(c => !c.base && MODELS.some(m => guardEval(c.per[m]).cells?.[d] != null)));
+  const gcellRow = dim => `<tr class="gfam"><th scope="row"><span class="gfb gfx"><span lang="${langOf(dim)}">${esc(nameOf(dim))}</span><span class="cnt">已及格維度</span></span></th>${all.map(c => c.base ? blank : regRow(m => { const v = guardEval(c.per[m]).cells?.[dim], who = `${nameOf(dim)} · ${dispName(c)} · ${m}`;
+    return v == null ? regTd("–", "這個模型上不是已及格維度", true) : regTd(regNum(v), `${who}：退步 ${r3(v)}（max(0, h_ref − h)）。` + CELL_TIP); })).join("")}</tr>`;
   const gd = IDX.guards.length ? `<tbody><tr class="gsec"><th scope="rowgroup" colspan="${nc}">護欄維度 · ${FAMS().length}<span>退步</span></th></tr>
-    ${FAMS().map(famRow).join("")}</tbody>
+    ${FAMS().map(famRow).join("")}${gcellDims.map(gcellRow).join("")}</tbody>
     <tbody class="sum"><tr><th scope="row">r_guard <span class="muted small">${st.mmodel === "all" ? "三模型" : st.mmodel}</span></th>${blank}${cols.map(gcmpFoot).join("")}</tr></tbody>` : "";
   const th = c => c.base ? `<th scope="col" class="cb${one() ? "" : " m3"}">基準 / <span lang="en">${BASE}</span></th>`
     : `<th scope="col" lang="en"${one() ? "" : ` class="m3"`}>${aliasFirst(aliasOf(c.arm) ? c.id : dispName(c), c.arm, wbr)}${roleOf(c.arm) === "calibration" ? `<span class="ctag">校準</span>` : ""}</th>`;
@@ -3805,7 +3997,7 @@ function cmpHTML(cols) {
     <div class="cmpwrap"><table class="cmpt"><thead><tr><th scope="col"${one() ? "" : ` rowspan="2"`}>維度</th>${all.map(th).join("")}</tr>${
       one() ? "" : `<tr class="sub">${all.map(c => `<th scope="col" class="sh${c.base ? " cb" : ""}" aria-label="${esc(MODELS.join("、"))}"><div class="sc3">${MODELS.map(m => `<span lang="en">${m}</span>`).join("")}</div></th>`).join("")}</tr>`}</thead>
     <tbody>${IDX.dims.map(({dim}) => `<tr><th scope="row" lang="en">${esc(nameOf(dim))}</th>${all.map(c => c.base ? baseTd(dim) : cmpCell(c, dim)).join("")}</tr>`).join("")}</tbody>
-    <tbody class="sum"><tr><th scope="row">Δ <span class="muted small">${st.mmodel === "all" ? "三模型" : st.mmodel}</span></th>${blank}${cols.map(c => `<td class="cg">${dl(c) == null ? "–" : rateBig(dl(c))}</td>`).join("")}</tr></tbody>${gd}${sd}</table></div></section>`;
+    <tbody class="sum"><tr><th scope="row">Δ <span class="muted small">${st.mmodel === "all" ? "三模型" : st.mmodel}</span></th>${blank}${cols.map(c => `<td class="cg">${dl(c) == null ? "–" : rateBig(dl(c))}</td>`).join("")}</tr></tbody>${og}${gd}${sd}</table></div></section>`;
 }
 // a preview: each complete model's Δ and S, the not-run models in one short note, the others' missing cells, and r_guard of the
 // models with guard answers whose S is not shown
@@ -3900,10 +4092,11 @@ const modelSeg = () => `<span class="seg" role="group" aria-label="模型">${MPI
 // and 未量測 (dropped by decision) lists
 function rankPage() {
   ensureSide();
-  if (!methodsReady() || !sideReady()) return `<p class="empty">${waiting()}</p>`;
+  // the leaderboard only when every number it shows is in: verdicts, cards, side, the side reference (null_unsteered) and the organism lines
+  if (!methodsReady() || !sideReady() || !rankReady()) return `<p class="empty">${waiting()}</p>`;
   const {rows, parts, previews, pend, dropped} = armGroups();
   const fold = (k, title, body) => `<details class="fold mfold mdropped" data-mfold="${k}"${st.mopen.has(k) ? " open" : ""}><summary>${title}</summary>${body}</details>`;
-  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}${subHead(rows)}</div>${subNoteLine(rows)}${rankHTML(rows, pend)}${lazyNote()}</section>${cmpHTML(rows.filter(c => !c.numbers))}
+  return `<section aria-labelledby="rank-h"><div class="cmphead"><h2 class="mgh" id="rank-h">排行${one() ? ` · ${one()}` : ""}</h2>${scoringTag()}${modelSeg()}${subHead(rows)}${baseSw()}</div>${subNoteLine(rows)}${rankHTML(rows, pend)}${lazyNote()}</section>${cmpHTML(rows.filter(c => !c.numbers))}
     ${parts.length ? fold("_partial", `部分模型 · ${parts.length}`, parts.map(c => previewLine(c, "部分模型")).join("")) : ""}
     ${previews.length ? fold("_preview", `預覽 · ${previews.length}`, previews.map(previewLine).join("")) : ""}
     ${dropped.length ? fold("_dropped", `未量測 · ${dropped.length}`, dropped.map(([a, r]) => `<p class="mdrop"><b lang="en">${esc(a)}</b><span class="ph">未量測</span><span>${esc(r.note || "依決定不量測")}</span></p>`).join("")) : ""}`;
@@ -3960,8 +4153,9 @@ function otherReadings(c) {
     ["basis", "依據", m => doc?.models?.[MKEY[m]]?.S_headline_basis ?? null, 1],
     ["van", p2 ? "vanilla pack 2 S" : "S", m => { const v = c.per[m]?.ok ? sShown(c.per[m]) : null; return v == null ? null : sgn(v, 3); }],
     ["v210", "v2.10 S", m => { const y = a?.per[m], v = y?.ok ? sShown(y) : null; return v == null ? null : sgn(v, 3); }],
-    ["gorg", "g_org（factual holdout）", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.g_org == null ? null : sgn(o.g_org, 3); }],
-    ["rgp", "r_guard 合併", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.r_guard_pooled == null ? null : r3(o.r_guard_pooled); }],
+    ["gorg", "g_org（factual holdout）", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; if (o?.g_org == null) return null; const k = orgCheck(c, m);
+      return `${sgn(o.g_org, 3)}${k?.ok === true ? "（頁面算一致）" : k?.ok === false ? `（頁面算 ${sgn(k.page, 3)}，不一致）` : o.estimated ? "（估計）" : "（卡片數字）"}`; }],
+    ["rgp", "r_guard（含 organism）", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.r_guard_pooled == null ? null : r3(o.r_guard_pooled); }],
     ["sorg", "S_organism", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.S_organism == null ? null : sgn(o.S_organism, 3); }],
   ].filter(([, , f]) => ms.some(m => f(m) != null));
   if (!ms.length || cols.length < 2) return "";
@@ -4162,6 +4356,7 @@ $("#main").addEventListener("click", e => {
     for (const x of SRC.list) if (archOf(x.name)) SRC.user.delete(x.name);
     saveSrc(); load(); overview(); $("p.lazy input[data-arch]")?.focus();
   }
+  else if (e.target.closest("[data-basesw]")) { BASEON = !BASEON; try { store.set("s2v-base", BASEON ? "1" : "0"); } catch (err) {} overview(); $("[data-basesw]")?.focus(); }
   else if (sb) { SIDESUB = !SIDESUB; try { store.set("s2v-sidesub", SIDESUB ? "1" : "0"); } catch (err) {} overview(); $("[data-sidesub]")?.focus(); }
   else if (s) {
     const k = s.dataset.sort;
@@ -4234,6 +4429,8 @@ function renderList() {
 // sheet's grid and, folded, in the 維度總覽 (各方法).
 // the rows a line's number is over, for a model: a dim's counted rows (the side filter has already chosen train, test, kit), a 護欄's member core test rows
 const listRows = (rows, m) => D.guard ? rows.filter(r => isMember(r, MKEY[m])) : rows.filter(r => r.side === "kit" || counted(r));
+const standCells = () => MODELS.map(m => { const r = orgRef(m), tip = r ? `stand-in ${r.org} 在 ${r.n} 個 gated 列的 h` : "沒有參照行";
+  return `<span class="num" title="${esc(tip)}" role="img" aria-label="${esc(tip)}"><span class="cv">${r ? `<span class="rate ${bandOf(r.h)}">${cr2(r.h)}</span>` : `<span class="rate none">–</span>`}</span></span>`; }).join("");
 const modelCells = rows => MODELS.map(m => crCell(D.dim, rows, m, BASE, {pop: listRows, split: true})).join("");
 // the arms with answers on the format, unsteered first, then the calibration arms, then the methods, each group in the ranking's order (the
 // leaderboard's, as sorted now) once the cards are in, else the loading order
@@ -4265,6 +4462,7 @@ function armsFold(rows) {
 }
 function fsumHTML() {
   if (D.guard) return gsumHTML();
+  if (D.organism) return osumHTML();
   const d = IDX.dims.find(x => x.dim === st.dim);
   const rows = fsumRows();
   const jk = D.judge.kind === "judge" ? "評審" : "評分";
@@ -4272,6 +4470,20 @@ function fsumHTML() {
     ${fcells(rows)}
     ${armsFold(rows)}
     <p class="facts">${d.pitems} 題、${d.groups} 個模板 · ${d.rows} 列（train ${d.train}、test ${d.test}）${d.kit ? ` · kit ${d.kit} 列` : ""}${d.refs ? ` · 參照 ${d.refs} 題` : ""} · ${jk} <button type="button" class="ilink mono" data-judge lang="en">${esc(d.judge.startsWith("parser: ") ? d.judge.split("/").pop() : d.judge.split(" ")[0])}</button></p></div>`;
+}
+// the organism eval's summary (C133, provisional): per model the stand-in organism and its h on the gated rows (the reference), then each
+// switched-on method's g_org against it; the rows below show the method's answers beside the stand-in's (shown as unsteered on this page only)
+function osumHTML() {
+  const d = IDX.org.find(x => x.dim === st.dim), ms = one() ? [one()] : MODELS;
+  const head = `<div class="ogrid"><span></span>${ms.map(m => `<span class="ogm" lang="en">${m}</span>`).join("")}</div>`;
+  const ref = `<div class="ogrid"><span class="olab">stand-in<span class="sub">unsteered，參照</span></span>${ms.map(m => { const r = orgRef(m);
+    return r ? `<span title="${esc(`${m}：${r.org}（${r.src}）在 ${r.n} 個 gated 列的 h ${r3(r.h)}`)}"><span class="rate ${bandOf(r.h)}">${cr2(r.h)}</span> <span class="muted small" lang="en">${esc(r.org)}</span></span>` : `<span class="muted">–</span>`; }).join("")}</div>`;
+  const meth = cards().filter(c => !c.numbers && ms.some(m => orgG(c.S.name, c.arm, m)?.g != null)).map(c => `<div class="ogrid"><span class="olab" lang="en">${esc(dispName(c))}</span>${ms.map(m => { const p = orgG(c.S.name, c.arm, m);
+    return p?.g == null ? `<span class="muted">–</span>` : `<span title="${esc(`${m}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，h_ref ${r3(p.href)}，${p.n} 個 gated 列）`)}"><span class="dl ${+p.g.toFixed(3) < 0 ? "down" : ""}">${sgn(p.g, 2)}</span> <span class="muted small">h ${cr2(p.h)}</span></span>`; }).join("")}</div>`).join("");
+  return `<div class="fsum"><h2>維度總覽</h2>
+    <p class="gdir">${esc(d.label || IDX.meta.organism_label || "")}</p>
+    <div class="otab" style="--nm: ${ms.length}">${head}${ref}${meth ? `<div class="osep">g_org（provisional，C133）</div>${meth}` : ""}</div>
+    <p class="facts">${d.pitems} 題，每個模型 200 個 gated 列計分 · 本頁的 unsteered 是各模型的 stand-in organism · ${D.judge.kind === "judge" ? "評審" : "評分"} <button type="button" class="ilink mono" data-judge lang="en">${esc(String(d.judge).split(" ")[0])}</button></p></div>`;
 }
 // a 護欄's summary: what it guards against (direction), unsteered's score per model, the arms' table folded, the facts, the grader
 function gsumHTML() {
@@ -4290,7 +4502,7 @@ function fsrow() {
   const href = compact() ? `#${st.dim}~${SUMSLUG}` : "#" + st.dim, pr = fsumRows();
   return `<a class="trow fsrow${on ? " on" : ""}" href="${esc(href)}"${on ? ` aria-current="page"` : ""}>
     <div class="tt"><b>維度總覽</b></div>
-    ${modelCells(pr)}</a>`;
+    ${D.organism ? standCells() : modelCells(pr)}</a>`;
 }
 function trow(g) {
   const its = visible(g);
@@ -4314,7 +4526,7 @@ function templateList() {
   const rows = D.groups.map(trow).join("").trim(), kitRows = D.kitgroups.map(trow).join("").trim();
   const refs = refList(false), krefs = refList(true);
   const kit = (kitRows || krefs.length) ? `<div class="kithead${D.guard ? " gd" : ""}">${D.guard ? "kit · 也是 test 核心列，計入分數" : "kit · 不計入"}</div>${kitRows}${refsHTML(krefs, true)}` : "";
-  return `<div class="tstick"><div class="thead"><span>${D.guard ? "分組" : "模板"}<span class="muted"> · ${BASE} ${D.guard ? "分數" : "得分"}</span></span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div></div>` + fsrow()
+  return `<div class="tstick"><div class="thead"><span>${D.guard ? "分組" : "模板"}<span class="muted"> · ${D.organism ? "stand-in" : BASE} ${D.guard ? "分數" : "得分"}</span></span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div></div>` + fsrow()
     + (rows || (kit ? "" : `<div class="empty">沒有符合篩選的模板。</div>`)) + refsHTML(refs, false) + kit;
 }
 // ---------- template page ----------
@@ -4343,7 +4555,7 @@ function renderTemplate() {
     ${g.setting && g.setting.toLowerCase() !== g.title.toLowerCase() ? `<p class="setline" lang="en">${esc(g.setting)}</p>` : ""}
     <div class="meta">${tids}${styles}<span class="chip">${g.items.length} 題</span>${g.kit ? `<span class="chip kit">kit ${all.length}</span>` : `<span class="chip">train ${train}、test ${test}</span>`}${tiers}</div>
     <div class="sec"><h3>情境${cap ? ` <span class="h3note">${cap}</span>` : ""}</h3>${setting}</div>
-    <div class="sec"><h3>各題 <span class="h3note">${BASE} ${D.guard ? "分數" : "得分"}</span></h3>
+    <div class="sec"><h3>各題 <span class="h3note">${D.organism ? "stand-in" : BASE} ${D.guard ? "分數" : "得分"}</span></h3>
       <div class="itable"><div class="ihead"><span>${head}</span>${MODELS.map(m => `<span>${m}</span>`).join("")}</div>
       ${list || `<div class="empty">沒有符合篩選的題目。</div>`}</div></div>`;
 }
@@ -4372,7 +4584,7 @@ function selected(rows) {
   return new Set(rows.slice(0, 1).flatMap(r => sheetModels().filter(m => cellAns(r, m, a).length).map(m => cellKey(r, m, a))));
 }
 // the tag on B's column and cards: 對照 on a method's card, else the baseline's 基準
-const tagOf = a => selMeth() ? (a === selRef() ? "對照" : "") : (a === BASE ? "基準" : "");
+const tagOf = a => selMeth() ? (a === selRef() ? "對照" : "") : (a === BASE ? (D?.organism ? "stand-in" : "基準") : "");
 // a row's place in the item: the pressure row, else its condition (a twin: "<condition> 對照")
 const condLabel = (r, i) => !i && D.guard ? "題目" : !i && r.condition === "pressure" ? "施壓" : `<span lang="en">${esc(r.condition)}</span>${i ? " 對照" : ""}`;
 const condText = (r, i) => !i && D.guard ? "題目" : !i && r.condition === "pressure" ? "施壓" : `${r.condition}${i ? " 對照" : ""}`;
@@ -4452,7 +4664,7 @@ function matrixHTML(rows, sel) {
   const nsel = [...sel].filter(k => D.rows[k.split("|")[0]]).length;
   return `<div class="mxbar"><div class="mxwrap"><table class="vm" aria-label="得分：模型 × 介入方式">
     <thead><tr class="gh"><th></th>${rows.map((r, i) => gs(i, "th") + `<th colspan="${as.length}" scope="colgroup">${condLabel(r, i)}${r.rjp ? ` <span class="chip pend" title="${esc(REJ_TIP)}">待補</span>` : ""}</th>`).join("")}</tr>
-    <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${tagOf(a) ? `<span class="bl">${tagOf(a)}</span>` : ""}<span lang="en">${wbr(a)}</span></th>`).join("")).join("")}</tr></thead>
+    <tr class="ah"><th></th>${rows.map((r, i) => gs(i, "th") + as.map(a => `<th scope="col"${a === meth ? ` class="cur"` : ""}>${a === BASE && D.organism && !meth ? `<span lang="en" title="${esc("參照是 stand-in organism，不是真的 unsteered 模型")}">stand-in</span>` : `${tagOf(a) ? `<span class="bl">${tagOf(a)}</span>` : ""}<span lang="en">${wbr(a)}</span>`}</th>`).join("")).join("")}</tr></thead>
     <tbody>${MODELS.map(m => `<tr><th scope="row">${m}</th>${rows.map((r, i) => gs(i, "td") + as.map(a => cellHTML(r, m, a, i, sel)).join("")).join("")}</tr>`).join("")}</tbody></table></div>
     <div class="mxact"><span class="cnt">已選 ${nsel} / ${total} 格</span></div></div>`;
 }
@@ -4620,7 +4832,7 @@ $("#sheet-flags-body").addEventListener("click", e => {
 
 // a line's head, shared by the answer card and the no-text row: who (model · arm · condition · seed, turn), the grader's verdict as written, its credit
 function ansMeta(r, i, x, first) {
-  const who = `<span lang="en">${esc([x.m, x.a, (i || r.condition !== "pressure") && !D.guard ? r.condition : null, `seed ${x.seed}`].filter(Boolean).join(" · "))}</span>${r.turns > 1 ? ` · 第 ${x.turn - first + 1} 輪` : ""}`;
+  const who = `<span lang="en">${esc([x.m, D.organism && x.a === BASE ? orgRef(x.m)?.org || x.a : x.a, (i || r.condition !== "pressure") && !D.guard ? r.condition : null, `seed ${x.seed}`].filter(Boolean).join(" · "))}</span>${r.turns > 1 ? ` · 第 ${x.turn - first + 1} 輪` : ""}`;
   // a 護欄 line: the grader's verdict (named, and as written when the name differs), its score or 不計分, the grader's reason under it
   const g = D.guard && GCLS[x.cls], raw = g && x.v != null && String(x.v) !== g[0] ? `<span class="mono" lang="en">${esc(x.v)}</span>` : "";
   const sc = g ? (x.cr != null ? `<span class="cr">分數 ${+x.cr.toFixed(2)}</span>` : `<span class="cr">不計分</span>`) : x.cr != null ? `<span class="cr">得分 ${x.cr}</span>`
@@ -4631,7 +4843,9 @@ function ansMeta(r, i, x, first) {
 const ntRowHTML = (r, i, x, first) => { const {who, raw, sc} = ansMeta(r, i, x, first); return `<div class="ah">${pill(x.cls)}${raw}${sc}<span class="who">${who}</span></div>`; };
 function ntHTML(items, first) {
   const arms = [...new Set(items.map(([, , x]) => x.a))];
-  return `<article class="card nt"><p class="ntn">回答未載入：<span lang="en">${esc(arms.join("、"))}</span> 只載入判定和分數。</p>${items.map(([r, i, x]) => ntRowHTML(r, i, x, first.get(r.id))).join("")}</article>`;
+  const srcs = [...new Set(items.map(([, , x]) => x.src).filter(n => textPending(n)))];
+  for (const n of srcs) if (!BUMP.has(n)) { BUMP.add(n); textLoad(SRC.gen); }  // someone is reading these: their text goes next
+  return `<article class="card nt"><p class="ntn">${srcs.length ? `回答文字背景載入中（<span lang="en">${esc(srcs.join("、"))}</span> 已排到最前）；先列判定和分數。` : `回答未載入：<span lang="en">${esc(arms.join("、"))}</span> 只載入判定和分數。`}</p>${items.map(([r, i, x]) => ntRowHTML(r, i, x, first.get(r.id))).join("")}</article>`;
 }
 function cardHTML(r, i, x, first, meth) {
   const k = ansKey(r, x), open = st.exp.has(k), base = tagOf(x.a), {who, raw, sc} = ansMeta(r, i, x, first);
@@ -4780,7 +4994,8 @@ function keyDrawer(adopt) {
   <h3>標記</h3>
   <ul class="small rule">
     <li><span class="raw">${NO_SIDE}</span>：S 沒減 r_side（還沒跑 side）</li>
-    <li><span class="raw sub">${SUB}</span>：開了「side：代入參考值」時，不跑 side 的方法用 unsteered 基準的 r_side 算的 S；不是量測值</li>
+    <li><span class="subbox" aria-hidden="true"></span>虛線框 = ${SUB}：開了「side：代入參考值」時，不跑 side 的方法用 unsteered 基準的 r_side 算的 S；不是量測值</li>
+    ${HL() ? `<li>S 含 organism term（C133，暫定）；<sup class="est">est</sup> = 估計 g_org</li>` : ""}
     ${Object.entries(GAST).map(([g, why]) => `<li><b>${esc(nameOf(g))}</b>：<span lang="en">${esc(why)}</span></li>`).join("")}${
       FAMS().filter(f => FAST[f.name]).map(f => `<li><b>${esc(famName(f))}</b>：<span lang="en">${esc(FAST[f.name])}</span></li>`).join("")}
     ${Object.entries(IDX?.meta.arm_roles || {}).filter(([, r]) => r.best_effort).map(([a, r]) => `<li><b lang="en">${esc(a)}*</b>：<span lang="en">${esc(r.best_effort)}</span></li>`).join("")}
