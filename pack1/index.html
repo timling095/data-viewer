@@ -2591,7 +2591,7 @@ function dimsPartial(S, arm, m) {
 }
 const P2INC = "pack 2 incomplete";
 const partialWhy = x => `${P2INC}：${Object.entries(x.partial).map(([d, [a, b]]) => `${nameOf(d)} ${b} 列只有 ${a} 列有回答`).join("、")}；新列（${IDX.meta.partial_dims.rounds.join("、")}）是這個方法跑完後才加的，Δ 只用它有回答的列（score.py g --partial-dims old-rows）`;
-const partialNote = x => x?.partial ? `<span class="raw" lang="en" title="${esc(partialWhy(x))}">${P2INC}</span>` : "";
+const partialNote = x => x?.partial ? `<sup class="est" lang="en" title="${esc(partialWhy(x))}">部分</sup>` : "";
 const sBase = b => b?.split(";")[0];  // the card's S_basis without its notes ("without side costs; pack 2 incomplete: …")
 function missText(c) {  // the preview's summary: formats missing per seed, complete seeds, other reasons
   if (c.notRun) return NOT_RUN;
@@ -3731,7 +3731,7 @@ function rankRow1(c) {
   const gV = !N ? "" : ge.rg == null ? `<td class="rk-n" title="${esc(rgText(m, ge))}"><span class="muted">–</span></td>`
     : `<td class="rk-n" title="${esc(rgText(m, ge, x))}"><span class="lnum dl ${+ge.rg.toFixed(3) > 0 ? "down" : ""}">${r3(ge.rg)}</span>${regradeTotal(x) ? rgdChip() : ""}${
       ge.present.length < N ? `<span class="raw">${ge.present.length}/${N}</span>` : ""}${ge.complete ? "" : `<span class="raw">部分</span>`}</td>`;
-  return `<tr class="rkr${cal ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCell1(c)}${hl1() ? dOrgTd(c) + dCell1(c) + (N ? (gP || `<td class="rk-n"><span class="muted">–</span></td>`) + gV : "") : (gP || gV)}${rsCell1(c)}</tr>`;
+  return `<tr class="rkr${cal ? " cal" : ""}" data-href="${esc(mhref(c))}">${rkName(c)}${sCell1(c)}${hl1() ? dOrgTd(c) + dCell1(c) + (N ? (gP || `<td class="rk-n"><span class="muted">–</span></td>`) + gV : "") : dCell1(c) + (gP || gV)}${rsCell1(c)}</tr>`;
 }
 // a quiet line under an S that leaves r_side out (the method has no side lines): the rest of the column is S = Δ − 3·r_side − 3·r_guard
 const sNote = x => partialNote(x) + sNote0(x);
@@ -4045,7 +4045,7 @@ function numSort(c, k) {
 function numCell(c, k) {
   const why = numWhy(c), file = c.S.cfile?.[`${HEAD_RD()}|${c.arm}`] || `g_${c.arm}.json`, src = `卡片數字（${file}），頁面沒有重算；載入逐題回答後由頁面算並對照`;
   const td = (html, tip) => `<td class="rk-n numc" title="${esc(`${tip}。${src}`)}">${html}</td>`, none = tip => td(`<span class="muted">–</span>`, why ? `沒有：${why}` : tip);
-  const inc = b => /pack 2 incomplete/.test(b || "") ? `<span class="raw" lang="en" title="${esc(b)}">${P2INC}</span>` : "";
+  const inc = b => /pack 2 incomplete/.test(b || "") ? `<sup class="est" lang="en" title="${esc(b)}">部分</sup>` : "";
   const sCell = (v, basis, who) => v == null ? none(`${who} 沒有 S`) : td(rateBig(v) + inc(basis) + (basis && sBase(basis) !== "with side costs" ? `<span class="raw">${NO_SIDE}</span>` : ""), `${who} S ${sgn(v, 3)}${basis ? `（${basis}）` : ""}`);
   const m1 = one(), mm = m1 ? m1 : null;
   const hcell = (v, xs, van, who) => td(rateBig(v) + hlTag(xs, file), `${who} S_headline ${sgn(v, 3)}；vanilla pack 2 S ${van == null ? "–" : sgn(van, 3)}${xs.length === 1 ? orgTip(xs[0]) : ""}`);
