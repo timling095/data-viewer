@@ -2513,12 +2513,16 @@ function spreadText(r) {  // the range's tooltip: per-seed estimates, not an int
   return `範圍：${seedRange(sp.seeds)} 各自算的 g ${sgn(sp.lo)} 至 ${sgn(sp.hi)}（不是信賴區間）${out ? "；合併值在範圍外" : ""}。${thin}`;
 }
 // what the page holds: per seed, the test rows with an answer that has a verdict (NONE: none in the verdict file)
+// the test rows an arm must answer (score.py required_rows): method_rows.json's dim rows when the pack has it (meta.partial_dims.rows;
+// control and reserve rows are the reference's only), else every test row
+const reqRows = dim => { const D = DATA.data[dim], R = IDX.meta.partial_dims?.rows; if (!R) return D.trows;
+  const S = IDX.reqSet ||= new Set(R); return D.reqRows ||= D.trows.filter(r => S.has(r.id)); };
 function coverage(src, m, a) {
   const found = new Set(), per = {};
   for (const {dim} of IDX.dims) {
     const by = armIx(src, dim, m, a), bySeed = per[dim] = new Map();
     if (!by) continue;
-    for (const r of DATA.data[dim].trows) for (const x of by.get(r.id) || []) {
+    for (const r of reqRows(dim)) for (const x of by.get(r.id) || []) {
       if (x.cls === "NONE") continue;
       found.add(x.seed);
       if (!bySeed.has(x.seed)) bySeed.set(x.seed, new Set());
@@ -2527,7 +2531,7 @@ function coverage(src, m, a) {
   }
   const seeds = [...new Set([...found, ...Array.from({length: MIN_SEEDS}, (_, i) => i)])].sort((x, y) => x - y), miss = [];
   for (const s of seeds) for (const {dim} of IDX.dims) {
-    const k = DATA.data[dim].trows.length - (per[dim].get(s)?.size || 0);
+    const k = reqRows(dim).length - (per[dim].get(s)?.size || 0);
     if (k > 0) miss.push({dim, arm: a, seed: s, count: k, kind: "records"});
   }
   return {found: [...found].sort((x, y) => x - y), complete: seeds.filter(s => !miss.some(x => x.seed === s)), miss};
@@ -2566,7 +2570,7 @@ function qualify(S, arm, m) {
     if (rStat !== "complete") c.reasons.push(`${BASE} 不完整`);
     // score.py --partial-dims old-rows: an arm whose only gap is rows folded in after its run is scored on the rows it has (S noted)
     if (!ok && rStat === "complete") { const pd = dimsPartial(S, arm, m); if (pd) { ok = true; c.partial = pd; c.seeds = inter(qm.seeds?.[arm], rSeeds); } }
-    if (ok !== dOk || (ok && !sameSet(c.seeds, dShared)))
+    if (!c.partial && (ok !== dOk || (ok && !sameSet(c.seeds, dShared))))  // a partial reading's gap is the point of it, said by partialWhy
       c.warn.push(`匯出紀錄（meta.json）記為${ok ? "完整" : "不完整"}（共同的完整 seed：${c.seeds.join("、") || "無"}），頁面讀到的回答核對為${dOk ? "完整" : "不完整"}${dShared.length ? `（${dShared.join("、")}）` : (x => x ? `（每個 seed 都缺列，例：${x.arm !== arm ? `${x.arm} ` : ""}${nameOf(x.dim)} seed ${x.seed} 缺 ${x.count} 列）` : "（沒有共同的完整 seed）")([...dM.miss, ...dR.miss][0])}。數字依匯出紀錄。`);
   } else {
     c.seeds = dShared; ok = dOk;
@@ -2775,7 +2779,7 @@ function compGate(card) {
     if (rn != null && v != null && sBase(x.S_basis) === basis && Math.abs(rn - sNoMin(c)) > CI_TOL) why.push(`${c.m} 的不設下限 S ${sgn(rn, 3)} 和頁面算的 ${sgn(sNoMin(c), 3)} 不同`);
   }
   if (fewRule() && DSIDE && sideReady() && doc.cross_model && "S_no_hint_min" in doc.cross_model) {
-    const f = doc.cross_model.S_no_hint_min, vs = all.map(c => c.notRun || !c.ok ? null : sNoMin(c)), v = vs.every(x => x != null) && cardBasis(card) ? avg(vs) : null;  // score.py: withheld when the models' side bases differ
+    const f = doc.cross_model.S_no_hint_min, vs = all.map(c => c.notRun || !c.ok ? null : sNoMin(c)), v = vs.every(x => x != null) && cardBasis(card) && all.some(c => !c.notRun && c.ok && deltaNoMin(c) != null) ? avg(vs) : null;  // score.py: withheld when the models' side bases differ, null when no model has a cell under the minimum
     if ((f == null) !== (v == null) || (f != null && Math.abs(f - v) > CI_TOL)) why.push(`三模型的不設下限 S ${f == null ? "–" : sgn(f, 3)} 和頁面算的 ${v == null ? "–" : sgn(v, 3)} 不同`);
   }
   return {doc, ok: !why.length, why: why.join("；"), file: card.S.cfile?.[`${card.rd}|${card.arm}`] || `g_${card.arm}.json`};
