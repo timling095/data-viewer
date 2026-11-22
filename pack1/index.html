@@ -1451,7 +1451,13 @@ function orgRow(d) {
   return `<div class="mxr nl" title="${esc(d.label || IDX.meta.organism_label || "")}"><span class="mxn"><b lang="en">factual holdout</b><span class="cnt">${d.pitems} 題 · g_org</span></span>${
     MODELS.map(m => { const r = orgRef(m); return `<span data-m="${m}"><span class="sr">${m}</span>${r ? `<span class="num" title="${esc(`${m}：stand-in ${r.org}（${r.src}，unsteered）在 ${r.n} 個 gated 列的 h ${r3(r.h)}；方法的 g_org = (h − h_ref)/(1 − h_ref)`)}"><span class="rate ${bandOf(r.h)}">${cr2(r.h)}</span></span>` : `<span class="muted" title="${esc(ORGL && Object.keys(ORGL).length ? "沒有參照行（團隊匯出不含 results/org-*）" : "載入中")}">–</span>`}</span>`; }).join("")}</div>`;
 }
-const orgCheck = (c, m) => { const o = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133; if (!o || o.g_org == null || o.estimated) return null;
+// the organism block of record on a card's models.<m> (pack_1 2026-11-20, C151 merged): organism_c151 where it is the reading of record,
+// else organism_c133 (older cards); orgK names it for labels
+const orgB = x => x?.organism_c151?.reading_of_record ? x.organism_c151 : x?.organism_c133 || null;
+const orgK = x => x?.organism_c151?.reading_of_record ? "C151" : "C133";
+// which organism terms the headline's cards carry as the record ("C151", "C133" or both, by card)
+const HLKIND = () => [...new Set(cards(HEAD_RD()).flatMap(c => MODELS.map(m => hlDoc(c)?.models?.[MKEY[m]]).filter(x => orgB(x)).map(orgK)))].sort().reverse().join("／") || "C133";
+const orgCheck = (c, m) => { const o = orgB(hlDoc(c)?.models?.[MKEY[m]]); if (!o || o.g_org == null || o.estimated) return null;
   const p = c.numbers ? null : orgG(c.S.name, c.arm, m); return {card: o.g_org, page: p?.g ?? null, ok: p?.g == null ? null : Math.abs(p.g - o.g_org) <= 5e-4, p}; };
 async function pool(jobs, k, fn) {  // a job that throws ends that job, never the worker (and so never the jobs behind it)
   let i = 0;
@@ -2086,7 +2092,7 @@ function renderBar() {
     const opt = d => `<option value="${esc(d.dim)}"${d.dim === st.dim ? " selected" : ""} lang="${langOf(d.dim)}">${esc(label(d.dim))}</option>`;
     ttl = `<select id="dimsel" class="sel" aria-label="切換維度" title="切換維度" lang="${langOf(st.dim)}"><optgroup label="不誠實維度" lang="zh-Hant">${IDX.dims.map(opt).join("")}</optgroup>${
       IDX.guards.length ? FAMS().filter(f => f.guards.length).map(f => `<optgroup label="${esc(`護欄 · ${famName(f)}`)}" lang="zh-Hant">${f.guards.map(g => opt(IDX.guards.find(x => x.dim === g))).join("")}</optgroup>`).join("") : ""}${
-      IDX.org?.length ? `<optgroup label="Organism (C133)" lang="en">${IDX.org.map(opt).join("")}</optgroup>` : ""}</select>`;
+      IDX.org?.length ? `<optgroup label="Organism" lang="en">${IDX.org.map(opt).join("")}</optgroup>` : ""}</select>`;
     up = [DIMS, "總覽"];
   }
   const t = $("#ttl");
@@ -2201,7 +2207,7 @@ function overview() {
     body.innerHTML = top !== "fmt" ? `<div class="mcards" id="mcards"></div>`
       : `<p class="lede" id="ovlede"></p><div class="matrix"><div class="mxh"><span class="mxg">不誠實維度 · ${IDX.dims.length}<span class="mxu">得分</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mx" aria-label="不誠實維度"></nav></div>${
         IDX.guards.length ? `<div class="matrix gd"><div class="mxh"><span class="mxg">護欄維度 · ${FAMS().length}<span class="mxu">${IDX.guards.length} 個護欄 · 分數</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mxg" aria-label="護欄維度"></nav></div>` : ""}${
-        IDX.org?.length ? `<div class="matrix gd org"><div class="mxh"><span class="mxg" lang="en">Organism (C133) · ${IDX.org.length}<span class="mxu">stand-in 參照的得分（provisional）</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mxo" aria-label="Organism"></nav></div>` : ""}${
+        IDX.org?.length ? `<div class="matrix gd org"><div class="mxh"><span class="mxg" lang="en">Organism · ${IDX.org.length}<span class="mxu">stand-in 參照的得分（provisional）</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><nav id="mxo" aria-label="Organism"></nav></div>` : ""}${
         DSIDE ? `<div class="matrix sdm"><div class="mxh"><span class="mxg">side · ${SCATS().filter(k => !catApart(k)).length + catsUnmeasured().length}<span class="mxu">${DSIDE.benches.length} 個 bench · 正確率</span></span>${MODELS.map(m => `<span aria-hidden="true">${m}</span>`).join("")}</div><div id="mxs"></div></div>` : ""}`;
   }
   if (top !== "fmt") {
@@ -3042,7 +3048,7 @@ function jwArm(dim, by, role, cut, unv, vmap) {
   for (const [rid, lines] of by) {
     let xs = lines.map(x => {
       const st = x.hr || 0, k = `${rid}|${x.seed}`;
-      if (hr && st !== 2) {
+      if (hr && st !== 2 && st !== 3) {  // unverified (2) and uncounted (3) lines stay at 16,384
         if (role === "r" && st === 1 && !unv.has(k)) return J.hr_ref === "abstain" ? reLine(x, "ABSTAINED", 0, {trunc: true, hrc: "cut"}) : gone(x);
         if (role === "m" && J.hr_ref === "unscored" && cut.has(k)) return gone(x);
         if (role === "m" && st === 1) return reLine(x, "ABSTAINED", 0, {trunc: true, hrc: "cut"});
@@ -3446,7 +3452,7 @@ function cardHTML2(card, page) {  // page: the method page's detail (the title i
   const warn = warns.length ? `<p class="mc-warn">${warns.map(esc).join("<br>")}</p>` : "";
   const fk = `${S.name}|${arm}|dims`;
   const drows = colhead + IDX.dims.map(({dim}) => grid(`<span lang="en">${esc(nameOf(dim))}</span>`, ms.map(c => dimCell(c, dim)).join(""), " mdim mdr")).join("")
-    + (IDX.org?.length && !card.numbers && ms.some(c => orgGval(card, c.m)) ? `<div class="mfsub">Organism（C133，暫定）</div>` + grid(`<span lang="en">factual holdout</span>`, ms.map(c => orgDimCell(card, c)).join(""), " mdim mdr") : "");
+    + (IDX.org?.length && !card.numbers && ms.some(c => orgGval(card, c.m)) ? `<div class="mfsub">Organism（暫定）</div>` + grid(`<span lang="en">factual holdout</span>`, ms.map(c => orgDimCell(card, c)).join(""), " mdim mdr") : "");
   const dims = page ? `<h4 class="msec">各維度${card.any ? "" : " <span>預覽，不計分</span>"}</h4>${drows}`
     : `<details class="fold mfold" data-mfold="${esc(fk)}"${st.mopen.has(fk) ? " open" : ""}><summary>各維度</summary>${drows}</details>`;
   if (!card.any) return `<article class="mcard preview${page ? " page" : ""}">${head}${colhead}${headline}${card.pv ? dims : ""}${guardSec(card, colhead)}${sideSec(card, colhead)}${missFold(card)}${warn}</article>`;
@@ -3467,17 +3473,22 @@ function guardSec(card, colhead) {  // colhead is reassigned for the two-column 
   if (!IDX.guards.length) return "";
   const ms = CMS().map(m => card.per[m]), ges = ms.map(guardEval);
   // one model shown and its card carries the organism guards: a second value column (the stand-in's regressions) and the card's pooled figures
-  const OGd = one() && !card.numbers ? hlDoc(card)?.models?.[MKEY[one()]]?.organism_c133 : null, og = OGd?.organism_guards ? OGd : null, OGR = og?.organism_guards.regressions || {};
+  const OGd = one() && !card.numbers ? orgB(hlDoc(card)?.models?.[MKEY[one()]]) : null, og = OGd?.organism_guards || OGd?.known_answer ? OGd : null;
+  // C151 (pack_1 2026-11-20): one known-answer cell in place of C133's organism guards, shown on its own row (KA), never inside a family
+  const KA = "\0ka", ka = og?.organism_guards ? null : og?.known_answer || null, kaOn = ka && og.c151_cell !== "not measured" && ka.reg != null;
+  const OGR = og?.organism_guards ? og.organism_guards.regressions || {} : kaOn ? {[KA]: {reg: ka.reg, u: ka.u, v: ka.v, n_rows: ka.n_rows}} : {};
+  const KA_LAB = "C151 known-answer cell (rows chosen on unsteered s0, scored s1-2)", kName = k => k === KA ? KA_LAB : nameOf(k);
+  const kaBeside = !ka ? "" : [["same seeds", ka.same_seeds], ["option 1", ka.option1]].filter(([, x]) => x?.reg != null).map(([l, x]) => `${l} ${r3(x.reg)}（u ${r3(x.u)} → v ${r3(x.v)}，${x.n_rows} 列）`).join("；");
   const grid = (lab, cells, cls = "", ex = "<span></span><span></span>") => `<div class="mgrid mrow${cls}${m1()}${og ? " mo" : ""}"><span class="mlab">${lab}</span>${cells}${og ? ex : ""}</div>`;
   const cardNo = `卡片數字（${cfileOf(card)}），頁面沒有重算`;
   if (og) colhead = `<div class="mgrid mhead m1 mo" aria-hidden="true"><span></span><span>base</span><span>organism</span><span>合併</span></div>`;
-  const ogg = og?.organism_guards, ogLine = og ? `<p class="small muted">organism：<span lang="en">${esc(ogg.arm ?? "")}</span>（<span class="mono" lang="en">${esc(ogg.source ?? "")}</span>）對 <span lang="en">${esc(ogg.reference ?? "")}</span>，seed ${esc([].concat(ogg.seeds_method ?? []).join("、") || "–")}，${ogg.units_present ?? "–"}/${ogg.units ?? "–"}</p>` : "";
-  const keyFam = key => FAMS().find(f => famKids(f).some(k => k.o === key || k.dim === key) || f.guards.includes(key));
+  const ogg = og?.organism_guards || (ka ? {arm: ka.organism, source: ka.source, reference: ka.reference, seeds_method: ka.seeds, units_present: ka.n_rows, units: ka.n_rows} : null), ogLine = og ? `<p class="small muted">organism（${orgK(hlDoc(card)?.models?.[MKEY[one()]])}，暫定）：<span lang="en">${esc(ogg.arm ?? "")}</span>（<span class="mono" lang="en">${esc(ogg.source ?? "")}</span>）對 <span lang="en">${esc(ogg.reference ?? "")}</span>，seed ${esc([].concat(ogg.seeds_method ?? []).join("、") || "–")}，${ogg.units_present ?? "–"}/${ogg.units ?? "–"}</p>` : "";
+  const keyFam = key => key === KA ? undefined : FAMS().find(f => famKids(f).some(k => k.o === key || k.dim === key) || f.guards.includes(key));
   const orgGuardCell = (key, who) => { const e = OGR[key]; if (!e) return `<span></span>`;
-    return `<span class="mcell" title="${esc(`${who}organism ${nameOf(key)}：退步 ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）；${cardNo}`)}"><span class="dnum"><span class="lnum dl ${+e.reg.toFixed(3) > 0 ? "down" : ""}">${r3(e.reg)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`; };
+    return `<span class="mcell" title="${esc(`${who}organism ${kName(key)}：退步 ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）${key === KA && kaBeside ? `；另讀（不計入）：${kaBeside}` : ""}；${cardNo}`)}"><span class="dnum"><span class="lnum dl ${+e.reg.toFixed(3) > 0 ? "down" : ""}">${r3(e.reg)}</span><span class="raw">${e.u.toFixed(2)} → ${e.v.toFixed(2)}</span></span></span>`; };
   const orgFamEx = (f, keys) => { const es = keys.filter(k => OGR[k]).map(k => [k, OGR[k]]), pooled = f ? og.r_guard_families_pooled?.[f.name] : null;
     const worst = es.reduce((a, b) => !a || b[1].reg > a[1].reg ? b : a, null);
-    const oc = !worst ? `<span></span>` : `<span class="mcell" title="${esc(`organism 護欄：${es.map(([k, e]) => `${nameOf(k)} ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）`).join("；")}；${cardNo}`)}"><span class="lnum dl ${+worst[1].reg.toFixed(3) > 0 ? "down" : ""}">${r3(worst[1].reg)}</span>${+worst[1].reg.toFixed(3) > 0 ? `<span class="raw nm" lang="en">${esc(nameOf(worst[0]))}</span>` : ""}</span>`;
+    const oc = !worst ? `<span></span>` : `<span class="mcell" title="${esc(`organism 護欄：${es.map(([k, e]) => `${kName(k)} ${r3(e.reg)}（u ${r3(e.u)} → v ${r3(e.v)}，${e.n_rows} 列）`).join("；")}；${cardNo}`)}"><span class="lnum dl ${+worst[1].reg.toFixed(3) > 0 ? "down" : ""}">${r3(worst[1].reg)}</span>${+worst[1].reg.toFixed(3) > 0 && worst[0] !== KA ? `<span class="raw nm" lang="en">${esc(nameOf(worst[0]))}</span>` : ""}</span>`;
     const pc = pooled == null ? `<span></span>` : `<span class="mcell muted" title="${esc(`${f.name.replaceAll("_", " ")} 合併（基準與 organism 護欄一起）：${r3(pooled)}；${cardNo}`)}">${r3(pooled)}</span>`;
     return oc + pc; };
   const h = `<h4 class="msec gd">護欄</h4>${ogLine}`;
@@ -3498,7 +3509,9 @@ function guardSec(card, colhead) {  // colhead is reassigned for the two-column 
     return `<span class="mcell" title="${esc(`${famName(f)} · ${c.m}：退步 ${r3(v)}（${(guardRule() ? famParts(ge, f).length : f.guards.length) > 1 ? (guardRule() ? "各官方護欄 r 的平方平均，只顯示" : "各護欄 r 的平均") : "就是這個護欄的 r"}）`)}"><span class="dnum"><span class="lnum dl ${+v.toFixed(3) > 0 ? "down" : ""}">${r3(v)}</span></span></span>`; };
   // visible: one row per family (the leaderboard's guard dimensions) and r_guard; each guard's rows, the kit lines and the regrade in 各護欄
   const rows = FAMS().map(f => grid(`<span lang="${famLang(f)}" title="${esc(famTip(f))}">${esc(famName(f))}</span>`, ges.map((ge, i) => famCell(ge, ms[i], f)).join(""), " mfam", og ? orgFamEx(f, [...new Set(Object.keys(OGR).filter(k => keyFam(k) === f))]) : undefined)).join("")
-    + (og && Object.keys(OGR).some(k => !keyFam(k)) ? grid(`<span>其他</span><span class="sub">organism 護欄，不在家族內</span>`, ges.map(() => `<span class="mcell muted">–</span>`).join(""), " mfam", orgFamEx(null, Object.keys(OGR).filter(k => !keyFam(k)))) : "");
+    + (og && Object.keys(OGR).some(k => k !== KA && !keyFam(k)) ? grid(`<span>其他</span><span class="sub">organism 護欄，不在家族內</span>`, ges.map(() => `<span class="mcell muted">–</span>`).join(""), " mfam", orgFamEx(null, Object.keys(OGR).filter(k => k !== KA && !keyFam(k)))) : "")
+    + (ka ? grid(`<span lang="en">known-answer cell</span><span class="sub" lang="en">C151 · rows chosen on unsteered s0, scored s1-2</span>`, ges.map(() => `<span class="mcell muted">–</span>`).join(""), " mfam",
+      kaOn ? orgGuardCell(KA, "") + "<span></span>" : `<span class="mcell muted" title="${esc(`${KA_LAB}：未量測；${cardNo}`)}">未量測</span><span></span>`) : "");
   const grows = FAMS().map(f => `<div class="mfsub" lang="${famLang(f)}">${esc(famName(f))}</div>`
     + famKids(f).map(({o, dim}) => grid(`<span lang="en"${o && GAST[o] ? ` title="${esc(GAST[o])}"` : ""}>${esc(nameOf(o || dim))}</span>`, ges.map((ge, i) => !o ? cell(ge, ms[i], kidE(ge, dim), dim)
       : ge.none || ge.off?.[o]?.n ? cell(ge, ms[i], ge.off?.[o], dim) : `<span class="mcell muted" title="${esc(`${nameOf(o)} · ${ms[i].m}：${NOT_MEASURED}`)}">未量測</span>`).join(""), " mdim msub", og ? orgGuardCell(o || dim, "") + "<span></span>" : undefined)).join("")).join("");
@@ -3513,7 +3526,7 @@ function guardSec(card, colhead) {  // colhead is reassigned for the two-column 
     if (ge.none || ge.rg == null) return `<span class="mcell muted" title="${esc(rgText(ms[i].m, ge))}">–</span>`;
     return `<span class="mcell" title="${esc(rgText(ms[i].m, ge, ms[i]))}"><span class="dnum"><span class="rate big ${+ge.rg.toFixed(3) > 0 ? "lo" : "zero"}">${r3(ge.rg)}</span>${regradeTotal(ms[i]) ? rgdChip() : ""}${
       ge.present.length < IDX.guards.length ? `<span class="raw">${ge.present.length}/${IDX.guards.length} 個護欄</span>` : ""}${ge.complete ? "" : `<span class="raw">部分：${ge.have} / ${ge.units} 個單位</span>`}</span></span>`;
-  }).join(""), " mhl", og ? `<span></span>${og.r_guard_pooled == null ? "<span></span>" : `<span class="mcell" title="${esc(`r_guard（合併）：基準 ${og.n_terms_base ?? "–"} 項 + organism ${og.n_terms_organism ?? "–"} 項的平方平均（C133，暫定）；${cardNo}`)}"><span class="rate big ${+og.r_guard_pooled.toFixed(3) > 0 ? "lo" : "zero"}">${r3(og.r_guard_pooled)}</span></span>`}` : undefined);
+  }).join(""), " mhl", og ? `<span></span>${og.r_guard_pooled == null ? "<span></span>" : `<span class="mcell" title="${esc(`r_guard（合併）：基準 ${og.n_terms_base ?? "–"} 項 + organism ${og.n_terms_organism ?? "–"} 項的平方平均（${orgK(hlDoc(card)?.models?.[MKEY[one()]])}，暫定）；${cardNo}`)}"><span class="rate big ${+og.r_guard_pooled.toFixed(3) > 0 ? "lo" : "zero"}">${r3(og.r_guard_pooled)}</span></span>`}` : undefined);
   const kits = IDX.guards.filter(({dim}) => ges.some(ge => ge.per?.[dim]?.kit)).map(({dim}) => {
     const n = ges.find(ge => ge.per?.[dim]?.kit)?.per[dim].kit.rows;
     return grid(`kit 對照 · <span lang="${langOf(dim)}">${esc(label(dim))}</span><span class="sub">已含在上面</span>`, ges.map((ge, i) => cell(ge, ms[i], ge.per?.[dim]?.kit, dim, true)).join(""), " mkit");
@@ -3753,7 +3766,7 @@ function sCellM(c, m) {  // one model's S (the 三模型 table's per-model colum
 const altCard = card => HEAD_RD() !== RDP || card.numbers ? null : cards(RDV).find(x => x.S === card.S && x.arm === card.arm) || null;
 const altGate = a => !a?.comp ? `沒有 g_${a?.arm ?? ""}.json 可對照` : a.comp.ok ? `和 ${a.comp.file} 一致` : `和 ${a.comp.file} 不一致：${a.comp.why}`;
 const rdTip = c => HEAD_RD() === RDP && !c.numbers ? `。主數字是 pack 2 讀法（${P2().label}）${c.comp ? `，${c.comp.ok ? `和 ${c.comp.file} 一致` : `${c.comp.file}：${c.comp.why}`}` : "，沒有 pack 2 卡片可對照"}` : "";
-const orgOf = (c, m) => c.comp?.ok ? c.comp.doc?.models?.[MKEY[m]]?.organism_c133 || null : null;
+const orgOf = (c, m) => c.comp?.ok ? orgB(c.comp.doc?.models?.[MKEY[m]]) || null : null;
 // ---------- the headline with the organism term (user 2026-11-14: "the headline of pack 2 is with the organism term") ----------
 // score.py's models.<m>.S_headline (and cross_model.S_headline when all three have one), a card number: shown and ranked only where the card
 // agrees with the page's own pack 2 numbers (its gate). Basis "organism measured" reads org, "organism estimated" (g_org = 0, older
@@ -3779,11 +3792,11 @@ const hlV = c => one() ? hlSub(c, one()) ?? hlM(c, one())?.S_headline ?? null : 
 // the headline's own terms (Main 2026-11-14, the user: a headline row must add up): Δ = organism_c133.delta_combined (2/3·Δ + 1/3·g_org),
 // r_guard = organism_c133.r_guard_pooled, or the card's vanilla r_guard where it has none (estimated cards); card numbers. 三模型: the means
 // over the models (every model with a headline). r_side stays the page's (measured, or put in)
-const hlT = (c, m) => { const h = hlM(c, m); if (!h) return null; const o = h.organism_c133 || {}, d = o.delta_combined, rg = o.r_guard_pooled ?? h.r_guard;
+const hlT = (c, m) => { const h = hlM(c, m); if (!h) return null; const o = orgB(h) || {}, d = o.delta_combined, rg = o.r_guard_pooled ?? h.r_guard;
   return d == null || rg == null ? null : {d, rg, h, pooled: o.r_guard_pooled != null}; };
 const hlTAll = c => { if (one() || !hasHL(c)) return null; const ts = MODELS.map(m => hlT(c, m)); return ts.every(Boolean) ? {d: avg(ts.map(t => t.d)), rg: avg(ts.map(t => t.rg)), ts} : null; };
 const hlTx = c => one() ? hlT(c, one()) : hlTAll(c);
-const hlDTip = (c, ms) => ms.map(m => { const t = hlT(c, m); return `${m} Δ ${sgn(t.d, 3)} = 2/3·${sgn(t.h.delta, 3)} + 1/3·g_org ${sgn(t.h.organism_c133.g_org ?? 0, 3)}（vanilla Δ ${sgn(t.h.delta, 3)}）`; }).join("；");
+const hlDTip = (c, ms) => ms.map(m => { const t = hlT(c, m); return `${m} Δ ${sgn(t.d, 3)} = 2/3·${sgn(t.h.delta, 3)} + 1/3·g_org ${sgn(orgB(t.h).g_org ?? 0, 3)}（vanilla Δ ${sgn(t.h.delta, 3)}）`; }).join("；");
 const hlGTip = (c, ms) => ms.map(m => { const t = hlT(c, m); return `${m} r_guard ${r3(t.rg)}${t.pooled ? "（合併 organism 護欄；vanilla " + r3(t.h.r_guard) + "）" : "（沒有合併值，用 vanilla）"}`; }).join("；");
 // ranked with the headline: the model's S_headline in one model's view; in 三模型 any model's (the cross mean may be null under its completeness
 // gate, shown as – with the card's note, sorted last among the ranked)
@@ -3794,12 +3807,12 @@ const hasHL = c => hlWait(c) || (one() ? hlV(c) != null : MODELS.some(m => hlM(c
 // the card's note on a null cross_model.S_headline (dims 2026-11-14: "null with a note"; any S_headline_* text field of cross_model)
 const hlNote = c => { const x = hlDoc(c)?.cross_model || {}; return x.S_headline_note ?? x.S_headline_why ?? Object.entries(x).find(([k, v]) => /^S_headline_/.test(k) && typeof v === "string")?.[1] ?? null; };
 const hlNull = c => { const n = hlNote(c); return `<span class="muted">–</span>${n ? `<span class="raw hln" lang="en" title="${esc(n)}">${esc(n)}</span>` : ""}`; };
-const hlEst = x => !!x?.organism_c133?.estimated;
-const hlTip = x => hlEst(x) ? "estimated g_org = 0 (older submission), no organism guard terms" : ORG_LABEL;
+const hlEst = x => !!orgB(x)?.estimated;
+const hlTip = x => hlEst(x) ? "estimated g_org = 0 (older submission), no organism guard terms" : orgB(x)?.label || ORG_LABEL;
 const hlTag = (xs, file) => xs.some(hlEst) ? `<sup class="est" lang="en" title="${esc(`${xs.map(x => hlTip(x)).filter((v, i, a) => a.indexOf(v) === i).join("；")}。S_headline，卡片數字（${file}），頁面沒有重算`)}">est</sup>` : "";
 // a model's organism term for a tooltip (card numbers): g_org (factual holdout), pooled r_guard, S_organism. Pack 2.0's organism term is the
 // plain-fact rows only (the user 2026-11-14, via pack_1): the card's other readings (also, the 0181 dims_test field) are not shown
-const orgTip = x => { const o = x?.organism_c133; if (!o) return "";
+const orgTip = x => { const o = orgB(x); if (!o) return "";
   return `；g_org（factual holdout）${o.g_org == null ? "–" : sgn(o.g_org, 3)}、r_guard（含 organism）${o.r_guard_pooled == null ? "–" : r3(o.r_guard_pooled)}、S_organism ${o.S_organism == null ? "–" : sgn(o.S_organism, 3)}`; };
 const cfileOf = c => c.numbers ? c.S.cfile?.[`${HEAD_RD()}|${c.arm}`] : c.comp?.file;
 // the other readings of a ranked cell, in its tooltip only (one number per ranked cell; Main 2026-11-14): v2.10 S (the page's), and without a
@@ -4053,7 +4066,7 @@ function gcmpFoot(c) {
 // the organism eval's row in the heatmap: g_org per model (higher is better, like the dims' g), the page's where the reference lines are
 // loaded, else the card's (organism_c133.g_org) marked 卡片數字; provisional (C133)
 function orgCells(c, d) {
-  return regRow(m => { const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), ck = orgCheck(c, m), card = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133;
+  return regRow(m => { const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), ck = orgCheck(c, m), card = orgB(hlDoc(c)?.models?.[MKEY[m]]);
     const num = v => `<span class="dl ${+v.toFixed(3) < 0 ? "down" : ""}">${sgn(v, 3)}</span>`;
     if (p?.g != null) return regTd(num(p.g) + (ck && !ck.ok ? `<sup title="卡片 ${sgn(ck.card, 3)}">≠卡片</sup>` : ""), `${who}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，參照 ${p.ref} h_ref ${r3(p.href)}，${p.n} 個 gated 列）${ck ? (ck.ok ? "；和卡片一致" : `；卡片 ${sgn(ck.card, 3)}，不一致`) : ""}；provisional（C133）`);
     if (card?.g_org != null) return regTd(num(card.g_org) + `<sup>${card.estimated ? "估計" : "卡片"}</sup>`, `${who}：卡片數字 g_org ${sgn(card.g_org, 3)}${card.estimated ? "（估計）" : ""}；${p?.missing ? `參照 ${p.ref} 的回答不在載入的來源裡` : "頁面沒有這個方法的 organism 回答"}，沒有重算；provisional（C133）`, true);
@@ -4061,8 +4074,8 @@ function orgCells(c, d) {
 }
 // the organism's g_org for a method and model: the page's where the reference lines are loaded, else the card's (marked); null when neither
 function orgGval(c, m) {
-  const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), o = hlDoc(c)?.models?.[MKEY[m]]?.organism_c133;
-  if (p?.g != null) return {v: p.g, tag: "", page: true, tip: `${who}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，參照 ${p.ref} h_ref ${r3(p.href)}，${p.n} 個 gated 列）；provisional（C133）`};
+  const who = `factual holdout · ${dispName(c)} · ${m}`, p = c.numbers ? null : orgG(c.S.name, c.arm, m), o = orgB(hlDoc(c)?.models?.[MKEY[m]]);
+  if (p?.g != null) return {v: p.g, tag: "", page: true, tip: `${who}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，參照 ${p.ref} h_ref ${r3(p.href)}，${p.n} 個 gated 列）；provisional`};
   if (o?.g_org != null) return {v: o.g_org, tag: o.estimated ? "估計" : "卡片", page: false, tip: `${who}：g_org ${sgn(o.g_org, 3)}${o.estimated ? "（估計）" : ""}；${p?.missing ? `參照 ${p.ref} 的回答不在載入的來源裡` : "頁面沒有這個方法的 organism 回答"}；provisional（C133）；卡片數字（${cfileOf(c)}），頁面沒有重算`};
   return null;
 }
@@ -4096,7 +4109,7 @@ function cmpHTML(cols) {
   const sd = DSIDE && sideReady() && cols.some(c => MODELS.some(m => sideEval(c.per[m]).state !== "none")) ? `<tbody><tr class="gsec sdsec"><th scope="rowgroup" colspan="${nc}">side · ${SCATS().filter(k => !catApart(k)).length + catsUnmeasured().length}<span>退步</span></th></tr>
     ${SCATS().filter(k => !catApart(k)).map(sCat).join("")}${catsUnmeasured().map(sUnm).join("")}${apartB.length ? sApart() : ""}</tbody>
     <tbody class="sum"><tr><th scope="row">r_side <span class="muted small">${st.mmodel === "all" ? "三模型" : st.mmodel}</span></th>${blank}${cols.map(scmpFoot).join("")}</tr></tbody>` : "";
-  const og = IDX.org?.length && cols.some(c => !c.base && MODELS.some(m => (ORGL[c.S?.name] || []).some(x => x.a === c.arm) || hlDoc(c)?.models?.[MKEY[m]]?.organism_c133)) ? `<tbody><tr class="gsec ogsec"><th scope="rowgroup" colspan="${nc}"><span lang="en">Organism (C133)</span> · ${IDX.org.length}<span>g_org · provisional</span></th></tr>
+  const og = IDX.org?.length && cols.some(c => !c.base && MODELS.some(m => (ORGL[c.S?.name] || []).some(x => x.a === c.arm) || orgB(hlDoc(c)?.models?.[MKEY[m]]))) ? `<tbody><tr class="gsec ogsec"><th scope="rowgroup" colspan="${nc}"><span lang="en">Organism (C133)</span> · ${IDX.org.length}<span>g_org · provisional</span></th></tr>
     ${IDX.org.map(d => `<tr class="gfam"><th scope="row"><span lang="en" title="${esc(d.label || IDX.meta.organism_label || "")}">factual holdout</span></th>${all.map(c => c.base ? blank : orgCells(c, d)).join("")}</tr>`).join("")}</tbody>` : "";
   const gcellDims = IDX.dims.map(d => d.dim).filter(d => cols.some(c => !c.base && MODELS.some(m => guardEval(c.per[m]).cells?.[d] != null)));
   const gcellRow = dim => `<tr class="gfam"><th scope="row"><span class="gfb gfx"><span lang="${langOf(dim)}">${esc(nameOf(dim))}</span><span class="cnt">已及格維度</span></span></th>${all.map(c => c.base ? blank : regRow(m => { const v = guardEval(c.per[m]).cells?.[dim], who = `${nameOf(dim)} · ${dispName(c)} · ${m}`;
@@ -4266,10 +4279,10 @@ function otherReadings(c) {
     ["basis", "依據", m => doc?.models?.[MKEY[m]]?.S_headline_basis ?? null, 1],
     ["van", p2 ? "vanilla pack 2 S" : "S", m => { const v = c.per[m]?.ok ? sShown(c.per[m]) : null; return v == null ? null : sgn(v, 3); }],
     ["v210", "v2.10 S", m => { const y = a?.per[m], v = y?.ok ? sShown(y) : null; return v == null ? null : sgn(v, 3); }],
-    ["gorg", "g_org（factual holdout）", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; if (o?.g_org == null) return null; const k = orgCheck(c, m);
+    ["gorg", "g_org（factual holdout）", m => { const o = orgB(doc?.models?.[MKEY[m]]); if (o?.g_org == null) return null; const k = orgCheck(c, m);
       return `${sgn(o.g_org, 3)}${k?.ok === true ? "（頁面算一致）" : k?.ok === false ? `（頁面算 ${sgn(k.page, 3)}，不一致）` : o.estimated ? "（估計）" : "（卡片數字）"}`; }],
-    ["rgp", "r_guard（含 organism）", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.r_guard_pooled == null ? null : r3(o.r_guard_pooled); }],
-    ["sorg", "S_organism", m => { const o = doc?.models?.[MKEY[m]]?.organism_c133; return o?.S_organism == null ? null : sgn(o.S_organism, 3); }],
+    ["rgp", "r_guard（含 organism）", m => { const o = orgB(doc?.models?.[MKEY[m]]); return o?.r_guard_pooled == null ? null : r3(o.r_guard_pooled); }],
+    ["sorg", "S_organism", m => { const o = orgB(doc?.models?.[MKEY[m]]); return o?.S_organism == null ? null : sgn(o.S_organism, 3); }],
   ].filter(([, , f]) => ms.some(m => f(m) != null));
   if (!ms.length || cols.length < 2) return "";
   const body = ms.map(m => `<tr><th scope="row">${m}</th>${cols.map(([, , f, txt]) => { const v = f(m); return `<td${txt ? ` class="rb"` : ""}>${v == null ? `<span class="muted">–</span>` : esc(v)}</td>`; }).join("")}</tr>`).join("");
@@ -4595,7 +4608,7 @@ function osumHTML() {
     return p?.g == null ? `<span class="muted">–</span>` : `<span title="${esc(`${m}：g_org ${sgn(p.g, 3)}（h ${r3(p.h)}，h_ref ${r3(p.href)}，${p.n} 個 gated 列）`)}"><span class="dl ${+p.g.toFixed(3) < 0 ? "down" : ""}">${sgn(p.g, 2)}</span> <span class="muted small">h ${cr2(p.h)}</span></span>`; }).join("")}</div>`).join("");
   return `<div class="fsum"><h2>維度總覽</h2>
     <p class="gdir">${esc(d.label || IDX.meta.organism_label || "")}</p>
-    <div class="otab" style="--nm: ${ms.length}">${head}${ref}${meth ? `<div class="osep">g_org（provisional，C133）</div>${meth}` : ""}</div>
+    <div class="otab" style="--nm: ${ms.length}">${head}${ref}${meth ? `<div class="osep">g_org（provisional）</div>${meth}` : ""}</div>
     <p class="facts">${d.pitems} 題，每個模型 200 個 gated 列計分 · 本頁的 unsteered 是各模型的 stand-in organism · ${D.judge.kind === "judge" ? "評審" : "評分"} <button type="button" class="ilink mono" data-judge lang="en">${esc(String(d.judge).split(" ")[0])}</button></p></div>`;
 }
 // a 護欄's summary: what it guards against (direction), unsteered's score per model, the arms' table folded, the facts, the grader
@@ -5108,7 +5121,7 @@ function keyDrawer(adopt) {
   <ul class="small rule">
     <li><span class="raw">${NO_SIDE}</span>：S 沒減 r_side（還沒跑 side）</li>
     <li><span class="subbox" aria-hidden="true"></span>虛線框 = ${SUB}：開了「side：代入參考值」時，不跑 side 的方法用 unsteered 基準的 r_side 算的 S；不是量測值</li>
-    ${HL() ? `<li>S 含 organism term（C133，暫定）；<sup class="est">est</sup> = 估計 g_org</li>` : ""}
+    ${HL() ? `<li>S 含 organism term（${HLKIND()}，暫定）；<sup class="est">est</sup> = 估計 g_org</li>` : ""}
     ${Object.entries(GAST).map(([g, why]) => `<li><b>${esc(nameOf(g))}</b>：<span lang="en">${esc(why)}</span></li>`).join("")}${
       FAMS().filter(f => FAST[f.name]).map(f => `<li><b>${esc(famName(f))}</b>：<span lang="en">${esc(FAST[f.name])}</span></li>`).join("")}
     ${Object.entries(IDX?.meta.arm_roles || {}).filter(([, r]) => r.best_effort).map(([a, r]) => `<li><b lang="en">${esc(a)}*</b>：<span lang="en">${esc(r.best_effort)}</span></li>`).join("")}
